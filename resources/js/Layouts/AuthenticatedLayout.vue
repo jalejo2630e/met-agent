@@ -13,8 +13,8 @@ const showingNavigationDropdown = ref(false);
 const page = usePage();
 const flashSuccess = computed(() => page.props.flash?.success);
 const flashError = computed(() => page.props.flash?.error);
-const logoUrl = computed(() => page.props.settings?.company_logo_url || '/logo.png');
-const faviconUrl = computed(() => page.props.settings?.favicon_url || '/logo.png');
+const logoUrl = computed(() => page.props.settings?.company_logo_url || '/colsanitas.png');
+const faviconUrl = computed(() => page.props.settings?.favicon_url || '/colsanitas.png');
 </script>
 
 <template>

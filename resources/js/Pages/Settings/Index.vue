@@ -139,11 +139,11 @@ function submit() {
 
 const currentLogoUrl = props.settings?.company_logo
     ? `/storage/${props.settings.company_logo}`
-    : '/logo.png';
+    : '/colsanitas.png';
 
 const currentFaviconUrl = props.settings?.site_favicon
     ? `/storage/${props.settings.site_favicon}`
-    : '/logo.png';
+    : '/colsanitas.png';
 
 const apiBaseUrl = computed(() => (typeof window !== 'undefined' ? window.location.origin : ''));
 const showApiDocs = ref(false);

@@ -6,8 +6,8 @@ import { usePrimaryColor } from '@/composables/usePrimaryColor';
 usePrimaryColor();
 
 const page = usePage();
-const faviconUrl = computed(() => page.props.settings?.favicon_url || '/logo.png');
-const logoUrl = computed(() => page.props.settings?.company_logo_url || '/logo.png');
+const faviconUrl = computed(() => page.props.settings?.favicon_url || '/colsanitas.png');
+const logoUrl = computed(() => page.props.settings?.company_logo_url || '/colsanitas.png');
 const companyName = computed(() => page.props.settings?.company_name);
 </script>
 

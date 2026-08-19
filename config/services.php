@@ -45,6 +45,17 @@ return [
     ],
 
     /*
+    | Twilio: canal de WhatsApp/SMS para el agente NATIVO de Laravel (reemplaza n8n
+    | en el flujo de texto). auth_token valida la firma del webhook entrante.
+    | Webhook a configurar en Twilio: POST /api/agents/{agent_id}/twilio/whatsapp
+    */
+    'twilio' => [
+        'account_sid' => env('TWILIO_ACCOUNT_SID'),
+        'auth_token' => env('TWILIO_AUTH_TOKEN'),
+        'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
+    ],
+
+    /*
     | API Supabase (misma URL/anon key que el frontend; útil para futuras llamadas REST desde PHP).
     | En PHP también se leen VITE_SUPABASE_* como respaldo si no existen SUPABASE_* sin prefijo.
     */

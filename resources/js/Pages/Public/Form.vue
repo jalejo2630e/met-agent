@@ -16,7 +16,7 @@ const props = defineProps({
 
 const page = usePage();
 
-const logoUrl = computed(() => page.props.settings?.company_logo_url || '/logo.png');
+const logoUrl = computed(() => page.props.settings?.company_logo_url || '/colsanitas.png');
 const flashSuccess = computed(() => page.props.flash?.success);
 
 const hasQuestions = computed(() => props.questions.length > 0);

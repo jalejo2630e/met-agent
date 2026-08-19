@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\CallAlertApiController;
 use App\Http\Controllers\Api\CallbackRequestApiController;
 use App\Http\Controllers\Api\ClientApiController;
 use App\Http\Controllers\Api\CollectDataController;
+use App\Http\Controllers\Api\TwilioMessageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,3 +36,12 @@ Route::post('agents/{agent}/callback-requests', CallbackRequestApiController::cl
 Route::post('agents/{agent}/call-alerts', CallAlertApiController::class)
     ->whereNumber('agent')
     ->name('api.agents.call-alerts');
+
+/*
+ * Webhook de Twilio (WhatsApp/SMS) → agente de IA NATIVO de Laravel (reemplaza n8n
+ * para el canal de texto). Configura esta URL en Twilio "When a message comes in".
+ * La firma se valida con TWILIO_AUTH_TOKEN si está definido.
+ */
+Route::post('agents/{agent}/twilio/whatsapp', TwilioMessageController::class)
+    ->whereNumber('agent')
+    ->name('api.agents.twilio.whatsapp');

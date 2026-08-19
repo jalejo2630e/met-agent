@@ -30,7 +30,7 @@ class MailBranding
             'primary_hex' => '#a3e635',
             'button_foreground' => '#1a1a1a',
             'link_hex' => '#33475b',
-            'logo_url' => null,
+            'logo_url' => asset('colsanitas.png'),
             'app_name' => $appName,
         ];
 
@@ -52,7 +52,7 @@ class MailBranding
             $logoPath = Setting::get('company_logo');
             $logoUrl = (is_string($logoPath) && $logoPath !== '')
                 ? asset('storage/'.$logoPath)
-                : null;
+                : asset('colsanitas.png');
 
             $fg = self::buttonForegroundForHex($primary);
             $link = self::linkColorForPrimary($primary);

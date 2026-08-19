@@ -6,6 +6,7 @@ use App\Http\Controllers\AgentEndpointController;
 use App\Http\Controllers\AgentFormController;
 use App\Http\Controllers\AgentReportController;
 use App\Http\Controllers\AgentReportWidgetController;
+use App\Http\Controllers\CallAnalysisController;
 use App\Http\Controllers\CustomReportController;
 use App\Http\Controllers\PublicFormController;
 use App\Http\Controllers\SendAgentReportController;
@@ -41,6 +42,12 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::put('agents/{agent}/message-config', [AgentConfigController::class, 'updateMessageConfig'])->name('agents.message-config.update');
+
+    // Análisis de llamada con IA (Laravel AI SDK): resumen + clasificación + alerta automática
+    Route::post('agents/{agent}/call-analysis', [CallAnalysisController::class, 'analyze'])
+        ->whereNumber('agent')
+        ->name('agents.call-analysis.analyze');
+
     Route::put('agents/{agent}/call-config', [AgentConfigController::class, 'updateCallConfig'])->name('agents.call-config.update');
     Route::put('agents/{agent}/call-prompt-config', [AgentConfigController::class, 'updateCallPromptConfig'])->name('agents.call-prompt-config.update');
     Route::put('agents/{agent}/prompt-config', [AgentConfigController::class, 'updatePromptConfig'])->name('agents.prompt-config.update');

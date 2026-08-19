@@ -1,4 +1,4 @@
-# Dockerfile Laravel (PHP 8.4 + Nginx): vendor → frontend (Vite) → runtime
+# Dockerfile Laravel 13 (PHP 8.4 + Nginx): vendor → frontend (Vite) → runtime
 # ---------------------------------------------------------------------------
 # Stage 1: Composer (para vendor y para Ziggy en el build de Vite)
 # ---------------------------------------------------------------------------
@@ -88,5 +88,5 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/app.conf
 EXPOSE 80
 
 # Arranque: preparar directorios, permisos y ejecutar Supervisord (PID 1)
-CMD ["sh", "-c", "mkdir -p bootstrap/cache storage/framework/sessions storage/framework/views storage/framework/cache storage/logs storage/app/public 2>/dev/null || true; chown -R www-data:www-data /app/storage /app/bootstrap/cache 2>/dev/null || true; chmod -R 775 /app/storage /app/bootstrap/cache 2>/dev/null || true; php artisan storage:link 2>/dev/null || true; exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf"]
+CMD ["sh", "-c", "mkdir -p bootstrap/cache storage/framework/sessions storage/framework/views storage/framework/cache storage/logs storage/app/public 2>/dev/null || true; chown -R www-data:www-data /app/storage /app/bootstrap/cache 2>/dev/null || true; chmod -R 775 /app/storage /app/bootstrap/cache 2>/dev/null || true; php artisan storage:link 2>/dev/null || true; php artisan migrate --force --no-interaction 2>/dev/null || true; php artisan config:cache 2>/dev/null || true; php artisan route:cache 2>/dev/null || true; php artisan view:cache 2>/dev/null || true; exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf"]
 
