@@ -156,7 +156,7 @@ const submit = () => {
         >
             <div
                 class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                style="background-image: url('/images/login-bg.png')"
+                style="background-image: url('/images/login-bg.jpg')"
                 aria-hidden="true"
             />
             <!-- Tinte con el color principal de configuración (50 % de opacidad; la imagen se ve a través) -->
