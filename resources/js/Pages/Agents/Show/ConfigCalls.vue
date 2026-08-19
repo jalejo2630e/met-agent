@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -16,6 +16,7 @@ const sc = computed(() => config.value.schedule_config || {});
 const form = useForm({
     webhook_url: config.value.webhook_url ?? '',
     elevenlabs_agent_id: config.value.elevenlabs_agent_id ?? '',
+    elevenlabs_phone_number_id: config.value.elevenlabs_phone_number_id ?? '',
     schedule_config: {
         hours: sc.value.hours ?? { start: '09:00', end: '18:00' },
         days_of_week: sc.value.days_of_week ?? [],
@@ -32,6 +33,20 @@ const canEditWebhook = () => page.props.auth?.canAccessWebhooksAndTechnical === 
 const submit = () => {
     form.put(route('agents.call-config.update', props.agent));
 };
+
+// Webhook post-call para pegar en ElevenLabs (recibe transcripciones/audio y libera la cola).
+const appOrigin = computed(() => (typeof window !== 'undefined' ? window.location.origin : ''));
+const postCallWebhookUrl = computed(() => `${appOrigin.value}/api/agents/${props.agent?.id}/elevenlabs/post-call`);
+const webhookCopied = ref(false);
+async function copyPostCallWebhook() {
+    try {
+        await navigator.clipboard.writeText(postCallWebhookUrl.value);
+        webhookCopied.value = true;
+        setTimeout(() => { webhookCopied.value = false; }, 2000);
+    } catch (e) {
+        // El usuario puede copiar manualmente si el navegador bloquea el portapapeles.
+    }
+}
 </script>
 
 <template>
@@ -41,8 +56,9 @@ const submit = () => {
             <div class="p-6">
                 <h3 class="text-lg font-medium text-gray-900">Configuración de contacto por llamada</h3>
                 <p class="mt-1 text-sm text-gray-500">
-                    El <strong>webhook</strong> y el <strong>ID del agente de ElevenLabs</strong> se envían por POST en cada llamada.
-                    El prompt del agente de voz se administra directamente en ElevenLabs. La configuración de campañas masivas está en la pestaña <strong>Campañas</strong>.
+                    El <strong>webhook</strong>, el <strong>ID del agente</strong> y el <strong>ID del número (phone number)</strong> de ElevenLabs
+                    se envían por POST en cada llamada, junto con los datos del cliente y sus variables dinámicas.
+                    El prompt del agente de voz se administra directamente en ElevenLabs.
                 </p>
 
                 <form @submit.prevent="submit" class="mt-6 space-y-6">
@@ -59,10 +75,22 @@ const submit = () => {
                             v-model="form.elevenlabs_agent_id"
                             type="text"
                             class="mt-1 block w-full font-mono"
-                            placeholder="Ej: abc123... (ID del agente de voz en ElevenLabs)"
+                            placeholder="Ej: agent_abc123..."
                         />
-                        <p class="mt-1 text-xs text-gray-500">Se envía junto con el webhook por POST en cada llamada.</p>
                         <InputError :message="form.errors.elevenlabs_agent_id" class="mt-1" />
+                    </div>
+
+                    <div>
+                        <InputLabel for="elevenlabs_phone_number_id" value="ID del número · phone number id (ElevenLabs)" />
+                        <TextInput
+                            id="elevenlabs_phone_number_id"
+                            v-model="form.elevenlabs_phone_number_id"
+                            type="text"
+                            class="mt-1 block w-full font-mono"
+                            placeholder="Ej: phnum_abc123..."
+                        />
+                        <p class="mt-1 text-xs text-gray-500">Número saliente de ElevenLabs. Se envía junto con el ID del agente por POST en cada llamada.</p>
+                        <InputError :message="form.errors.elevenlabs_phone_number_id" class="mt-1" />
                     </div>
 
                     <div>
@@ -90,6 +118,39 @@ const submit = () => {
 
                     <PrimaryButton :disabled="form.processing">Guardar configuración</PrimaryButton>
                 </form>
+            </div>
+        </div>
+
+        <!-- Webhook Post-Call de ElevenLabs -->
+        <div class="overflow-hidden rounded-lg border border-emerald-200 bg-white">
+            <div class="border-b border-emerald-200 bg-emerald-50/50 px-6 py-4">
+                <h3 class="text-lg font-semibold text-[#33475b]">Webhook Post-Call (ElevenLabs)</h3>
+                <p class="mt-1 text-sm text-[#425b76]">
+                    Pega esta URL en ElevenLabs → <em>Conversational AI → Post-call webhook</em>. Recibe la
+                    <strong>transcripción y el audio</strong> de cada llamada, dispara el análisis de IA y
+                    <strong>libera la cola</strong> para ejecutar las siguientes (de a 10).
+                </p>
+            </div>
+            <div class="space-y-3 p-6">
+                <InputLabel value="URL del webhook post-call" />
+                <div class="flex flex-wrap items-center gap-2">
+                    <input
+                        :value="postCallWebhookUrl"
+                        readonly
+                        class="min-w-0 flex-1 rounded-md border-[#e3e8ee] bg-[#f5f8fa] font-mono text-sm text-[#33475b]"
+                        @focus="(e) => e.target.select()"
+                    />
+                    <button
+                        type="button"
+                        class="shrink-0 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                        @click="copyPostCallWebhook"
+                    >
+                        {{ webhookCopied ? '¡Copiado!' : 'Copiar' }}
+                    </button>
+                </div>
+                <p class="text-xs text-[#64748b]">
+                    Define <code class="rounded bg-[#e3e8ee] px-1">ELEVENLABS_WEBHOOK_SECRET</code> en el servidor para validar la firma del webhook.
+                </p>
             </div>
         </div>
     </div>

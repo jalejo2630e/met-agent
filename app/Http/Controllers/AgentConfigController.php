@@ -100,6 +100,7 @@ class AgentConfigController extends Controller
         $validated = $request->validate([
             'webhook_url' => 'nullable|url',
             'elevenlabs_agent_id' => 'nullable|string|max:255',
+            'elevenlabs_phone_number_id' => 'nullable|string|max:255',
             'schedule_config' => 'nullable|array',
             'schedule_config.hours' => 'nullable|array',
             'schedule_config.hours.start' => 'nullable|string',

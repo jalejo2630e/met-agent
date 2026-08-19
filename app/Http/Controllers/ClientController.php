@@ -954,7 +954,7 @@ class ClientController extends Controller
         }
     }
 
-    public function initiateCall(Agent $agent, Client $client)
+    public function initiateCall(Agent $agent, Client $client, \App\Services\ContactQueueService $queues)
     {
         $this->authorize('view', $agent);
 
@@ -972,53 +972,9 @@ class ClientController extends Controller
             ], 422);
         }
 
-        $clientPayload = [
-            'id' => $client->id,
-            'name' => $client->name,
-            'lastname' => $client->lastname,
-            'email' => $client->email,
-            'phone' => $client->phone,
-            'document_type' => $client->document_type,
-            'document' => $client->document,
-            'custom_fields' => $client->custom_fields ?? [],
-        ];
-
-        $preloadEndpoints = [];
-        $preloadData = [];
-
-        foreach ($agent->clientSourceEndpoints ?? [] as $ep) {
-            $preloadEndpoints[] = [
-                'name' => $ep->name,
-                'url' => $ep->url,
-                'headers' => $ep->headers ?? [],
-            ];
-
-            try {
-                $url = $ep->url;
-                $query = array_filter([
-                    'email' => $client->email,
-                    'phone' => $client->phone,
-                ]);
-                if (! empty($query)) {
-                    $url .= (str_contains($ep->url, '?') ? '&' : '?').http_build_query($query);
-                }
-                $response = Http::withHeaders($ep->headers ?? [])
-                    ->timeout(10)
-                    ->get($url);
-                if ($response->successful()) {
-                    $data = $response->json();
-                    $preloadData[$ep->name] = $data;
-                }
-            } catch (\Throwable) {
-                $preloadData[$ep->name] = null;
-            }
-        }
-
-        $payload = [
-            'client' => $clientPayload,
-            'preload_endpoints' => $preloadEndpoints,
-            'preload_data' => $preloadData,
-        ];
+        // Payload compartido con la cola de llamadas: agent_id + phone_number_id de
+        // ElevenLabs, datos del cliente, variables dinámicas y datos de precarga.
+        $payload = $queues->buildCallPayload($agent, $client);
 
         try {
             $response = Http::timeout(30)->post($webhookUrl, $payload);

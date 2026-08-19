@@ -67,6 +67,13 @@ class ProcessContactQueueJob implements ShouldQueue
         $agent->load(['callConfig', 'messageConfig', 'clientSourceEndpoints']);
         $type = $queue->type;
 
+        // Las llamadas usan ventana deslizante de concurrencia liberada por el post-call.
+        if ($type === ContactQueue::TYPE_CALL) {
+            app(\App\Services\CallBatchService::class)->start($queue);
+
+            return;
+        }
+
         $processed = 0;
         $failed = 0;
         $batchSize = 10;

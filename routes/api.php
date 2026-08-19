@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\CallAlertApiController;
 use App\Http\Controllers\Api\CallbackRequestApiController;
 use App\Http\Controllers\Api\ClientApiController;
 use App\Http\Controllers\Api\CollectDataController;
+use App\Http\Controllers\Api\PostCallWebhookController;
 use App\Http\Controllers\Api\TwilioMessageController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,3 +46,12 @@ Route::post('agents/{agent}/call-alerts', CallAlertApiController::class)
 Route::post('agents/{agent}/twilio/whatsapp', TwilioMessageController::class)
     ->whereNumber('agent')
     ->name('api.agents.twilio.whatsapp');
+
+/*
+ * Webhook Post-Call de ElevenLabs: recibe transcripción + audio de cada llamada,
+ * los guarda, dispara el análisis de IA y libera el cupo de la cola de llamadas.
+ * Configúralo en ElevenLabs → Conversational AI → Post-call webhook.
+ */
+Route::post('agents/{agent}/elevenlabs/post-call', PostCallWebhookController::class)
+    ->whereNumber('agent')
+    ->name('api.agents.elevenlabs.post-call');

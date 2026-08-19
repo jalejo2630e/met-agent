@@ -285,7 +285,7 @@ const faviconUrl = computed(() => page.props.settings?.favicon_url || '/colsanit
             <!-- Footer -->
             <footer class="mt-auto border-t border-[#e3e8ee] bg-white py-4">
                 <div class="flex w-full items-center justify-center gap-2 px-4 text-center text-sm text-[#425b76] sm:px-6 lg:px-8">
-                    <img :src="faviconUrl" alt="" class="h-6 w-6" />
+                    <img src="/ainoa.png" alt="ainoa" class="h-6 w-6" />
                     <a href="https://ainoa.app" target="_blank" rel="noopener noreferrer" class="transition hover:text-[var(--color-primary)]">
                         By ainoa
                     </a>

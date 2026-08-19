@@ -188,13 +188,58 @@ class ContactQueueService
         return $this->sendWhatsappWebhook($agent, $client, $idPlantilla);
     }
 
-    protected function sendCallWebhook(Agent $agent, Client $client): bool
+    /**
+     * Envía una llamada al webhook incluyendo variables dinámicas extra
+     * (ej. queue_call_id para emparejar el post-call). Usado por la cola por lotes.
+     *
+     * @param  array<string, mixed>  $extra
+     */
+    public function sendCall(Agent $agent, Client $client, array $extra = []): bool
     {
-        $agent->load(['callConfig', 'clientSourceEndpoints']);
+        return $this->sendCallWebhook($agent, $client, $extra);
+    }
+
+    protected function sendCallWebhook(Agent $agent, Client $client, array $extra = []): bool
+    {
+        $agent->loadMissing(['callConfig', 'clientSourceEndpoints']);
         $webhookUrl = $agent->callConfig?->webhook_url;
         if (! $webhookUrl) {
             return false;
         }
+
+        $payload = $this->buildCallPayload($agent, $client, $extra);
+
+        Log::info('[ContactQueueService] Llamada webhook (call)', [
+            'agent_id' => $agent->id,
+            'client_id' => $client->id,
+            'webhook_url' => $webhookUrl,
+        ]);
+        $response = Http::timeout(30)->post($webhookUrl, $payload);
+        $ok = $response->successful();
+        if (! $ok) {
+            Log::warning('[ContactQueueService] Webhook call falló', [
+                'agent_id' => $agent->id,
+                'client_id' => $client->id,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+        }
+
+        return $ok;
+    }
+
+    /**
+     * Payload POST de una llamada: agente + phone_number de ElevenLabs, datos del
+     * cliente, variables dinámicas (campos + custom_fields) y datos de precarga.
+     * Lo usan el botón "Llamar" (individual) y la cola de llamadas por lotes.
+     *
+     * @param  array<string, mixed>  $extra  Variables dinámicas extra (ej. queue_call_id).
+     * @return array<string, mixed>
+     */
+    public function buildCallPayload(Agent $agent, Client $client, array $extra = []): array
+    {
+        $agent->loadMissing(['callConfig', 'clientSourceEndpoints']);
+        $callConfig = $agent->callConfig;
 
         $clientPayload = [
             'id' => $client->id,
@@ -228,29 +273,49 @@ class ContactQueueService
             }
         }
 
-        $payload = [
+        return [
+            'agent_id' => $callConfig?->elevenlabs_agent_id,
+            'phone_number_id' => $callConfig?->elevenlabs_phone_number_id,
+            'to_number' => $client->phone,
             'client' => $clientPayload,
+            'dynamic_variables' => $this->buildDynamicVariables($client, $extra),
             'preload_endpoints' => $preloadEndpoints,
             'preload_data' => $preloadData,
         ];
+    }
 
-        Log::info('[ContactQueueService] Llamada webhook (call)', [
-            'agent_id' => $agent->id,
-            'client_id' => $client->id,
-            'webhook_url' => $webhookUrl,
-        ]);
-        $response = Http::timeout(30)->post($webhookUrl, $payload);
-        $ok = $response->successful();
-        if (! $ok) {
-            Log::warning('[ContactQueueService] Webhook call falló', [
-                'agent_id' => $agent->id,
-                'client_id' => $client->id,
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
+    /**
+     * Variables dinámicas para ElevenLabs: campos del cliente + custom_fields (planos).
+     *
+     * @param  array<string, mixed>  $extra
+     * @return array<string, mixed>
+     */
+    public function buildDynamicVariables(Client $client, array $extra = []): array
+    {
+        $vars = array_filter([
+            'client_id' => (string) $client->id,
+            'name' => $client->name,
+            'lastname' => $client->lastname,
+            'full_name' => trim((string) $client->name.' '.(string) $client->lastname),
+            'phone' => $client->phone,
+            'email' => $client->email,
+            'document_type' => $client->document_type,
+            'document' => $client->document,
+        ], fn ($v) => $v !== null && $v !== '');
+
+        foreach (($client->custom_fields ?? []) as $key => $value) {
+            if (is_scalar($value)) {
+                $vars[(string) $key] = (string) $value;
+            } elseif ($value !== null) {
+                $vars[(string) $key] = json_encode($value);
+            }
         }
 
-        return $ok;
+        foreach ($extra as $k => $v) {
+            $vars[$k] = is_scalar($v) ? (string) $v : json_encode($v);
+        }
+
+        return $vars;
     }
 
     protected function sendWhatsappWebhook(Agent $agent, Client $client, ?string $idPlantilla = null): bool

@@ -21,6 +21,10 @@ class ProcessScheduledContactQueues extends Command
             'timezone' => config('app.timezone'),
         ]);
 
+        // Libera cupos de llamadas que quedaron "in_flight" sin recibir post-call (timeout)
+        // y despacha las siguientes de cada cola de llamadas.
+        app(\App\Services\CallBatchService::class)->releaseTimeouts();
+
         $queues = ContactQueue::where('status', ContactQueue::STATUS_PENDING)
             ->whereNotNull('next_run_at')
             ->where('next_run_at', '<=', $now)

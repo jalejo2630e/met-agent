@@ -22,6 +22,7 @@ class ContactQueue extends Model
     protected $fillable = [
         'agent_id',
         'type',
+        'concurrency',
         'client_ids',
         'client_selection_rules',
         'status',
@@ -46,6 +47,11 @@ class ContactQueue extends Model
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);
+    }
+
+    public function calls(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ContactQueueCall::class);
     }
 
     public function totalCount(): int

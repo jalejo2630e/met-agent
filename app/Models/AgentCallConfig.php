@@ -11,6 +11,7 @@ class AgentCallConfig extends Model
         'agent_id',
         'webhook_url',
         'elevenlabs_agent_id',
+        'elevenlabs_phone_number_id',
         'prompt_configuration',
         'schedule_config',
     ];
