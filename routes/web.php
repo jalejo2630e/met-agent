@@ -49,7 +49,6 @@ Route::middleware('auth')->group(function () {
         ->name('agents.call-analysis.analyze');
 
     Route::put('agents/{agent}/call-config', [AgentConfigController::class, 'updateCallConfig'])->name('agents.call-config.update');
-    Route::put('agents/{agent}/call-prompt-config', [AgentConfigController::class, 'updateCallPromptConfig'])->name('agents.call-prompt-config.update');
     Route::put('agents/{agent}/prompt-config', [AgentConfigController::class, 'updatePromptConfig'])->name('agents.prompt-config.update');
     Route::put('agents/{agent}/n8n-config', [AgentConfigController::class, 'updateN8nConfig'])->name('agents.n8n-config.update');
 

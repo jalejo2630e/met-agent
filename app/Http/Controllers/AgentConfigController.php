@@ -130,75 +130,9 @@ class AgentConfigController extends Controller
             $validated
         );
 
-        $message = 'Configuración de llamadas actualizada.';
-        $elevenlabsAgentId = $validated['elevenlabs_agent_id'] ?? null;
-        if ($elevenlabsAgentId && app(ElevenLabsSyncService::class)->isConfigured()) {
-            $callConfig = $agent->callConfig()->first();
-            $systemPrompt = $callConfig && is_array($callConfig->prompt_configuration)
-                ? ($callConfig->prompt_configuration['system_prompt'] ?? '')
-                : '';
-            if ($systemPrompt !== '' && app(ElevenLabsSyncService::class)->syncPromptToAgent($elevenlabsAgentId, $systemPrompt)) {
-                $message .= ' Prompt sincronizado con ElevenLabs.';
-            }
-        }
-
-        return back()->with('success', $message);
-    }
-
-    /**
-     * Actualiza el prompt del sistema solo para llamadas (guardado en call_config).
-     */
-    public function updateCallPromptConfig(Request $request, Agent $agent): RedirectResponse
-    {
-        $this->authorize('update', $agent);
-
-        $validated = $request->validate([
-            'sections' => 'required|array',
-            'sections.greeting' => 'nullable|string|max:2000',
-            'sections.behavior' => 'nullable|string|max:4000',
-            'sections.business_rules' => 'nullable|string|max:4000',
-            'sections.additional' => 'nullable|string|max:4000',
-            'sections.tools' => 'nullable|array',
-            'sections.tools.*.name' => 'nullable|string|max:255',
-            'sections.tools.*.description' => 'nullable|string|max:1000',
-        ]);
-
-        $raw = $validated['sections'];
-        $sections = [
-            'greeting' => trim((string) ($raw['greeting'] ?? '')),
-            'behavior' => trim((string) ($raw['behavior'] ?? '')),
-            'business_rules' => trim((string) ($raw['business_rules'] ?? '')),
-            'additional' => trim((string) ($raw['additional'] ?? '')),
-            'tools' => array_values(array_map(function ($t) {
-                return [
-                    'name' => trim((string) ($t['name'] ?? '')),
-                    'description' => trim((string) ($t['description'] ?? '')),
-                ];
-            }, $raw['tools'] ?? [])),
-        ];
-
-        $systemPrompt = AgentPromptBuilder::buildFromSections($sections);
-
-        $callConfig = $agent->callConfig()->firstOrCreate(['agent_id' => $agent->id], [
-            'webhook_url' => null,
-            'elevenlabs_agent_id' => null,
-            'schedule_config' => [],
-        ]);
-
-        $callConfig->update([
-            'prompt_configuration' => [
-                'sections' => $sections,
-                'system_prompt' => $systemPrompt,
-            ],
-        ]);
-
-        $message = 'Prompt de llamadas actualizado.';
-        $elevenlabsAgentId = $callConfig->elevenlabs_agent_id;
-        if ($elevenlabsAgentId && app(ElevenLabsSyncService::class)->isConfigured() && $systemPrompt !== '' && app(ElevenLabsSyncService::class)->syncPromptToAgent($elevenlabsAgentId, $systemPrompt)) {
-            $message .= ' Sincronizado con ElevenLabs.';
-        }
-
-        return back()->with('success', $message);
+        // El agente de voz de ElevenLabs administra su propio prompt. Aquí solo se
+        // guardan el webhook y el ID del agente, que se envían por POST en cada llamada.
+        return back()->with('success', 'Configuración de llamadas actualizada.');
     }
 
     public function storeDataVariable(Request $request, Agent $agent)
