@@ -11,33 +11,29 @@ const props = defineProps({
     agent: Object,
 });
 
-function getInitialSections() {
-    const pc = props.agent?.prompt_configuration ?? {};
-    const sections = pc.sections ?? {};
-    const legacy = pc.system_prompt ?? '';
-    return {
-        greeting: sections.greeting ?? '',
-        behavior: sections.behavior ?? '',
-        business_rules: sections.business_rules ?? '',
-        additional: sections.additional ?? (legacy && !pc.sections ? legacy : ''),
-        tools: Array.isArray(sections.tools)
-            ? sections.tools.map((t) => ({ name: t?.name ?? '', description: t?.description ?? '' }))
-            : [],
-    };
-}
-
-const sections = ref(getInitialSections());
-watch(
-    () => [props.agent?.id, props.agent?.prompt_configuration],
-    () => { sections.value = getInitialSections(); },
-    { deep: true }
-);
-
 const page = usePage();
 const promptErrors = computed(() => page.props.errors || {});
 const whatsappConversationsSourceLabel = computed(() =>
     page.props.whatsapp_conversations_source === 'supabase' ? 'Supabase (solo lectura)' : 'base de datos de la app'
 );
+
+// --- Prompt del sistema (un solo campo = instructions del agente de texto nativo) ---
+const systemPrompt = ref(props.agent?.prompt_configuration?.system_prompt ?? '');
+watch(
+    () => [props.agent?.id, props.agent?.prompt_configuration?.system_prompt],
+    () => { systemPrompt.value = props.agent?.prompt_configuration?.system_prompt ?? ''; },
+);
+
+const submittingPrompt = ref(false);
+const submitPrompt = () => {
+    submittingPrompt.value = true;
+    router.put(route('agents.prompt-config.update', props.agent), {
+        system_prompt: systemPrompt.value ?? '',
+    }, {
+        preserveScroll: true,
+        onFinish: () => { submittingPrompt.value = false; },
+    });
+};
 
 // Webhook del agente de IA NATIVO (Twilio) — reemplaza n8n en el canal de texto.
 const appOrigin = computed(() => (typeof window !== 'undefined' ? window.location.origin : ''));
@@ -114,46 +110,6 @@ async function createTwilioTemplate() {
 }
 
 onMounted(loadTwilioTemplates);
-
-function syncPromptFormFromAgent() {
-    sections.value = getInitialSections();
-}
-
-function addTool() {
-    sections.value.tools = [...(sections.value.tools || []), { name: '', description: '' }];
-}
-
-function removeTool(index) {
-    const t = [...(sections.value.tools || [])];
-    t.splice(index, 1);
-    sections.value.tools = t;
-}
-
-const submittingPrompt = ref(false);
-const submitPrompt = () => {
-    const payload = {
-        sections: {
-            greeting: sections.value.greeting ?? '',
-            behavior: sections.value.behavior ?? '',
-            business_rules: sections.value.business_rules ?? '',
-            additional: sections.value.additional ?? '',
-            tools: (sections.value.tools || []).map((t) => ({ name: t?.name ?? '', description: t?.description ?? '' })),
-        },
-    };
-    submittingPrompt.value = true;
-    router.put(route('agents.prompt-config.update', props.agent), payload, {
-        preserveScroll: true,
-        onSuccess: () => syncPromptFormFromAgent(),
-        onFinish: () => { submittingPrompt.value = false; },
-    });
-};
-
-const showPromptModal = ref(false);
-const fullPromptText = computed(() => props.agent?.prompt_configuration?.system_prompt ?? 'No hay prompt guardado.');
-
-const securityRulesText = `• Solo responder sobre temas dentro del contexto definido en este prompt. No responder preguntas fuera de ese ámbito.
-• No compartir información sensible, confidencial ni datos personales no autorizados. No inventar ni asumir datos.
-• Si el usuario pregunta algo fuera del contexto, indicar de forma amable que solo puedes ayudar dentro del ámbito configurado.`;
 
 // --- Mensajes (webhook, plantillas) ---
 const config = computed(() => props.agent?.message_config || {});
@@ -282,6 +238,40 @@ const submit = () => {
             </div>
         </div>
 
+        <!-- Prompt del sistema (un solo campo = instructions del agente de texto) -->
+        <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
+            <div class="border-b border-[#e3e8ee] px-6 py-4">
+                <h3 class="text-lg font-semibold text-[#33475b]">Prompt del sistema (agente de texto)</h3>
+                <p class="mt-1 text-sm text-[#425b76]">
+                    Instrucciones completas del agente de WhatsApp/Twilio en un <strong>solo campo</strong>.
+                    Es el mismo <em>system prompt</em> que usa el agente de IA nativo de Laravel.
+                </p>
+            </div>
+            <form @submit.prevent="submitPrompt" class="space-y-4 p-6">
+                <div>
+                    <InputLabel for="system_prompt" value="System prompt" />
+                    <textarea
+                        id="system_prompt"
+                        v-model="systemPrompt"
+                        rows="14"
+                        class="mt-1 block w-full rounded-md border-[#e3e8ee] font-mono text-sm shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                        placeholder="Eres el asistente de [empresa]. Tu rol es... Tono y estilo: ... Reglas del negocio: ... Solo respondes sobre [ámbito]; si te preguntan algo fuera de contexto, indícalo de forma amable. No compartas datos sensibles ni inventes información."
+                    />
+                    <p class="mt-1 text-xs text-[#425b76]">Incluye aquí el rol, tono, reglas del negocio y límites del agente. Todo el texto se envía como instrucciones al modelo.</p>
+                    <InputError
+                        v-if="promptErrors.system_prompt"
+                        :message="Array.isArray(promptErrors.system_prompt) ? promptErrors.system_prompt[0] : promptErrors.system_prompt"
+                        class="mt-2"
+                    />
+                </div>
+                <div class="flex justify-end border-t border-[#e3e8ee] pt-4">
+                    <PrimaryButton type="submit" :disabled="submittingPrompt">
+                        {{ submittingPrompt ? 'Guardando...' : 'Guardar prompt' }}
+                    </PrimaryButton>
+                </div>
+            </form>
+        </div>
+
         <!-- Plantillas de WhatsApp en Twilio (Content API) -->
         <div class="overflow-hidden rounded-lg border border-emerald-200 bg-white">
             <div class="border-b border-emerald-200 bg-emerald-50/50 px-6 py-4">
@@ -365,124 +355,6 @@ const submit = () => {
             </div>
         </div>
 
-        <!-- Reglas de seguridad -->
-        <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-[#f5f8fa]">
-            <div class="border-b border-[#e3e8ee] bg-[#e3e8ee]/50 px-4 py-3">
-                <h3 class="text-sm font-semibold text-[#33475b]">Reglas de seguridad (no modificables)</h3>
-                <p class="mt-0.5 text-xs text-[#425b76]">Estas reglas se aplican siempre al prompt y no pueden ser editadas.</p>
-            </div>
-            <div class="p-4">
-                <pre class="whitespace-pre-wrap text-sm text-[#33475b]">{{ securityRulesText }}</pre>
-            </div>
-        </div>
-
-        <!-- Prompt del sistema -->
-        <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
-            <div class="border-b border-[#e3e8ee] px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <h3 class="text-lg font-semibold text-[#33475b]">Prompt del sistema</h3>
-                    <p class="mt-1 text-sm text-[#425b76]">Configura las secciones de la empresa. Las reglas de seguridad se añaden automáticamente.</p>
-                </div>
-                <button
-                    type="button"
-                    class="shrink-0 rounded-md border border-[#e3e8ee] bg-white px-3 py-2 text-sm font-medium text-[#33475b] shadow-sm hover:bg-[#f5f8fa] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
-                    @click="showPromptModal = true"
-                >
-                    Ver prompt completo
-                </button>
-            </div>
-            <form @submit.prevent="submitPrompt" class="p-6 space-y-6">
-                <div>
-                    <InputLabel for="prompt-greeting" value="Saludo" />
-                    <textarea
-                        id="prompt-greeting"
-                        v-model="sections.greeting"
-                        rows="3"
-                        class="mt-1 block w-full rounded-md border-[#e3e8ee] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-                        placeholder="Ej: Hola, soy el asistente de [empresa]. ¿En qué puedo ayudarte?"
-                    />
-                </div>
-                <div>
-                    <InputLabel for="prompt-behavior" value="Comportamiento de la empresa" />
-                    <textarea
-                        id="prompt-behavior"
-                        v-model="sections.behavior"
-                        rows="4"
-                        class="mt-1 block w-full rounded-md border-[#e3e8ee] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-                        placeholder="Tono, estilo de respuesta..."
-                    />
-                </div>
-                <div>
-                    <InputLabel for="prompt-business_rules" value="Reglas del negocio" />
-                    <textarea
-                        id="prompt-business_rules"
-                        v-model="sections.business_rules"
-                        rows="4"
-                        class="mt-1 block w-full rounded-md border-[#e3e8ee] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-                        placeholder="Políticas, límites, procedimientos..."
-                    />
-                </div>
-                <div>
-                    <InputLabel value="Herramientas del agente" />
-                    <p class="mt-0.5 text-xs text-[#425b76]">Herramientas que el agente puede usar/mencionar; indica el nombre y el uso de cada una.</p>
-                    <div class="mt-2 space-y-3">
-                        <div
-                            v-for="(tool, idx) in (sections.tools || [])"
-                            :key="idx"
-                            class="flex flex-wrap items-start gap-2 rounded-lg border border-[#e3e8ee] bg-[#f5f8fa] p-3"
-                        >
-                            <TextInput v-model="sections.tools[idx].name" placeholder="Nombre de la tool" class="min-w-[140px] flex-1" />
-                            <textarea
-                                v-model="sections.tools[idx].description"
-                                rows="2"
-                                placeholder="Uso y cuándo invocarla"
-                                class="min-w-0 flex-[2] rounded-md border-[#e3e8ee] text-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-                            />
-                            <button type="button" class="rounded border border-red-200 px-2 py-1 text-sm text-red-600 hover:bg-red-50" @click="removeTool(idx)">Quitar</button>
-                        </div>
-                        <button type="button" class="text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]" @click="addTool">+ Agregar herramienta</button>
-                    </div>
-                </div>
-                <div>
-                    <InputLabel for="prompt-additional" value="Adicionales" />
-                    <textarea
-                        id="prompt-additional"
-                        v-model="sections.additional"
-                        rows="4"
-                        class="mt-1 block w-full rounded-md border-[#e3e8ee] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-                        placeholder="Cualquier instrucción adicional..."
-                    />
-                </div>
-                <div class="flex justify-end border-t border-[#e3e8ee] pt-4">
-                    <PrimaryButton type="submit" :disabled="submittingPrompt">
-                        {{ submittingPrompt ? 'Guardando...' : 'Guardar prompt' }}
-                    </PrimaryButton>
-                </div>
-                <InputError v-if="promptErrors.sections" :message="Array.isArray(promptErrors.sections) ? promptErrors.sections[0] : promptErrors.sections" class="mt-2" />
-            </form>
-        </div>
-
-        <!-- Modal prompt completo -->
-        <Teleport to="body">
-            <div v-show="showPromptModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="prompt-modal-title">
-                <div class="absolute inset-0 bg-black/50" @click="showPromptModal = false" />
-                <div class="relative max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-lg border border-[#e3e8ee] bg-white shadow-xl">
-                    <div class="flex items-center justify-between border-b border-[#e3e8ee] bg-[#f5f8fa] px-4 py-3">
-                        <h2 id="prompt-modal-title" class="text-lg font-semibold text-[#33475b]">Prompt completo del sistema</h2>
-                        <button type="button" class="rounded p-1 text-[#425b76] hover:bg-[#e3e8ee] hover:text-[#33475b] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" aria-label="Cerrar" @click="showPromptModal = false">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    </div>
-                    <div class="max-h-[70vh] overflow-y-auto p-4">
-                        <pre class="whitespace-pre-wrap font-mono text-sm text-[#33475b]">{{ fullPromptText }}</pre>
-                    </div>
-                    <div class="border-t border-[#e3e8ee] bg-[#f5f8fa] px-4 py-3 text-right">
-                        <button type="button" class="rounded-md border border-[#e3e8ee] bg-white px-4 py-2 text-sm font-medium text-[#33475b] shadow-sm hover:bg-[#e3e8ee] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2" @click="showPromptModal = false">Cerrar</button>
-                    </div>
-                </div>
-            </div>
-        </Teleport>
-
         <!-- Configuración de contacto por mensaje -->
         <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
             <div class="p-6">
@@ -508,7 +380,7 @@ const submit = () => {
                     <div class="rounded-lg border border-emerald-200 bg-emerald-50/30 p-4">
                         <h4 class="text-sm font-medium text-gray-700">Plantillas (id_plantilla)</h4>
                         <p class="mt-1 text-xs text-gray-500">
-                            Define las plantillas disponibles. El ID debe coincidir con el de tu sistema externo (ej. WhatsApp Business). Selecciona una como principal para contacto manual.
+                            Define las plantillas disponibles. El ID debe coincidir con el de tu sistema externo (ej. WhatsApp Business o el Content SID de Twilio). Selecciona una como principal para contacto manual.
                             Si la plantilla tiene variables dinámicas, actívalas y mapea cada una a un valor del cliente; al enviar se resuelven por cliente y se mandan al webhook en <code class="rounded bg-white px-1">variables: [{ name, value }]</code>.
                         </p>
                         <div class="mt-3 space-y-3">

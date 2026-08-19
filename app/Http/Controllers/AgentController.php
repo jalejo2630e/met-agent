@@ -7,7 +7,6 @@ use App\Models\AgentEndpointLog;
 use App\Models\ClientContactLog;
 use App\Models\ContactQueue;
 use App\Observers\AgentObserver;
-use App\Services\AgentPromptBuilder;
 use App\Services\CallCountService;
 use App\Services\ClientListFilterService;
 use Illuminate\Http\Request;
@@ -67,22 +66,12 @@ class AgentController extends Controller
             'description' => 'nullable|string|max:1000',
             'status' => 'required|in:active,draft,inactive',
             'prompt_configuration' => 'required|array',
-            'prompt_configuration.sections' => 'required|array',
-            'prompt_configuration.sections.greeting' => 'nullable|string|max:2000',
-            'prompt_configuration.sections.behavior' => 'nullable|string|max:4000',
-            'prompt_configuration.sections.business_rules' => 'nullable|string|max:4000',
-            'prompt_configuration.sections.additional' => 'nullable|string|max:4000',
-            'prompt_configuration.sections.tools' => 'nullable|array',
-            'prompt_configuration.sections.tools.*.name' => 'nullable|string|max:255',
-            'prompt_configuration.sections.tools.*.description' => 'nullable|string|max:1000',
+            'prompt_configuration.system_prompt' => 'required|string|max:20000',
         ]);
 
-        $sections = $this->normalizePromptSections($validated['prompt_configuration']['sections']);
-        $systemPrompt = AgentPromptBuilder::buildFromSections($sections);
-        $promptConfiguration = array_merge($validated['prompt_configuration'], [
-            'sections' => $sections,
-            'system_prompt' => $systemPrompt,
-        ]);
+        $promptConfiguration = [
+            'system_prompt' => trim($validated['prompt_configuration']['system_prompt']),
+        ];
 
         try {
             DB::beginTransaction();
@@ -206,21 +195,13 @@ class AgentController extends Controller
             'description' => 'nullable|string|max:1000',
             'status' => 'required|in:active,draft,inactive',
             'prompt_configuration' => 'required|array',
-            'prompt_configuration.sections' => 'required|array',
-            'prompt_configuration.sections.greeting' => 'nullable|string|max:2000',
-            'prompt_configuration.sections.behavior' => 'nullable|string|max:4000',
-            'prompt_configuration.sections.business_rules' => 'nullable|string|max:4000',
-            'prompt_configuration.sections.additional' => 'nullable|string|max:4000',
-            'prompt_configuration.sections.tools' => 'nullable|array',
-            'prompt_configuration.sections.tools.*.name' => 'nullable|string|max:255',
-            'prompt_configuration.sections.tools.*.description' => 'nullable|string|max:1000',
+            'prompt_configuration.system_prompt' => 'required|string|max:20000',
         ]);
 
-        $sections = $this->normalizePromptSections($validated['prompt_configuration']['sections']);
-        $systemPrompt = AgentPromptBuilder::buildFromSections($sections);
-        $promptConfiguration = array_merge($agent->prompt_configuration ?? [], [
-            'sections' => $sections,
-            'system_prompt' => $systemPrompt,
+        $current = $agent->prompt_configuration ?? [];
+        unset($current['sections']);
+        $promptConfiguration = array_merge($current, [
+            'system_prompt' => trim($validated['prompt_configuration']['system_prompt']),
         ]);
 
         try {
@@ -264,22 +245,4 @@ class AgentController extends Controller
         }
     }
 
-    /**
-     * Normaliza el array de secciones del prompt (mismo formato que AgentConfigController::updatePromptConfig).
-     */
-    private function normalizePromptSections(array $raw): array
-    {
-        return [
-            'greeting' => trim((string) ($raw['greeting'] ?? '')),
-            'behavior' => trim((string) ($raw['behavior'] ?? '')),
-            'business_rules' => trim((string) ($raw['business_rules'] ?? '')),
-            'additional' => trim((string) ($raw['additional'] ?? '')),
-            'tools' => array_values(array_map(function ($t) {
-                return [
-                    'name' => trim((string) ($t['name'] ?? '')),
-                    'description' => trim((string) ($t['description'] ?? '')),
-                ];
-            }, $raw['tools'] ?? [])),
-        ];
-    }
 }

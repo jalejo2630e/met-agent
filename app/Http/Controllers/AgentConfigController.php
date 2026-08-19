@@ -7,7 +7,6 @@ use App\Models\AgentApiKey;
 use App\Models\AgentClientSourceEndpoint;
 use App\Models\AgentDataVariable;
 use App\Models\AgentEndpoint;
-use App\Services\AgentPromptBuilder;
 use App\Services\ElevenLabsSyncService;
 use App\Services\N8nSyncService;
 use Illuminate\Http\RedirectResponse;
@@ -260,44 +259,21 @@ class AgentConfigController extends Controller
     }
 
     /**
-     * Actualiza la configuración del prompt del agente desde las secciones editables.
-     * Las reglas de seguridad se inyectan automáticamente y no son editables.
+     * Actualiza el prompt del sistema del agente (un solo campo de texto). Es el
+     * mismo system prompt (instructions) que usa el agente de texto nativo (WhatsappAgent).
      */
     public function updatePromptConfig(Request $request, Agent $agent): RedirectResponse
     {
         $this->authorize('update', $agent);
 
         $validated = $request->validate([
-            'sections' => 'required|array',
-            'sections.greeting' => 'nullable|string|max:2000',
-            'sections.behavior' => 'nullable|string|max:4000',
-            'sections.business_rules' => 'nullable|string|max:4000',
-            'sections.additional' => 'nullable|string|max:4000',
-            'sections.tools' => 'nullable|array',
-            'sections.tools.*.name' => 'nullable|string|max:255',
-            'sections.tools.*.description' => 'nullable|string|max:1000',
+            'system_prompt' => 'required|string|max:20000',
         ]);
 
-        $raw = $validated['sections'];
-        $sections = [
-            'greeting' => trim((string) ($raw['greeting'] ?? '')),
-            'behavior' => trim((string) ($raw['behavior'] ?? '')),
-            'business_rules' => trim((string) ($raw['business_rules'] ?? '')),
-            'additional' => trim((string) ($raw['additional'] ?? '')),
-            'tools' => array_values(array_map(function ($t) {
-                return [
-                    'name' => trim((string) ($t['name'] ?? '')),
-                    'description' => trim((string) ($t['description'] ?? '')),
-                ];
-            }, $raw['tools'] ?? [])),
-        ];
-
-        $systemPrompt = AgentPromptBuilder::buildFromSections($sections);
-
         $current = is_array($agent->prompt_configuration) ? $agent->prompt_configuration : [];
+        unset($current['sections']);
         $agent->prompt_configuration = array_merge($current, [
-            'sections' => $sections,
-            'system_prompt' => $systemPrompt,
+            'system_prompt' => trim($validated['system_prompt']),
         ]);
         $agent->save();
 

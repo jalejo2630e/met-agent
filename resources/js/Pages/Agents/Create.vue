@@ -1,6 +1,5 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import AgentPromptSectionsForm from '@/Components/AgentPromptSectionsForm.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -12,13 +11,7 @@ const form = useForm({
     description: '',
     status: 'draft',
     prompt_configuration: {
-        sections: {
-            greeting: '',
-            behavior: '',
-            business_rules: '',
-            additional: '',
-            tools: [],
-        },
+        system_prompt: '',
     },
 });
 
@@ -85,8 +78,17 @@ const submit = () => {
                         </div>
 
                         <div class="mb-6">
-                            <AgentPromptSectionsForm v-model="form.prompt_configuration.sections" />
-                            <InputError v-if="form.errors['prompt_configuration.sections']" :message="Array.isArray(form.errors['prompt_configuration.sections']) ? form.errors['prompt_configuration.sections'][0] : form.errors['prompt_configuration.sections']" class="mt-2" />
+                            <InputLabel for="system_prompt" value="Prompt del sistema (agente de texto)" />
+                            <p class="mt-0.5 text-xs text-[#425b76]">Instrucciones completas del agente en un solo campo: rol, tono, reglas del negocio y límites.</p>
+                            <textarea
+                                id="system_prompt"
+                                v-model="form.prompt_configuration.system_prompt"
+                                rows="12"
+                                class="mt-1 block w-full rounded-md border-[#e3e8ee] font-mono text-sm shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                                placeholder="Eres el asistente de [empresa]. Tu rol es... Reglas del negocio: ... Solo respondes sobre [ámbito]; si te preguntan algo fuera de contexto, indícalo de forma amable."
+                                required
+                            />
+                            <InputError :message="form.errors['prompt_configuration.system_prompt']" class="mt-2" />
                         </div>
 
                         <div class="flex justify-end gap-3">

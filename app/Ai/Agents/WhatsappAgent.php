@@ -24,7 +24,7 @@ class WhatsappAgent implements Agent, Conversational
     use Promptable;
 
     /**
-     * @param  string  $systemPrompt  system_prompt del agente (AgentPromptBuilder).
+     * @param  string  $systemPrompt  system_prompt del agente (campo único de prompt_configuration).
      * @param  list<array{role: string, content: string}>  $history  Turnos previos.
      */
     public function __construct(
