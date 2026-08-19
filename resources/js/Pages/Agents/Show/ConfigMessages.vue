@@ -38,6 +38,20 @@ const whatsappConversationsSourceLabel = computed(() =>
     page.props.whatsapp_conversations_source === 'supabase' ? 'Supabase (solo lectura)' : 'base de datos de la app'
 );
 
+// Webhook del agente de IA NATIVO (Twilio) — reemplaza n8n en el canal de texto.
+const appOrigin = computed(() => (typeof window !== 'undefined' ? window.location.origin : ''));
+const twilioWebhookUrl = computed(() => `${appOrigin.value}/api/agents/${props.agent?.id}/twilio/whatsapp`);
+const webhookCopied = ref(false);
+async function copyWebhook() {
+    try {
+        await navigator.clipboard.writeText(twilioWebhookUrl.value);
+        webhookCopied.value = true;
+        setTimeout(() => { webhookCopied.value = false; }, 2000);
+    } catch (e) {
+        // El usuario puede copiar manualmente si el navegador bloquea el portapapeles.
+    }
+}
+
 function syncPromptFormFromAgent() {
     sections.value = getInitialSections();
 }
@@ -69,14 +83,6 @@ const submitPrompt = () => {
         onSuccess: () => syncPromptFormFromAgent(),
         onFinish: () => { submittingPrompt.value = false; },
     });
-};
-
-const n8nForm = useForm({
-    n8n_workflow_id: props.agent?.n8n_workflow_id ?? '',
-    n8n_prompt_node_id: props.agent?.n8n_prompt_node_id ?? '',
-});
-const submitN8nConfig = () => {
-    n8nForm.put(route('agents.n8n-config.update', props.agent), { preserveScroll: true });
 };
 
 const showPromptModal = ref(false);
@@ -180,43 +186,37 @@ const submit = () => {
 
 <template>
     <div class="space-y-6">
-        <!-- Integración N8N -->
-        <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
-            <div class="border-b border-[#e3e8ee] px-6 py-4">
-                <h3 class="text-lg font-semibold text-[#33475b]">Integración N8N</h3>
+        <!-- Agente de IA nativo (Twilio) — reemplaza n8n en el canal de texto -->
+        <div class="overflow-hidden rounded-lg border border-emerald-200 bg-white">
+            <div class="border-b border-emerald-200 bg-emerald-50/50 px-6 py-4">
+                <h3 class="text-lg font-semibold text-[#33475b]">Agente de IA nativo · WhatsApp/SMS por Twilio</h3>
                 <p class="mt-1 text-sm text-[#425b76]">
-                    Indica el ID del workflow y del nodo de prompt en N8N. Si en el <code class="rounded bg-[#e3e8ee] px-1">.env</code> tienes <code class="rounded bg-[#e3e8ee] px-1">N8N_API_URL</code> y <code class="rounded bg-[#e3e8ee] px-1">API_N8N</code>, al guardar el prompt se sincronizará con ese nodo.
+                    La IA responde <strong>dentro de esta app</strong> usando el prompt de abajo, <strong>sin n8n</strong>.
+                    Pega esta URL en Twilio → <em>Messaging</em> → “When a message comes in” con método <strong>POST</strong>.
                 </p>
             </div>
-            <form @submit.prevent="submitN8nConfig" class="p-6 space-y-4">
-                <div>
-                    <InputLabel for="n8n_workflow_id" value="ID del workflow (N8N)" />
-                    <TextInput
-                        id="n8n_workflow_id"
-                        v-model="n8nForm.n8n_workflow_id"
-                        type="text"
-                        class="mt-1 block w-full font-mono"
-                        placeholder="Ej: abc123 o el ID que muestra N8N en la URL del workflow"
+            <div class="space-y-3 p-6">
+                <InputLabel value="Webhook para Twilio" />
+                <div class="flex flex-wrap items-center gap-2">
+                    <input
+                        :value="twilioWebhookUrl"
+                        readonly
+                        class="min-w-0 flex-1 rounded-md border-[#e3e8ee] bg-[#f5f8fa] font-mono text-sm text-[#33475b]"
+                        @focus="(e) => e.target.select()"
                     />
-                    <InputError :message="n8nForm.errors.n8n_workflow_id" class="mt-1" />
+                    <button
+                        type="button"
+                        class="shrink-0 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                        @click="copyWebhook"
+                    >
+                        {{ webhookCopied ? '¡Copiado!' : 'Copiar' }}
+                    </button>
                 </div>
-                <div>
-                    <InputLabel for="n8n_prompt_node_id" value="ID del nodo de prompt (N8N)" />
-                    <TextInput
-                        id="n8n_prompt_node_id"
-                        v-model="n8nForm.n8n_prompt_node_id"
-                        type="text"
-                        class="mt-1 block w-full font-mono"
-                        placeholder="ID del nodo donde está el system prompt"
-                    />
-                    <InputError :message="n8nForm.errors.n8n_prompt_node_id" class="mt-1" />
-                </div>
-                <div class="flex justify-end">
-                    <PrimaryButton type="submit" :disabled="n8nForm.processing">
-                        {{ n8nForm.processing ? 'Guardando...' : 'Guardar integración N8N' }}
-                    </PrimaryButton>
-                </div>
-            </form>
+                <p class="text-xs text-[#64748b]">
+                    Requiere <code class="rounded bg-[#e3e8ee] px-1">OPENAI_API_KEY</code> y las variables <code class="rounded bg-[#e3e8ee] px-1">TWILIO_*</code> en el servidor
+                    (define <code class="rounded bg-[#e3e8ee] px-1">TWILIO_AUTH_TOKEN</code> para validar la firma). Sirve para WhatsApp y SMS; la voz sigue en ElevenLabs.
+                </p>
+            </div>
         </div>
 
         <!-- Reglas de seguridad -->
@@ -277,8 +277,8 @@ const submit = () => {
                     />
                 </div>
                 <div>
-                    <InputLabel value="Herramientas (tools de N8N)" />
-                    <p class="mt-0.5 text-xs text-[#425b76]">Si en N8N agregas tools, indica aquí el nombre y el uso de cada una.</p>
+                    <InputLabel value="Herramientas del agente" />
+                    <p class="mt-0.5 text-xs text-[#425b76]">Herramientas que el agente puede usar/mencionar; indica el nombre y el uso de cada una.</p>
                     <div class="mt-2 space-y-3">
                         <div
                             v-for="(tool, idx) in (sections.tools || [])"
@@ -353,7 +353,8 @@ const submit = () => {
 
                 <form @submit.prevent="submit" class="mt-6 space-y-6">
                     <div v-if="canEditWebhook()">
-                        <InputLabel value="Webhook URL" />
+                        <InputLabel value="Webhook URL de salida (envío de campañas / contacto manual)" />
+                        <p class="mt-0.5 text-xs text-[#425b76]">URL a la que la app envía mensajes salientes. Los mensajes <strong>entrantes</strong> los atiende el agente de IA nativo por el webhook de Twilio de arriba.</p>
                         <TextInput v-model="form.webhook_url" type="url" class="mt-1 block w-full" placeholder="https://..." />
                         <InputError :message="form.errors.webhook_url" />
                     </div>

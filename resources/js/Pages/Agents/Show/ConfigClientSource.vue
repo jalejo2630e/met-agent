@@ -275,7 +275,7 @@ const submitImport = async () => {
                 <div class="mt-8 rounded-lg border border-[#e3e8ee] bg-[#f5f8fa] p-4">
                     <h4 class="text-sm font-semibold text-[#33475b]">API para crear o actualizar clientes</h4>
                     <p class="mt-1 text-sm text-[#425b76]">
-                        Desde N8N, integraciones o cualquier sistema externo puedes crear o actualizar clientes de la empresa con la API. Si el cliente ya existe (mismo <code class="rounded bg-[#e3e8ee] px-1">document</code> o <code class="rounded bg-[#e3e8ee] px-1">phone</code>), se actualiza; si no, se crea.
+                        Desde integraciones o cualquier sistema externo puedes crear o actualizar clientes de la empresa con la API. Si el cliente ya existe (mismo <code class="rounded bg-[#e3e8ee] px-1">document</code> o <code class="rounded bg-[#e3e8ee] px-1">phone</code>), se actualiza; si no, se crea.
                     </p>
                     <div class="mt-3 space-y-2 text-sm">
                         <p class="font-medium text-[#33475b]">Método y URL</p>

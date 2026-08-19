@@ -137,7 +137,7 @@ import { Head, Link } from '@inertiajs/vue3';
                         <ul class="list-inside list-disc space-y-1 text-[#425b76]">
                             <li><strong>Importar clientes:</strong> Descarga la plantilla en formato Excel (.xlsx) o CSV, complétala y súbela. Acepta archivos .xlsx, .xls, .csv.</li>
                             <li><strong>Endpoints de fuente:</strong> URLs que el sistema consulta para sincronizar clientes.</li>
-                            <li><strong>API crear clientes:</strong> POST <code class="rounded bg-[#e3e8ee] px-1">/api/agents/{id}/clients</code> para crear o actualizar clientes desde N8N o sistemas externos (documentación en la pestaña Fuente).</li>
+                            <li><strong>API crear clientes:</strong> POST <code class="rounded bg-[#e3e8ee] px-1">/api/agents/{id}/clients</code> para crear o actualizar clientes desde sistemas externos (documentación en la pestaña Fuente).</li>
                         </ul>
 
                         <h4 class="font-medium text-[#33475b]">Detalle del cliente</h4>
@@ -157,7 +157,7 @@ import { Head, Link } from '@inertiajs/vue3';
                     </div>
                     <div class="space-y-4 p-6">
                         <p class="text-[#33475b]">
-                            Información básica de la empresa: nombre, descripción, estado y prompt del sistema. Aquí también se generan las <strong>API Keys</strong> para consumir los endpoints de la empresa desde sistemas externos (N8N, integraciones). Las API Keys se usan en los headers <code class="rounded bg-[#e3e8ee] px-1">Authorization: Bearer</code> o <code class="rounded bg-[#e3e8ee] px-1">X-Api-Key</code>.
+                            Información básica de la empresa: nombre, descripción, estado y prompt del sistema. Aquí también se generan las <strong>API Keys</strong> para consumir los endpoints de la empresa desde sistemas externos (integraciones). Las API Keys se usan en los headers <code class="rounded bg-[#e3e8ee] px-1">Authorization: Bearer</code> o <code class="rounded bg-[#e3e8ee] px-1">X-Api-Key</code>.
                         </p>
                     </div>
                 </section>
@@ -173,7 +173,7 @@ import { Head, Link } from '@inertiajs/vue3';
                     <div class="space-y-6 p-6">
                         <h4 class="font-medium text-[#33475b]">Endpoints</h4>
                         <p class="text-[#425b76]">
-                            Define URLs y métodos HTTP que la empresa puede invocar (webhooks hacia N8N u otros sistemas). Permite probar la conexión y ver logs de cada llamada.
+                            Define URLs y métodos HTTP que la empresa puede invocar (webhooks hacia otros sistemas). Permite probar la conexión y ver logs de cada llamada.
                         </p>
 
                         <h4 class="font-medium text-[#33475b]">Recolección WhatsApp</h4>

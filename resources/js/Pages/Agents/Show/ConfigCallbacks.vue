@@ -227,7 +227,7 @@ function formatDate(d) {
             </button>
             <div v-show="showApiDocs" class="border-t border-[#e3e8ee] bg-[#fafbfc] px-6 py-4">
                 <p class="mb-4 text-sm text-[#33475b]">
-                    Endpoint para programar una llamada o mensaje desde sistemas externos (N8N, integraciones, etc.). La tarea se ejecutará el día y hora indicados en hora Colombia (scheduled_time opcional; si no se envía, se usa 08:00 por defecto).
+                    Endpoint para programar una llamada o mensaje desde sistemas externos (integraciones, etc.). La tarea se ejecutará el día y hora indicados en hora Colombia (scheduled_time opcional; si no se envía, se usa 08:00 por defecto).
                 </p>
 
                 <div class="mb-4">

@@ -136,9 +136,9 @@ const securityRulesText = `• Solo responder sobre temas dentro del contexto de
                 </div>
 
                 <div>
-                    <InputLabel value="Herramientas (tools de N8N)" />
+                    <InputLabel value="Herramientas del agente" />
                     <p class="mt-0.5 text-xs text-[#425b76]">
-                        Si en N8N agregas tools a la empresa, indica aquí el nombre y el uso de cada una.
+                        Herramientas que el agente puede usar/mencionar; indica el nombre y el uso de cada una.
                     </p>
                     <div class="mt-2 space-y-3">
                         <div

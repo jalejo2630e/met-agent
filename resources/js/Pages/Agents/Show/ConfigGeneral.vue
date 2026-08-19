@@ -148,7 +148,7 @@ const copyGeneratedApiKey = async () => {
                     <div v-show="showApiEndpoints" class="mt-4 space-y-6">
                         <!-- 1. Crear cliente -->
                         <div>
-                            <p class="text-xs font-medium uppercase text-[#425b76]">1. Crear cliente (N8N)</p>
+                            <p class="text-xs font-medium uppercase text-[#425b76]">1. Crear cliente (sistema externo)</p>
                             <code class="mt-1 block break-all rounded bg-[#e3e8ee] px-3 py-2 text-sm">{{ apiClientsUrl }}</code>
                             <p class="mt-2 text-xs text-[#425b76]">POST — Crea o actualiza cliente por document/phone</p>
                             <p class="mt-1 text-xs font-medium text-[#33475b]">Body ejemplo:</p>
