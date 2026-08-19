@@ -16,6 +16,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\TwilioTemplateController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +48,14 @@ Route::middleware('auth')->group(function () {
     Route::post('agents/{agent}/call-analysis', [CallAnalysisController::class, 'analyze'])
         ->whereNumber('agent')
         ->name('agents.call-analysis.analyze');
+
+    // Plantillas de WhatsApp en Twilio (Content API)
+    Route::get('agents/{agent}/twilio/templates', [TwilioTemplateController::class, 'index'])
+        ->whereNumber('agent')
+        ->name('agents.twilio.templates.index');
+    Route::post('agents/{agent}/twilio/templates', [TwilioTemplateController::class, 'store'])
+        ->whereNumber('agent')
+        ->name('agents.twilio.templates.store');
 
     Route::put('agents/{agent}/call-config', [AgentConfigController::class, 'updateCallConfig'])->name('agents.call-config.update');
     Route::put('agents/{agent}/prompt-config', [AgentConfigController::class, 'updatePromptConfig'])->name('agents.prompt-config.update');

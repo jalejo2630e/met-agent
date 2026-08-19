@@ -1,5 +1,6 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import axios from 'axios';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -51,6 +52,68 @@ async function copyWebhook() {
         // El usuario puede copiar manualmente si el navegador bloquea el portapapeles.
     }
 }
+
+// --- Plantillas de WhatsApp en Twilio (Content API) ---
+const twilioConfigured = ref(true);
+const twilioTemplates = ref([]);
+const loadingTemplates = ref(false);
+const creatingTemplate = ref(false);
+const templateResult = ref(null);
+const templateError = ref('');
+// Literales para mostrar {{1}} / {{2}} en el texto de ayuda (evita romper el parser de Vue).
+const v1 = '{{1}}';
+const v2 = '{{2}}';
+const templateForm = ref({
+    friendly_name: '',
+    language: 'es',
+    category: 'UTILITY',
+    body: '',
+    submit_whatsapp: true,
+});
+
+async function loadTwilioTemplates() {
+    loadingTemplates.value = true;
+    try {
+        const { data } = await axios.get(route('agents.twilio.templates.index', props.agent));
+        twilioConfigured.value = data.configured !== false;
+        twilioTemplates.value = data.templates ?? [];
+    } catch (e) {
+        // silencioso
+    } finally {
+        loadingTemplates.value = false;
+    }
+}
+
+async function createTwilioTemplate() {
+    templateError.value = '';
+    templateResult.value = null;
+    const f = templateForm.value;
+    const matches = [...String(f.body).matchAll(/\{\{\s*(\d+)\s*\}\}/g)].map((m) => m[1]);
+    const variables = {};
+    [...new Set(matches)].forEach((n) => { variables[n] = ''; });
+
+    creatingTemplate.value = true;
+    try {
+        const { data } = await axios.post(route('agents.twilio.templates.store', props.agent), {
+            friendly_name: f.friendly_name,
+            language: f.language,
+            category: f.category,
+            body: f.body,
+            submit_whatsapp: f.submit_whatsapp,
+            variables,
+        });
+        templateResult.value = data.result;
+        f.friendly_name = '';
+        f.body = '';
+        await loadTwilioTemplates();
+    } catch (e) {
+        templateError.value = e?.response?.data?.error || 'No se pudo crear la plantilla.';
+    } finally {
+        creatingTemplate.value = false;
+    }
+}
+
+onMounted(loadTwilioTemplates);
 
 function syncPromptFormFromAgent() {
     sections.value = getInitialSections();
@@ -216,6 +279,89 @@ const submit = () => {
                     Requiere <code class="rounded bg-[#e3e8ee] px-1">OPENAI_API_KEY</code> y las variables <code class="rounded bg-[#e3e8ee] px-1">TWILIO_*</code> en el servidor
                     (define <code class="rounded bg-[#e3e8ee] px-1">TWILIO_AUTH_TOKEN</code> para validar la firma). Sirve para WhatsApp y SMS; la voz sigue en ElevenLabs.
                 </p>
+            </div>
+        </div>
+
+        <!-- Plantillas de WhatsApp en Twilio (Content API) -->
+        <div class="overflow-hidden rounded-lg border border-emerald-200 bg-white">
+            <div class="border-b border-emerald-200 bg-emerald-50/50 px-6 py-4">
+                <h3 class="text-lg font-semibold text-[#33475b]">Plantillas de WhatsApp (Twilio)</h3>
+                <p class="mt-1 text-sm text-[#425b76]">Crea plantillas directamente en Twilio (Content API) y envíalas a aprobación de WhatsApp, sin salir del panel.</p>
+            </div>
+            <div class="space-y-4 p-6">
+                <p v-if="!twilioConfigured" class="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                    Twilio no está configurado. Define <code class="rounded bg-white px-1">TWILIO_ACCOUNT_SID</code> y <code class="rounded bg-white px-1">TWILIO_AUTH_TOKEN</code> en el servidor.
+                </p>
+
+                <form v-else @submit.prevent="createTwilioTemplate" class="space-y-4">
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <InputLabel value="Nombre (friendly_name)" />
+                            <TextInput v-model="templateForm.friendly_name" type="text" class="mt-1 block w-full" placeholder="ej. recordatorio_cita" required />
+                        </div>
+                        <div class="flex gap-3">
+                            <div>
+                                <InputLabel value="Idioma" />
+                                <select v-model="templateForm.language" class="mt-1 rounded-md border-[#e3e8ee] text-sm">
+                                    <option value="es">es</option>
+                                    <option value="es_CO">es_CO</option>
+                                    <option value="en">en</option>
+                                </select>
+                            </div>
+                            <div>
+                                <InputLabel value="Categoría" />
+                                <select v-model="templateForm.category" class="mt-1 rounded-md border-[#e3e8ee] text-sm">
+                                    <option value="UTILITY">UTILITY</option>
+                                    <option value="MARKETING">MARKETING</option>
+                                    <option value="AUTHENTICATION">AUTHENTICATION</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <InputLabel value="Cuerpo del mensaje" />
+                        <textarea
+                            v-model="templateForm.body"
+                            rows="4"
+                            class="mt-1 block w-full rounded-md border-[#e3e8ee] text-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                            placeholder="Hola, te recordamos tu cita..."
+                            required
+                        />
+                        <p class="mt-1 text-xs text-[#64748b]">
+                            Usa <code class="rounded bg-[#e3e8ee] px-1">{{ v1 }}</code>, <code class="rounded bg-[#e3e8ee] px-1">{{ v2 }}</code>… para las variables dinámicas.
+                        </p>
+                    </div>
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <input v-model="templateForm.submit_whatsapp" type="checkbox" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
+                        Enviar a aprobación de WhatsApp al crear
+                    </label>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <PrimaryButton type="submit" :disabled="creatingTemplate">
+                            {{ creatingTemplate ? 'Creando...' : 'Crear plantilla en Twilio' }}
+                        </PrimaryButton>
+                        <span v-if="templateResult" class="text-sm text-emerald-700">Creada: <code class="rounded bg-emerald-50 px-1">{{ templateResult.sid }}</code></span>
+                        <span v-if="templateError" class="text-sm text-red-600">{{ templateError }}</span>
+                    </div>
+                </form>
+
+                <div v-if="twilioConfigured">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-medium text-gray-700">Plantillas existentes</h4>
+                        <button type="button" class="text-xs font-medium text-emerald-600 hover:text-emerald-700" @click="loadTwilioTemplates">Actualizar</button>
+                    </div>
+                    <p v-if="loadingTemplates" class="mt-2 text-xs text-gray-400">Cargando…</p>
+                    <p v-else-if="!twilioTemplates.length" class="mt-2 text-xs text-gray-400">Aún no hay plantillas.</p>
+                    <ul v-else class="mt-2 divide-y divide-[#eef2f6] rounded-md border border-[#eef2f6]">
+                        <li v-for="t in twilioTemplates" :key="t.sid" class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
+                            <span class="font-medium text-[#33475b]">{{ t.friendly_name || t.sid }}</span>
+                            <span class="font-mono text-xs text-gray-400">{{ t.sid }}</span>
+                            <span
+                                class="rounded-full px-2 py-0.5 text-xs"
+                                :class="t.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : (t.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700')"
+                            >{{ t.status }}</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 
