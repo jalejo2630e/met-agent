@@ -1,0 +1,13 @@
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tamaño de fuente base para todo el sistema (interfaces densas con muchas columnas). */
+html {
+    font-size: 12px;
+}

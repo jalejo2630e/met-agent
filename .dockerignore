@@ -1,0 +1,51 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE / Editor
+.idea
+.vscode
+.cursor
+*.swp
+*.swo
+*~
+
+# Dependencies (se instalan en el build)
+node_modules
+vendor
+
+# Build output (se genera en el build)
+public/build
+public/hot
+
+# Env local (Dokploy inyecta variables en el panel)
+.env
+.env.*
+!.env.example
+
+# Tests y docs
+tests
+phpunit.xml
+phpunit.xml.dist
+*.md
+!README.md
+
+# Logs y cache local
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*
+!storage/logs/.gitkeep
+!storage/framework/cache/.gitkeep
+!storage/framework/sessions/.gitkeep
+!storage/framework/views/.gitkeep
+!bootstrap/cache/.gitkeep
+
+# Otros
+.agent
+.agents
+contexto.md
+TAREASAGENTE.md
+.DS_Store

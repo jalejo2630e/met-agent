@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('agents', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->string('status')->default('draft'); // draft, active, inactive
+            $table->string('n8n_workflow_id')->nullable();
+            $table->text('n8n_webhook_url')->nullable();
+            $table->string('n8n_webhook_node_id')->nullable();
+            $table->string('n8n_prompt_node_id')->nullable();
+            $table->json('prompt_configuration')->nullable();
+            $table->json('workflow_configuration')->nullable();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('agents');
+    }
+};

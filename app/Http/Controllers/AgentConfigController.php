@@ -1,0 +1,401 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Agent;
+use App\Models\AgentApiKey;
+use App\Models\AgentClientSourceEndpoint;
+use App\Models\AgentDataVariable;
+use App\Models\AgentEndpoint;
+use App\Services\AgentPromptBuilder;
+use App\Services\ElevenLabsSyncService;
+use App\Services\N8nSyncService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+
+class AgentConfigController extends Controller
+{
+    public function storeEndpoint(Request $request, Agent $agent)
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'url' => 'required|url',
+            'method' => 'required|in:GET,POST',
+            'headers' => 'nullable|array',
+            'client_parameter' => 'required|string|max:255',
+            'response_mapping' => 'nullable|array',
+        ]);
+
+        $agent->endpoints()->create($validated);
+
+        return back()->with('success', 'Endpoint agregado.');
+    }
+
+    public function destroyEndpoint(Agent $agent, AgentEndpoint $endpoint)
+    {
+        $this->authorize('update', $agent);
+        if ($endpoint->agent_id !== $agent->id) {
+            abort(404);
+        }
+        $endpoint->delete();
+
+        return back()->with('success', 'Endpoint eliminado.');
+    }
+
+    public function updateMessageConfig(Request $request, Agent $agent)
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate([
+            'webhook_url' => 'nullable|url',
+            'plantillas' => 'nullable|array',
+            'plantillas.*.id' => 'nullable|string|max:255',
+            'plantillas.*.name' => 'nullable|string|max:255',
+            'plantillas.*.has_variables' => 'nullable|boolean',
+            'plantillas.*.variables' => 'nullable|array',
+            'plantillas.*.variables.*.name' => 'nullable|string|max:255',
+            'plantillas.*.variables.*.source_type' => 'nullable|string|in:field,custom_field,special',
+            'plantillas.*.variables.*.source_key' => 'nullable|string|max:255',
+            'default_plantilla_id' => 'nullable|string|max:255',
+            'schedule_config' => 'nullable|array',
+            'schedule_config.hours' => 'nullable|array',
+            'schedule_config.hours.start' => 'nullable|string',
+            'schedule_config.hours.end' => 'nullable|string',
+            'schedule_config.days_of_week' => 'nullable|array',
+            'schedule_config.excluded_dates' => 'nullable|array',
+            'schedule_config.campaign_times' => 'nullable|array',
+            'schedule_config.campaign_times.*' => 'nullable|string|regex:/^\d{2}:\d{2}$/',
+            'schedule_config.campaign_slots' => 'nullable|array',
+            'schedule_config.campaign_slots.*.time' => 'nullable|string|regex:/^\d{2}:\d{2}$/',
+            'schedule_config.campaign_slots.*.rule_ids' => 'nullable|array',
+            'schedule_config.campaign_slots.*.rule_ids.*' => 'nullable|integer',
+            'schedule_config.campaign_slots.*.id_plantilla' => 'nullable|string|max:255',
+            'schedule_config.campaign_timezone' => 'nullable|string|max:50',
+            'schedule_config.execution_rules' => 'nullable|array',
+            'schedule_config.execution_rules.*.field' => 'nullable|string|max:100',
+            'schedule_config.execution_rules.*.operator' => 'nullable|string|in:equals,not_equals,in,not_in,gte,lte,gt,lt',
+            'schedule_config.execution_rules.*.value' => 'nullable',
+            'schedule_config.execution_rules.*.delay_days' => 'nullable|integer|min:0|max:365',
+            'schedule_config.execution_rules.*.delay_from' => 'nullable|string|max:100',
+        ]);
+
+        if (! $request->user()?->isAdmin()) {
+            unset($validated['webhook_url']);
+        }
+
+        $agent->messageConfig()->updateOrCreate(
+            ['agent_id' => $agent->id],
+            $validated
+        );
+
+        return back()->with('success', 'Configuración de mensajes actualizada.');
+    }
+
+    public function updateCallConfig(Request $request, Agent $agent)
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate([
+            'webhook_url' => 'nullable|url',
+            'elevenlabs_agent_id' => 'nullable|string|max:255',
+            'schedule_config' => 'nullable|array',
+            'schedule_config.hours' => 'nullable|array',
+            'schedule_config.hours.start' => 'nullable|string',
+            'schedule_config.hours.end' => 'nullable|string',
+            'schedule_config.days_of_week' => 'nullable|array',
+            'schedule_config.excluded_dates' => 'nullable|array',
+            'schedule_config.campaign_times' => 'nullable|array',
+            'schedule_config.campaign_times.*' => 'nullable|string|regex:/^\d{2}:\d{2}$/',
+            'schedule_config.campaign_slots' => 'nullable|array',
+            'schedule_config.campaign_slots.*.time' => 'nullable|string|regex:/^\d{2}:\d{2}$/',
+            'schedule_config.campaign_slots.*.rule_ids' => 'nullable|array',
+            'schedule_config.campaign_slots.*.rule_ids.*' => 'nullable|integer',
+            'schedule_config.campaign_timezone' => 'nullable|string|max:50',
+            'schedule_config.execution_rules' => 'nullable|array',
+            'schedule_config.execution_rules.*.field' => 'nullable|string|max:100',
+            'schedule_config.execution_rules.*.operator' => 'nullable|string|in:equals,not_equals,in,not_in,gte,lte,gt,lt',
+            'schedule_config.execution_rules.*.value' => 'nullable',
+            'schedule_config.execution_rules.*.delay_days' => 'nullable|integer|min:0|max:365',
+            'schedule_config.execution_rules.*.delay_from' => 'nullable|string|max:100',
+        ]);
+
+        if (! $request->user()?->isAdmin()) {
+            unset($validated['webhook_url']);
+        }
+
+        $agent->callConfig()->updateOrCreate(
+            ['agent_id' => $agent->id],
+            $validated
+        );
+
+        $message = 'Configuración de llamadas actualizada.';
+        $elevenlabsAgentId = $validated['elevenlabs_agent_id'] ?? null;
+        if ($elevenlabsAgentId && app(ElevenLabsSyncService::class)->isConfigured()) {
+            $callConfig = $agent->callConfig()->first();
+            $systemPrompt = $callConfig && is_array($callConfig->prompt_configuration)
+                ? ($callConfig->prompt_configuration['system_prompt'] ?? '')
+                : '';
+            if ($systemPrompt !== '' && app(ElevenLabsSyncService::class)->syncPromptToAgent($elevenlabsAgentId, $systemPrompt)) {
+                $message .= ' Prompt sincronizado con ElevenLabs.';
+            }
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Actualiza el prompt del sistema solo para llamadas (guardado en call_config).
+     */
+    public function updateCallPromptConfig(Request $request, Agent $agent): RedirectResponse
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate([
+            'sections' => 'required|array',
+            'sections.greeting' => 'nullable|string|max:2000',
+            'sections.behavior' => 'nullable|string|max:4000',
+            'sections.business_rules' => 'nullable|string|max:4000',
+            'sections.additional' => 'nullable|string|max:4000',
+            'sections.tools' => 'nullable|array',
+            'sections.tools.*.name' => 'nullable|string|max:255',
+            'sections.tools.*.description' => 'nullable|string|max:1000',
+        ]);
+
+        $raw = $validated['sections'];
+        $sections = [
+            'greeting' => trim((string) ($raw['greeting'] ?? '')),
+            'behavior' => trim((string) ($raw['behavior'] ?? '')),
+            'business_rules' => trim((string) ($raw['business_rules'] ?? '')),
+            'additional' => trim((string) ($raw['additional'] ?? '')),
+            'tools' => array_values(array_map(function ($t) {
+                return [
+                    'name' => trim((string) ($t['name'] ?? '')),
+                    'description' => trim((string) ($t['description'] ?? '')),
+                ];
+            }, $raw['tools'] ?? [])),
+        ];
+
+        $systemPrompt = AgentPromptBuilder::buildFromSections($sections);
+
+        $callConfig = $agent->callConfig()->firstOrCreate(['agent_id' => $agent->id], [
+            'webhook_url' => null,
+            'elevenlabs_agent_id' => null,
+            'schedule_config' => [],
+        ]);
+
+        $callConfig->update([
+            'prompt_configuration' => [
+                'sections' => $sections,
+                'system_prompt' => $systemPrompt,
+            ],
+        ]);
+
+        $message = 'Prompt de llamadas actualizado.';
+        $elevenlabsAgentId = $callConfig->elevenlabs_agent_id;
+        if ($elevenlabsAgentId && app(ElevenLabsSyncService::class)->isConfigured() && $systemPrompt !== '' && app(ElevenLabsSyncService::class)->syncPromptToAgent($elevenlabsAgentId, $systemPrompt)) {
+            $message .= ' Sincronizado con ElevenLabs.';
+        }
+
+        return back()->with('success', $message);
+    }
+
+    public function storeDataVariable(Request $request, Agent $agent)
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:string,number,boolean,json',
+            'required' => 'boolean',
+        ]);
+
+        $agent->dataVariables()->create($validated);
+
+        return back()->with('success', 'Variable agregada.');
+    }
+
+    public function destroyDataVariable(Agent $agent, AgentDataVariable $variable)
+    {
+        $this->authorize('update', $agent);
+        if ($variable->agent_id !== $agent->id) {
+            abort(404);
+        }
+        $variable->delete();
+
+        return back()->with('success', 'Variable eliminada.');
+    }
+
+    public function generateApiKey(Request $request, Agent $agent)
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate(['name' => 'required|string|max:255']);
+
+        ['api_key' => $apiKey, 'plain_key' => $plainKey] = AgentApiKey::generate($agent->id, $validated['name']);
+
+        return back()->with('success', 'API Key generada. Cópiala ahora (no se mostrará de nuevo): '.$plainKey);
+    }
+
+    public function destroyApiKey(Agent $agent, AgentApiKey $apiKey)
+    {
+        $this->authorize('update', $agent);
+        if ($apiKey->agent_id !== $agent->id) {
+            abort(404);
+        }
+        $apiKey->delete();
+
+        return back()->with('success', 'API Key eliminada.');
+    }
+
+    public function storeClientField(Request $request, Agent $agent)
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate([
+            'field_name' => 'required|string|max:255',
+            'field_type' => 'required|in:string,number,boolean,date,text',
+            'required' => 'boolean',
+        ]);
+
+        $agent->clientFields()->create($validated);
+
+        return back()->with('success', 'Campo agregado.');
+    }
+
+    public function destroyClientField(Agent $agent, \App\Models\AgentClientField $clientField)
+    {
+        $this->authorize('update', $agent);
+        if ($clientField->agent_id !== $agent->id) {
+            abort(404);
+        }
+        $clientField->delete();
+
+        return back()->with('success', 'Campo eliminado.');
+    }
+
+    public function storeClientSourceEndpoint(Request $request, Agent $agent)
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'url' => 'required|url',
+            'headers' => 'nullable|array',
+            'schedule_time' => 'nullable|string|regex:/^\d{2}:\d{2}$/',
+            'schedule_timezone' => 'nullable|string|max:50',
+        ]);
+
+        $validated['order'] = $agent->clientSourceEndpoints()->max('order') + 1;
+        $agent->clientSourceEndpoints()->create($validated);
+
+        return back()->with('success', 'Endpoint de fuente agregado.');
+    }
+
+    public function updateClientSourceEndpoint(Request $request, Agent $agent, AgentClientSourceEndpoint $clientSourceEndpoint)
+    {
+        $this->authorize('update', $agent);
+        if ($clientSourceEndpoint->agent_id !== $agent->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'url' => 'required|url',
+            'headers' => 'nullable|array',
+            'schedule_time' => 'nullable|string|regex:/^\d{2}:\d{2}$/',
+            'schedule_timezone' => 'nullable|string|max:50',
+        ]);
+
+        $clientSourceEndpoint->update($validated);
+
+        return back()->with('success', 'Endpoint actualizado.');
+    }
+
+    public function destroyClientSourceEndpoint(Agent $agent, AgentClientSourceEndpoint $clientSourceEndpoint)
+    {
+        $this->authorize('update', $agent);
+        if ($clientSourceEndpoint->agent_id !== $agent->id) {
+            abort(404);
+        }
+        $clientSourceEndpoint->delete();
+
+        return back()->with('success', 'Endpoint eliminado.');
+    }
+
+    /**
+     * Actualiza la configuración del prompt del agente desde las secciones editables.
+     * Las reglas de seguridad se inyectan automáticamente y no son editables.
+     */
+    public function updatePromptConfig(Request $request, Agent $agent): RedirectResponse
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate([
+            'sections' => 'required|array',
+            'sections.greeting' => 'nullable|string|max:2000',
+            'sections.behavior' => 'nullable|string|max:4000',
+            'sections.business_rules' => 'nullable|string|max:4000',
+            'sections.additional' => 'nullable|string|max:4000',
+            'sections.tools' => 'nullable|array',
+            'sections.tools.*.name' => 'nullable|string|max:255',
+            'sections.tools.*.description' => 'nullable|string|max:1000',
+        ]);
+
+        $raw = $validated['sections'];
+        $sections = [
+            'greeting' => trim((string) ($raw['greeting'] ?? '')),
+            'behavior' => trim((string) ($raw['behavior'] ?? '')),
+            'business_rules' => trim((string) ($raw['business_rules'] ?? '')),
+            'additional' => trim((string) ($raw['additional'] ?? '')),
+            'tools' => array_values(array_map(function ($t) {
+                return [
+                    'name' => trim((string) ($t['name'] ?? '')),
+                    'description' => trim((string) ($t['description'] ?? '')),
+                ];
+            }, $raw['tools'] ?? [])),
+        ];
+
+        $systemPrompt = AgentPromptBuilder::buildFromSections($sections);
+
+        $current = is_array($agent->prompt_configuration) ? $agent->prompt_configuration : [];
+        $agent->prompt_configuration = array_merge($current, [
+            'sections' => $sections,
+            'system_prompt' => $systemPrompt,
+        ]);
+        $agent->save();
+
+        $n8nSynced = false;
+        if (app(N8nSyncService::class)->isConfigured() && $agent->n8n_workflow_id && $agent->n8n_prompt_node_id) {
+            $n8nSynced = app(N8nSyncService::class)->syncPromptToWorkflow($agent->fresh());
+        }
+
+        $message = 'Prompt del sistema actualizado.';
+        if ($n8nSynced) {
+            $message .= ' Sincronizado con N8N.';
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Actualiza los IDs de integración N8N del agente (workflow y nodo de prompt).
+     */
+    public function updateN8nConfig(Request $request, Agent $agent): RedirectResponse
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate([
+            'n8n_workflow_id' => 'nullable|string|max:255',
+            'n8n_prompt_node_id' => 'nullable|string|max:255',
+        ]);
+
+        $agent->update([
+            'n8n_workflow_id' => $validated['n8n_workflow_id'] ?: null,
+            'n8n_prompt_node_id' => $validated['n8n_prompt_node_id'] ?: null,
+        ]);
+
+        return back()->with('success', 'Configuración N8N guardada.');
+    }
+}
