@@ -268,12 +268,16 @@ class AgentConfigController extends Controller
 
         $validated = $request->validate([
             'system_prompt' => 'required|string|max:20000',
+            'ai_provider' => 'nullable|string|in:openai,anthropic,gemini,groq,deepseek,mistral,xai,openrouter,ollama,azure,bedrock,cohere',
+            'ai_model' => 'nullable|string|max:100',
         ]);
 
         $current = is_array($agent->prompt_configuration) ? $agent->prompt_configuration : [];
         unset($current['sections']);
         $agent->prompt_configuration = array_merge($current, [
             'system_prompt' => trim($validated['system_prompt']),
+            'ai_provider' => ($validated['ai_provider'] ?? '') !== '' ? $validated['ai_provider'] : null,
+            'ai_model' => ($validated['ai_model'] ?? '') !== '' ? trim($validated['ai_model']) : null,
         ]);
         $agent->save();
 

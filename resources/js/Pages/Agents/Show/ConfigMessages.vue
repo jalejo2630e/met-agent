@@ -19,16 +19,37 @@ const whatsappConversationsSourceLabel = computed(() =>
 
 // --- Prompt del sistema (un solo campo = instructions del agente de texto nativo) ---
 const systemPrompt = ref(props.agent?.prompt_configuration?.system_prompt ?? '');
+const aiProvider = ref(props.agent?.prompt_configuration?.ai_provider ?? '');
+const aiModel = ref(props.agent?.prompt_configuration?.ai_model ?? '');
 watch(
-    () => [props.agent?.id, props.agent?.prompt_configuration?.system_prompt],
-    () => { systemPrompt.value = props.agent?.prompt_configuration?.system_prompt ?? ''; },
+    () => [props.agent?.id, props.agent?.prompt_configuration],
+    () => {
+        systemPrompt.value = props.agent?.prompt_configuration?.system_prompt ?? '';
+        aiProvider.value = props.agent?.prompt_configuration?.ai_provider ?? '';
+        aiModel.value = props.agent?.prompt_configuration?.ai_model ?? '';
+    },
+    { deep: true },
 );
+
+// Sugerencias de modelo por proveedor (el campo es libre: puedes escribir cualquier modelo).
+const modelSuggestions = {
+    openai: ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4o', 'gpt-4o-mini'],
+    anthropic: ['claude-sonnet-4-5', 'claude-haiku-4-5', 'claude-opus-4-1'],
+    gemini: ['gemini-2.5-flash', 'gemini-2.5-pro'],
+    groq: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'],
+    deepseek: ['deepseek-chat', 'deepseek-reasoner'],
+    mistral: ['mistral-large-latest', 'mistral-small-latest'],
+    xai: ['grok-3', 'grok-3-mini'],
+};
+const currentModelSuggestions = computed(() => modelSuggestions[aiProvider.value] ?? []);
 
 const submittingPrompt = ref(false);
 const submitPrompt = () => {
     submittingPrompt.value = true;
     router.put(route('agents.prompt-config.update', props.agent), {
         system_prompt: systemPrompt.value ?? '',
+        ai_provider: aiProvider.value || null,
+        ai_model: aiModel.value || null,
     }, {
         preserveScroll: true,
         onFinish: () => { submittingPrompt.value = false; },
@@ -248,6 +269,38 @@ const submit = () => {
                 </p>
             </div>
             <form @submit.prevent="submitPrompt" class="space-y-4 p-6">
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                        <InputLabel value="Proveedor de IA (LLM)" />
+                        <select v-model="aiProvider" class="mt-1 block w-full rounded-md border-[#e3e8ee] text-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]">
+                            <option value="">Por defecto (config del servidor)</option>
+                            <option value="openai">OpenAI (GPT)</option>
+                            <option value="anthropic">Anthropic (Claude)</option>
+                            <option value="gemini">Google (Gemini)</option>
+                            <option value="groq">Groq</option>
+                            <option value="deepseek">DeepSeek</option>
+                            <option value="mistral">Mistral</option>
+                            <option value="xai">xAI (Grok)</option>
+                            <option value="openrouter">OpenRouter</option>
+                            <option value="ollama">Ollama</option>
+                        </select>
+                    </div>
+                    <div>
+                        <InputLabel for="ai_model" value="Modelo" />
+                        <input
+                            id="ai_model"
+                            v-model="aiModel"
+                            list="ai-model-suggestions"
+                            type="text"
+                            class="mt-1 block w-full rounded-md border-[#e3e8ee] font-mono text-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                            placeholder="ej. gpt-4.1-mini"
+                        />
+                        <datalist id="ai-model-suggestions">
+                            <option v-for="m in currentModelSuggestions" :key="m" :value="m" />
+                        </datalist>
+                        <p class="mt-1 text-xs text-[#425b76]">Vacío = modelo por defecto del proveedor. Requiere su API key en el servidor.</p>
+                    </div>
+                </div>
                 <div>
                     <InputLabel for="system_prompt" value="System prompt" />
                     <textarea

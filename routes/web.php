@@ -16,6 +16,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\TwilioInboxController;
 use App\Http\Controllers\TwilioTemplateController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -56,6 +57,14 @@ Route::middleware('auth')->group(function () {
     Route::post('agents/{agent}/twilio/templates', [TwilioTemplateController::class, 'store'])
         ->whereNumber('agent')
         ->name('agents.twilio.templates.store');
+
+    // Bandeja de mensajes recibidos por el webhook de Twilio
+    Route::get('agents/{agent}/twilio/inbox', [TwilioInboxController::class, 'index'])
+        ->whereNumber('agent')
+        ->name('agents.twilio.inbox.index');
+    Route::get('agents/{agent}/twilio/inbox/thread', [TwilioInboxController::class, 'thread'])
+        ->whereNumber('agent')
+        ->name('agents.twilio.inbox.thread');
 
     Route::put('agents/{agent}/call-config', [AgentConfigController::class, 'updateCallConfig'])->name('agents.call-config.update');
     Route::put('agents/{agent}/prompt-config', [AgentConfigController::class, 'updatePromptConfig'])->name('agents.prompt-config.update');

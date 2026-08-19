@@ -69,7 +69,9 @@ class TwilioMessageController extends Controller
         } else {
             try {
                 $systemPrompt = (string) data_get($agent->prompt_configuration, 'system_prompt', '');
-                $response = (new WhatsappAgent($systemPrompt, $history))->prompt($body);
+                $provider = data_get($agent->prompt_configuration, 'ai_provider') ?: null;
+                $model = data_get($agent->prompt_configuration, 'ai_model') ?: null;
+                $response = (new WhatsappAgent($systemPrompt, $history))->prompt($body, provider: $provider, model: $model);
                 $reply = trim((string) $response);
             } catch (\Throwable $e) {
                 report($e);

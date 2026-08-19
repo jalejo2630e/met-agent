@@ -6,6 +6,7 @@ import ConfigClientSource from './Show/ConfigClientSource.vue';
 import ConfigClients from './Show/ConfigClients.vue';
 import ConfigEndpoints from './Show/ConfigEndpoints.vue';
 import ConfigMessages from './Show/ConfigMessages.vue';
+import ConfigInbox from './Show/ConfigInbox.vue';
 import ConfigCalls from './Show/ConfigCalls.vue';
 import ConfigCallbacks from './Show/ConfigCallbacks.vue';
 import ConfigCampaigns from './Show/ConfigCampaigns.vue';
@@ -58,6 +59,7 @@ const groups = [
         technical: true,
         items: [
             { id: 'messages', label: 'Mensajes' },
+            { id: 'inbox', label: 'Bandeja' },
             { id: 'calls', label: 'Llamadas' },
             { id: 'callbacks', label: 'Callbacks' },
             { id: 'campaigns', label: 'Campañas' },
@@ -261,6 +263,7 @@ const statusColors = {
                 <ConfigEndpoints v-if="activeTab === 'endpoints' && canAccessWebhooksAndTechnical" :agent="agent" />
                 <ConfigLogs v-if="activeTab === 'logs'" :agent="agent" :endpoint-logs="endpointLogs" />
                 <ConfigMessages v-if="activeTab === 'messages'" :agent="agent" />
+                <ConfigInbox v-if="activeTab === 'inbox'" :agent="agent" />
                 <ConfigCalls v-if="activeTab === 'calls'" :agent="agent" />
                 <ConfigCallbacks v-if="activeTab === 'callbacks'" :agent="agent" :clients="clients" />
                 <ConfigCampaigns v-if="activeTab === 'campaigns'" :agent="agent" />
