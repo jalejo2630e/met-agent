@@ -396,55 +396,91 @@ class ClientController extends Controller
             return response()->json(['messages' => []]);
         }
 
+        $messages = [];
+        $note = null;
+
         if (WhatsappConversationsConnection::readsViaRest()) {
             try {
                 $rows = app(SupabaseWhatsappMessagesRestService::class)->fetchRows($agent, $phone);
+                foreach ($rows as $row) {
+                    $msg = $row['message'] ?? null;
+                    if (! is_array($msg) && is_string($msg)) {
+                        $decoded = json_decode($msg, true);
+                        $msg = is_array($decoded) ? $decoded : null;
+                    }
+                    if (is_array($msg) && isset($msg['type'], $msg['content'])) {
+                        $messages[] = [
+                            'type' => $msg['type'],
+                            'content' => $msg['content'],
+                            'created_at' => isset($row['created_at']) ? Carbon::parse($row['created_at'])->toIso8601String() : null,
+                        ];
+                    }
+                }
             } catch (\Throwable $e) {
                 report($e);
-
-                return response()->json([
-                    'messages' => [],
-                    'message' => 'No se pudo cargar el historial desde Supabase. Revisa URL y clave (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY o VITE_SUPABASE_KEY), nombre de tabla, columna de teléfono (WHATSAPP_SUPABASE_PHONE_COLUMN / Ajustes) y políticas RLS.',
-                ]);
+                $note = 'No se pudo cargar el historial desde Supabase. Revisa URL y clave (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY o VITE_SUPABASE_KEY), nombre de tabla, columna de teléfono (WHATSAPP_SUPABASE_PHONE_COLUMN / Ajustes) y políticas RLS.';
             }
+        } else {
+            $rows = AgentWhatsappConversation::forAgent($agent)
+                ->where('session_id', $phone)
+                ->orderBy('id', 'asc')
+                ->get(['id', 'message', 'created_at']);
 
-            $messages = [];
             foreach ($rows as $row) {
-                $msg = $row['message'] ?? null;
-                if (! is_array($msg) && is_string($msg)) {
-                    $decoded = json_decode($msg, true);
-                    $msg = is_array($decoded) ? $decoded : null;
-                }
+                $msg = $row->message;
                 if (is_array($msg) && isset($msg['type'], $msg['content'])) {
                     $messages[] = [
                         'type' => $msg['type'],
                         'content' => $msg['content'],
-                        'created_at' => isset($row['created_at']) ? Carbon::parse($row['created_at'])->toIso8601String() : null,
+                        'created_at' => $row->created_at?->toIso8601String(),
                     ];
                 }
             }
-
-            return response()->json(['messages' => $messages]);
         }
 
-        $rows = AgentWhatsappConversation::forAgent($agent)
-            ->where('session_id', $phone)
+        // Incluir también los mensajes atendidos por el agente nativo vía Twilio.
+        foreach ($this->twilioMessagesForClient($agent, $phone) as $m) {
+            $messages[] = $m;
+        }
+
+        usort($messages, fn ($a, $b) => strcmp((string) ($a['created_at'] ?? ''), (string) ($b['created_at'] ?? '')));
+
+        $response = ['messages' => $messages];
+        if ($note !== null) {
+            $response['message'] = $note;
+        }
+
+        return response()->json($response);
+    }
+
+    /**
+     * Mensajes de WhatsApp/SMS atendidos por el agente nativo (tabla twilio_messages),
+     * mapeados al formato del historial del cliente (type: ai = empresa, human = usuario).
+     *
+     * @return array<int, array{type: string, content: string, created_at: ?string}>
+     */
+    private function twilioMessagesForClient(Agent $agent, string $phone): array
+    {
+        $digits = preg_replace('/\D/', '', $phone);
+        if ($digits === '') {
+            return [];
+        }
+        $last10 = substr($digits, -10);
+
+        return \App\Models\TwilioMessage::where('agent_id', $agent->id)
+            ->where(function ($q) use ($phone, $digits, $last10) {
+                $q->where('from_number', $phone)
+                    ->orWhere('from_number', $digits)
+                    ->orWhere('from_number', 'like', '%'.$last10);
+            })
             ->orderBy('id', 'asc')
-            ->get(['id', 'message', 'created_at']);
-
-        $messages = [];
-        foreach ($rows as $row) {
-            $msg = $row->message;
-            if (is_array($msg) && isset($msg['type'], $msg['content'])) {
-                $messages[] = [
-                    'type' => $msg['type'],
-                    'content' => $msg['content'],
-                    'created_at' => $row->created_at?->toIso8601String(),
-                ];
-            }
-        }
-
-        return response()->json(['messages' => $messages]);
+            ->get(['direction', 'body', 'created_at'])
+            ->map(fn ($row) => [
+                'type' => $row->direction === 'outbound' ? 'ai' : 'human',
+                'content' => (string) $row->body,
+                'created_at' => $row->created_at?->toIso8601String(),
+            ])
+            ->all();
     }
 
     public function callTranscript(Request $request, Agent $agent, Client $client): JsonResponse
