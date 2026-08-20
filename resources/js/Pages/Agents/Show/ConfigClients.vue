@@ -12,6 +12,7 @@ import ConfirmCallToast from '@/Components/ConfirmCallToast.vue';
 import ClientDetailModal from './Reports/ClientDetailModal.vue';
 import CallAlertsModal from '../Clients/CallAlertsModal.vue';
 import WaveformAudioPlayer from '@/Components/WaveformAudioPlayer.vue';
+import ClientWhatsappModal from '@/Components/ClientWhatsappModal.vue';
 
 const props = defineProps({
     agent: Object,
@@ -57,8 +58,6 @@ const showModal = ref(false);
 const editingClient = ref(null);
 const showWhatsappModal = ref(false);
 const selectedClient = ref(null);
-const whatsappMessages = ref([]);
-const loadingMessages = ref(false);
 const loadingCall = ref(null);
 const selectedIds = ref(new Set());
 const showTranscriptModal = ref(false);
@@ -186,21 +185,8 @@ const loadingCallbacks = ref(false);
 
 const openWhatsapp = async (client) => {
     selectedClient.value = client;
-    selectedPlantillaId.value = props.agent?.message_config?.default_plantilla_id || '';
     showWhatsappModal.value = true;
-    whatsappMessages.value = [];
     clientCallbackRequests.value = [];
-    if (client.phone) {
-        loadingMessages.value = true;
-        try {
-            const { data } = await axios.get(route('agents.clients.whatsapp-messages', [props.agent, client]));
-            whatsappMessages.value = data.messages || [];
-        } catch {
-            whatsappMessages.value = [];
-        } finally {
-            loadingMessages.value = false;
-        }
-    }
     loadingCallbacks.value = true;
     try {
         const { data } = await axios.get(route('agents.callback-requests.index', props.agent), {
@@ -214,34 +200,12 @@ const openWhatsapp = async (client) => {
     }
 };
 
-const sendingToWebhook = ref(false);
-const selectedPlantillaId = ref('');
-
 const plantillas = computed(() => {
     const list = props.agent?.message_config?.plantillas || [];
     return Array.isArray(list) ? list.filter((p) => p?.id?.trim()) : [];
 });
 
-const contactarUsuarioWhatsapp = async () => {
-    const client = selectedClient.value;
-    if (!client?.phone) return;
-    if (!confirm('¿Enviar la información del cliente y endpoints al webhook de WhatsApp?')) return;
-    sendingToWebhook.value = true;
-    try {
-        const payload = {};
-        if (selectedPlantillaId.value) payload.id_plantilla = selectedPlantillaId.value;
-        const { data } = await axios.post(route('agents.clients.initiate-whatsapp', [props.agent, client]), payload);
-        if (data.success) {
-            toast.success(data.message || 'Datos enviados al webhook correctamente.');
-        } else {
-            toast.error(data.message || 'Error al enviar al webhook.');
-        }
-    } catch (e) {
-        toast.error(e.response?.data?.message || 'Error al enviar al webhook.');
-    } finally {
-        sendingToWebhook.value = false;
-    }
-};
+const defaultPlantillaId = computed(() => props.agent?.message_config?.default_plantilla_id || '');
 
 const hasCallWebhook = () => props.agent?.call_config?.webhook_url;
 const hasWhatsappWebhook = () => props.agent?.message_config?.webhook_url;
@@ -1019,80 +983,35 @@ const formatLoadedAt = (dateStr) => {
             </div>
         </div>
 
-        <!-- Modal WhatsApp -->
-        <div
-            v-show="showWhatsappModal"
-            class="fixed inset-0 z-50 overflow-y-auto"
-            @keydown.esc="showWhatsappModal = false"
+        <!-- Modal WhatsApp (componente compartido con el listado de clientes) -->
+        <ClientWhatsappModal
+            :show="showWhatsappModal"
+            :agent="agent"
+            :client="selectedClient"
+            :plantillas="plantillas"
+            :default-plantilla-id="defaultPlantillaId"
+            @close="showWhatsappModal = false"
         >
-            <div class="flex min-h-screen items-center justify-center p-4">
-                <div class="fixed inset-0 bg-black/50" @click="showWhatsappModal = false" />
-                <div class="relative w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
-                    <h3 class="text-lg font-medium text-gray-900">
-                        {{ selectedClient ? `${selectedClient.name} ${selectedClient.lastname}` : 'WhatsApp' }}
-                    </h3>
-                    <div class="mt-4 space-y-4">
-                        <div v-if="plantillas.length" class="rounded border border-[#e3e8ee] bg-gray-50 p-3">
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Plantilla a enviar</label>
-                            <select v-model="selectedPlantillaId" class="w-full rounded-md border-[#e3e8ee] text-sm">
-                                <option value="">— Plantilla por defecto —</option>
-                                <option v-for="p in plantillas" :key="p.id" :value="p.id">{{ p.name || p.id }}</option>
-                            </select>
-                        </div>
-                        <button
-                            v-if="selectedClient?.phone"
-                            type="button"
-                            class="inline-flex items-center gap-2 rounded-lg bg-[#25D366] px-4 py-2 text-white hover:bg-[#20BD5A] transition disabled:opacity-70"
-                            :disabled="sendingToWebhook"
-                            @click="contactarUsuarioWhatsapp"
-                        >
-                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                            {{ sendingToWebhook ? 'Enviando...' : 'Contactar usuario' }}
-                        </button>
-                        <p v-else class="text-sm text-amber-600">El cliente no tiene número de teléfono registrado.</p>
-                        <div class="border-t pt-4">
-                            <h4 class="text-sm font-medium text-gray-700 mb-2">Solicitudes de callback (registro en cliente)</h4>
-                            <div v-if="loadingCallbacks" class="text-sm text-gray-500">Cargando...</div>
-                            <div v-else-if="!clientCallbackRequests.length" class="text-sm text-gray-500">No hay solicitudes de callback para este cliente.</div>
-                            <div v-else class="max-h-32 overflow-y-auto space-y-1 rounded border border-gray-200 bg-gray-50 p-2 text-xs">
-                                <div
-                                    v-for="cb in clientCallbackRequests"
-                                    :key="cb.id"
-                                    class="flex items-center justify-between rounded px-2 py-1"
-                                    :class="cb.status === 'pending' ? 'bg-amber-50' : cb.status === 'completed' ? 'bg-green-50' : 'bg-gray-50'"
-                                >
-                                    <span>{{ cb.scheduled_date }} {{ cb.scheduled_time || '' }} - {{ cb.channel === 'call' ? 'Llamada' : 'WhatsApp' }}</span>
-                                    <span class="font-medium" :class="cb.status === 'pending' ? 'text-amber-700' : cb.status === 'completed' ? 'text-green-700' : 'text-gray-500'">
-                                        {{ cb.status === 'pending' ? 'Pendiente' : cb.status === 'completed' ? 'Completado' : 'Cancelado' }}
-                                    </span>
-                                </div>
-                            </div>
-                            <p class="mt-1 text-xs text-gray-500">Para programar un nuevo callback, ve a la pestaña <strong>Callbacks</strong>.</p>
-                        </div>
-                        <div class="border-t pt-4">
-                            <h4 class="text-sm font-medium text-gray-700 mb-2">Historial del chat</h4>
-                            <div v-if="loadingMessages" class="text-sm text-gray-500">Cargando mensajes...</div>
-                            <div v-else-if="!whatsappMessages.length" class="text-sm text-gray-500">No hay mensajes en el historial.</div>
-                            <div v-else class="max-h-64 overflow-y-auto space-y-2 rounded border border-gray-200 bg-gray-50 p-3">
-                                <div
-                                    v-for="(m, i) in whatsappMessages"
-                                    :key="i"
-                                    :class="['rounded-lg px-3 py-2 text-sm', m.type === 'ai' ? 'bg-[#dcf8c6] ml-6' : 'bg-white border ml-0 mr-6']"
-                                >
-                                    <span class="text-xs text-gray-500">{{ m.type === 'ai' ? 'Empresa' : 'Usuario' }}</span>
-                                    <p class="mt-0.5 whitespace-pre-wrap break-words">{{ m.content }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex justify-end">
-                        <button type="button" class="rounded border px-4 py-2 hover:bg-gray-50" @click="showWhatsappModal = false">
-                            Cerrar
-                        </button>
+            <div class="border-t pt-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">Solicitudes de callback (registro en cliente)</h4>
+                <div v-if="loadingCallbacks" class="text-sm text-gray-500">Cargando...</div>
+                <div v-else-if="!clientCallbackRequests.length" class="text-sm text-gray-500">No hay solicitudes de callback para este cliente.</div>
+                <div v-else class="max-h-32 overflow-y-auto space-y-1 rounded border border-gray-200 bg-gray-50 p-2 text-xs">
+                    <div
+                        v-for="cb in clientCallbackRequests"
+                        :key="cb.id"
+                        class="flex items-center justify-between rounded px-2 py-1"
+                        :class="cb.status === 'pending' ? 'bg-amber-50' : cb.status === 'completed' ? 'bg-green-50' : 'bg-gray-50'"
+                    >
+                        <span>{{ cb.scheduled_date }} {{ cb.scheduled_time || '' }} - {{ cb.channel === 'call' ? 'Llamada' : 'WhatsApp' }}</span>
+                        <span class="font-medium" :class="cb.status === 'pending' ? 'text-amber-700' : cb.status === 'completed' ? 'text-green-700' : 'text-gray-500'">
+                            {{ cb.status === 'pending' ? 'Pendiente' : cb.status === 'completed' ? 'Completado' : 'Cancelado' }}
+                        </span>
                     </div>
                 </div>
+                <p class="mt-1 text-xs text-gray-500">Para programar un nuevo callback, ve a la pestaña <strong>Callbacks</strong>.</p>
             </div>
-        </div>
+        </ClientWhatsappModal>
 
         <!-- Modal transcripción de llamada -->
         <div
