@@ -3,19 +3,26 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\AnalyzeCallTranscriptJob;
 use App\Models\Agent;
+use App\Models\PostCallWebhookLog;
 use App\Models\RegistroAudioLlamada;
 use App\Models\RegistroEscritoLlamada;
-use App\Services\CallAnalysisService;
 use App\Services\CallBatchService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Webhook Post-Call de ElevenLabs. Recibe la transcripción (y audio) de cada
- * llamada, los guarda, dispara el análisis de IA y LIBERA el cupo en la cola de
- * llamadas para que se ejecute la siguiente (ventana deslizante).
+ * Webhook Post-Call de ElevenLabs. Recibe la transcripción, el audio y el
+ * análisis (que ElevenLabs ya calcula por su cuenta: data_collection y
+ * evaluation_criteria) de cada llamada, los guarda y LIBERA el cupo en la cola
+ * de llamadas para que se ejecute la siguiente (ventana deslizante).
+ *
+ * NO ejecuta análisis de IA propio: solo persiste y pinta las variables que
+ * envía ElevenLabs. El análisis de IA de Laravel queda disponible aparte
+ * (agents.call-analysis.analyze y el comando calls:analyze) por si se necesita.
+ *
+ * Además registra TODO evento recibido en post_call_webhook_logs (payload crudo
+ * sin el audio, que se enlaza por conversation_id) para depuración.
  *
  * Configúralo en ElevenLabs (Conversational AI → Post-call webhook):
  *   https://TU_DOMINIO/api/agents/{agent_id}/elevenlabs/post-call
@@ -24,11 +31,6 @@ class PostCallWebhookController extends Controller
 {
     public function __invoke(Request $request, Agent $agent, CallBatchService $batch): JsonResponse
     {
-        $secret = (string) config('services.elevenlabs.webhook_secret', '');
-        if ($secret !== '' && ! $this->validSignature($request, $secret)) {
-            return response()->json(['error' => 'Firma inválida'], 403);
-        }
-
         $payload = $request->all();
         $data = is_array($payload['data'] ?? null) ? $payload['data'] : $payload;
 
@@ -42,10 +44,29 @@ class PostCallWebhookController extends Controller
             ?? ($dynamicVars['phone'] ?? null);
         $duration = $metadata['call_duration_secs'] ?? null;
         $cost = $metadata['cost'] ?? ($metadata['charging']['call_charge'] ?? null);
-        $summary = $data['analysis']['transcript_summary'] ?? null;
+
+        $analysis = is_array($data['analysis'] ?? null) ? $data['analysis'] : [];
+        $summary = $analysis['transcript_summary'] ?? null;
 
         $transcript = $data['transcript'] ?? null;       // array de turnos
         $audioBase64 = $data['full_audio'] ?? ($payload['full_audio'] ?? null);
+        $hasAudio = is_string($audioBase64) && $audioBase64 !== '';
+
+        // Variables de análisis de ElevenLabs en el shape que consume la UI del
+        // detalle de llamada (Variables extraídas).
+        $variablesAnalisis = $this->buildAnalysisVariables($analysis);
+
+        // Log crudo de TODO evento recibido (payload sin el audio para no duplicarlo).
+        $this->storeWebhookLog($agent, $payload, [
+            'conversation_id' => $conversationId,
+            'phone' => $phone,
+            'event_type' => $payload['type'] ?? null,
+            'status' => $data['status'] ?? null,
+            'call_successful' => $analysis['call_successful'] ?? null,
+            'duration_secs' => is_numeric($duration) ? (int) $duration : null,
+            'cost' => is_numeric($cost) ? $cost : null,
+            'has_audio' => $hasAudio,
+        ]);
 
         // Guardar transcripción (best-effort; puede escribir en la BD interna).
         if ($conversationId && (is_array($transcript) || is_string($transcript))) {
@@ -59,14 +80,14 @@ class PostCallWebhookController extends Controller
                     'summary' => $summary,
                     'costo' => is_numeric($cost) ? $cost : null,
                     'duration_call_seg' => is_numeric($duration) ? (int) $duration : null,
-                    'variables_extraidas' => $dynamicVars ? json_encode($dynamicVars) : null,
+                    'variables_extraidas' => $variablesAnalisis ? json_encode($variablesAnalisis) : null,
                 ]);
             } catch (\Throwable $e) {
                 report($e);
             }
         }
 
-        if ($conversationId && is_string($audioBase64) && $audioBase64 !== '') {
+        if ($conversationId && $hasAudio) {
             try {
                 RegistroAudioLlamada::create([
                     'conversation_id' => (string) $conversationId,
@@ -75,16 +96,6 @@ class PostCallWebhookController extends Controller
             } catch (\Throwable $e) {
                 report($e);
             }
-        }
-
-        // Análisis de IA opcional (reutiliza el POC de análisis de llamadas).
-        if ($conversationId && is_array($transcript) && app(CallAnalysisService::class)->isConfigured()) {
-            AnalyzeCallTranscriptJob::dispatch(
-                $agent->id,
-                (string) $conversationId,
-                (string) json_encode($transcript),
-                $phone ? (string) $phone : null,
-            );
         }
 
         // Liberar el cupo en la cola de llamadas y despachar la siguiente.
@@ -103,32 +114,71 @@ class PostCallWebhookController extends Controller
     }
 
     /**
-     * Valida la firma HMAC-SHA256 de ElevenLabs: header "t=<ts>,v0=<hash>",
-     * hash = HMAC-SHA256("{t}.{body}", secret).
+     * Normaliza el objeto `analysis` de ElevenLabs al shape que consume el modal
+     * de detalle de llamada (call_summary_title, transcript_summary, call_successful,
+     * data_collection_results_list, evaluation_criteria_results_list).
+     *
+     * @param  array<string, mixed>  $analysis
+     * @return array<string, mixed>|null
      */
-    private function validSignature(Request $request, string $secret): bool
+    private function buildAnalysisVariables(array $analysis): ?array
     {
-        $header = (string) ($request->header('ElevenLabs-Signature') ?? $request->header('elevenlabs-signature') ?? '');
-        if ($header === '') {
-            return false;
+        if (! $analysis) {
+            return null;
         }
 
-        $parts = [];
-        foreach (explode(',', $header) as $kv) {
-            $piece = explode('=', $kv, 2);
-            if (count($piece) === 2) {
-                $parts[trim($piece[0])] = trim($piece[1]);
+        $dataCollection = [];
+        $rawDataCollection = is_array($analysis['data_collection_results'] ?? null) ? $analysis['data_collection_results'] : [];
+        foreach ($rawDataCollection as $key => $item) {
+            $item = is_array($item) ? $item : ['value' => $item];
+            $dataCollection[] = [
+                'data_collection_id' => $item['data_collection_id'] ?? (string) $key,
+                'value' => $item['value'] ?? null,
+                'rationale' => $item['rationale'] ?? null,
+            ];
+        }
+
+        $evaluation = [];
+        $rawEvaluation = is_array($analysis['evaluation_criteria_results'] ?? null) ? $analysis['evaluation_criteria_results'] : [];
+        foreach ($rawEvaluation as $key => $item) {
+            $item = is_array($item) ? $item : ['result' => $item];
+            $evaluation[] = [
+                'criteria_id' => $item['criteria_id'] ?? ($item['criterion_id'] ?? (string) $key),
+                'result' => $item['result'] ?? null,
+                'rationale' => $item['rationale'] ?? null,
+            ];
+        }
+
+        return [
+            'call_summary_title' => $analysis['call_summary_title'] ?? null,
+            'transcript_summary' => $analysis['transcript_summary'] ?? null,
+            'call_successful' => $analysis['call_successful'] ?? null,
+            'data_collection_results_list' => $dataCollection,
+            'evaluation_criteria_results_list' => $evaluation,
+        ];
+    }
+
+    /**
+     * Persiste el log crudo del evento sin el audio (para no duplicar el base64).
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $meta
+     */
+    private function storeWebhookLog(Agent $agent, array $payload, array $meta): void
+    {
+        try {
+            $clean = $payload;
+            unset($clean['full_audio']);
+            if (isset($clean['data']) && is_array($clean['data'])) {
+                unset($clean['data']['full_audio']);
             }
+
+            PostCallWebhookLog::create(array_merge($meta, [
+                'agent_id' => $agent->id,
+                'payload' => $clean,
+            ]));
+        } catch (\Throwable $e) {
+            report($e);
         }
-
-        $t = $parts['t'] ?? null;
-        $v0 = $parts['v0'] ?? null;
-        if (! $t || ! $v0) {
-            return false;
-        }
-
-        $expected = hash_hmac('sha256', $t.'.'.$request->getContent(), $secret);
-
-        return hash_equals($expected, $v0);
     }
 }

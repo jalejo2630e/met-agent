@@ -127,7 +127,7 @@ async function copyPostCallWebhook() {
                 <h3 class="text-lg font-semibold text-[#33475b]">Webhook Post-Call (ElevenLabs)</h3>
                 <p class="mt-1 text-sm text-[#425b76]">
                     Pega esta URL en ElevenLabs → <em>Conversational AI → Post-call webhook</em>. Recibe la
-                    <strong>transcripción y el audio</strong> de cada llamada, dispara el análisis de IA y
+                    <strong>transcripción, el audio y el análisis</strong> de cada llamada, y
                     <strong>libera la cola</strong> para ejecutar las siguientes (de a 10).
                 </p>
             </div>
@@ -149,7 +149,7 @@ async function copyPostCallWebhook() {
                     </button>
                 </div>
                 <p class="text-xs text-[#64748b]">
-                    Define <code class="rounded bg-[#e3e8ee] px-1">ELEVENLABS_WEBHOOK_SECRET</code> en el servidor para validar la firma del webhook.
+                    Las llamadas recibidas quedan en la pestaña <strong>Logs → Post-Call ElevenLabs</strong>.
                 </p>
             </div>
         </div>

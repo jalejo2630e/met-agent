@@ -14,6 +14,7 @@ use App\Http\Controllers\ClientCallbackRequestController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocsController;
+use App\Http\Controllers\PostCallLogController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TwilioInboxController;
@@ -87,6 +88,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('agents/{agent}/reports', AgentReportController::class)->name('agents.reports.index');
     Route::post('agents/{agent}/reports/send', SendAgentReportController::class)->name('agents.reports.send');
+
+    // Audio (base64) de un evento del log Post-Call de ElevenLabs, bajo demanda
+    Route::get('agents/{agent}/elevenlabs/logs/{log}/audio', [PostCallLogController::class, 'audio'])
+        ->whereNumber('agent')->whereNumber('log')
+        ->name('agents.elevenlabs.logs.audio');
 
     // Reportes personalizados (constructor de widgets)
     Route::get('agents/{agent}/report-widgets/data', CustomReportController::class)->name('agents.report-widgets.data');

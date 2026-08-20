@@ -42,8 +42,6 @@ return [
 
     'elevenlabs' => [
         'api_key' => env('ELEVENLABS_API_KEY'),
-        // Secreto para validar la firma del webhook post-call (Conversational AI).
-        'webhook_secret' => env('ELEVENLABS_WEBHOOK_SECRET'),
     ],
 
     /*

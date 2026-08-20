@@ -21,6 +21,7 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 const props = defineProps({
     agent: Object,
     endpointLogs: Array,
+    postCallLogs: Array,
     clients: Object,
     filters: Object,
     collectDataUrl: String,
@@ -261,7 +262,7 @@ const statusColors = {
                 <ConfigGeneral v-if="activeTab === 'general'" :agent="agent" />
 
                 <ConfigEndpoints v-if="activeTab === 'endpoints' && canAccessWebhooksAndTechnical" :agent="agent" />
-                <ConfigLogs v-if="activeTab === 'logs'" :agent="agent" :endpoint-logs="endpointLogs" />
+                <ConfigLogs v-if="activeTab === 'logs'" :agent="agent" :endpoint-logs="endpointLogs" :post-call-logs="postCallLogs" />
                 <ConfigMessages v-if="activeTab === 'messages'" :agent="agent" />
                 <ConfigInbox v-if="activeTab === 'inbox'" :agent="agent" />
                 <ConfigCalls v-if="activeTab === 'calls'" :agent="agent" />

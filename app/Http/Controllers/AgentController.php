@@ -6,6 +6,7 @@ use App\Models\Agent;
 use App\Models\AgentEndpointLog;
 use App\Models\ClientContactLog;
 use App\Models\ContactQueue;
+use App\Models\PostCallWebhookLog;
 use App\Observers\AgentObserver;
 use App\Services\CallCountService;
 use App\Services\ClientListFilterService;
@@ -160,6 +161,25 @@ class AgentController extends Controller
                 'total' => count($q->client_ids ?? []),
             ]);
 
+        // Log crudo del webhook Post-Call de ElevenLabs (todo lo recibido, sin audio).
+        $postCallLogs = PostCallWebhookLog::where('agent_id', $agent->id)
+            ->latest()
+            ->limit(50)
+            ->get()
+            ->map(fn ($l) => [
+                'id' => $l->id,
+                'conversation_id' => $l->conversation_id,
+                'phone' => $l->phone,
+                'event_type' => $l->event_type,
+                'status' => $l->status,
+                'call_successful' => $l->call_successful,
+                'duration_secs' => $l->duration_secs,
+                'cost' => $l->cost,
+                'has_audio' => $l->has_audio,
+                'created_at' => $l->created_at?->toIso8601String(),
+                'payload' => $l->payload,
+            ]);
+
         $clientsQuery = $agent->clients()->withCount(['contactLogs', 'loadDates', 'alertasLlamada'])->latest();
         app(ClientListFilterService::class)->apply($request, $clientsQuery);
 
@@ -171,6 +191,7 @@ class AgentController extends Controller
             'endpointLogs' => $endpointLogs,
             'contactLogs' => $contactLogs,
             'queueRuns' => $queueRuns,
+            'postCallLogs' => $postCallLogs,
             'clients' => $clients,
             'filters' => $request->only(['date', 'search', 'status']),
             'collectDataUrl' => url("/api/agents/{$agent->id}/collect-data"),

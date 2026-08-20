@@ -48,9 +48,9 @@ Route::post('agents/{agent}/twilio/whatsapp', TwilioMessageController::class)
     ->name('api.agents.twilio.whatsapp');
 
 /*
- * Webhook Post-Call de ElevenLabs: recibe transcripción + audio de cada llamada,
- * los guarda, dispara el análisis de IA y libera el cupo de la cola de llamadas.
- * Configúralo en ElevenLabs → Conversational AI → Post-call webhook.
+ * Webhook Post-Call de ElevenLabs: recibe transcripción + audio + análisis (que
+ * ElevenLabs ya entrega calculado) de cada llamada, los guarda y libera el cupo
+ * de la cola de llamadas. Configúralo en ElevenLabs → Conversational AI → Post-call webhook.
  */
 Route::post('agents/{agent}/elevenlabs/post-call', PostCallWebhookController::class)
     ->whereNumber('agent')
