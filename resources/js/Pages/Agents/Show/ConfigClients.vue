@@ -11,8 +11,7 @@ import axios from 'axios';
 import ConfirmCallToast from '@/Components/ConfirmCallToast.vue';
 import ClientDetailModal from './Reports/ClientDetailModal.vue';
 import CallAlertsModal from '../Clients/CallAlertsModal.vue';
-import WaveformAudioPlayer from '@/Components/WaveformAudioPlayer.vue';
-import ClientWhatsappModal from '@/Components/ClientWhatsappModal.vue';
+import ClientContactModal from '@/Components/ClientContactModal.vue';
 
 const props = defineProps({
     agent: Object,
@@ -44,30 +43,23 @@ const onAlertsCountChanged = ({ clientId, count }) => {
 
 const page = usePage();
 
-const transcriptApiParams = (client) => {
-    const p = {};
-    const campana = page.props.campana_ainoa;
-    if (campana) p.campana = campana;
-    if (client?.phone) p.phone = client.phone;
-    return p;
-};
-
 const emit = defineEmits(['campaign-created']);
 
 const showModal = ref(false);
 const editingClient = ref(null);
-const showWhatsappModal = ref(false);
-const selectedClient = ref(null);
 const loadingCall = ref(null);
 const selectedIds = ref(new Set());
-const showTranscriptModal = ref(false);
-const transcriptData = ref(null);
-const loadingTranscript = ref(null);
-const selectedCallIndex = ref(0);
-const loadedCallsById = ref({});
-const loadingCallDetail = ref(null);
-const fetchedAudioByConversationId = ref({});
-const loadingAudio = ref(null);
+
+// Modal único de contacto (pestañas Llamadas / WhatsApp)
+const showContactModal = ref(false);
+const contactClient = ref(null);
+const contactInitialTab = ref('calls');
+
+const openContact = (client, tab = 'calls') => {
+    contactClient.value = client;
+    contactInitialTab.value = tab;
+    showContactModal.value = true;
+};
 
 const selectedClients = computed(() => {
     const ids = selectedIds.value;
@@ -177,26 +169,6 @@ const submitClient = () => {
 const deleteClient = (client) => {
     if (confirm('¿Eliminar este cliente?')) {
         router.delete(route('agents.clients.destroy', [props.agent, client]));
-    }
-};
-
-const clientCallbackRequests = ref([]);
-const loadingCallbacks = ref(false);
-
-const openWhatsapp = async (client) => {
-    selectedClient.value = client;
-    showWhatsappModal.value = true;
-    clientCallbackRequests.value = [];
-    loadingCallbacks.value = true;
-    try {
-        const { data } = await axios.get(route('agents.callback-requests.index', props.agent), {
-            params: { client_id: client.id },
-        });
-        clientCallbackRequests.value = data.callback_requests || [];
-    } catch {
-        clientCallbackRequests.value = [];
-    } finally {
-        loadingCallbacks.value = false;
     }
 };
 
@@ -345,124 +317,6 @@ const initiateCall = (client) => {
 
 const initiateBulkWhatsapp = () => openBulkActionModal('whatsapp');
 const initiateBulkCalls = () => openBulkActionModal('call');
-
-const openTranscript = async (client) => {
-    if (!client.phone) return;
-    loadingTranscript.value = client.id;
-    transcriptData.value = null;
-    selectedCallIndex.value = 0;
-    loadedCallsById.value = {};
-    loadingCallDetail.value = null;
-    fetchedAudioByConversationId.value = {};
-    loadingAudio.value = null;
-    showTranscriptModal.value = true;
-    try {
-        const { data } = await axios.get(route('agents.clients.call-transcript', [props.agent, client]), {
-            params: transcriptApiParams(client),
-        });
-        transcriptData.value = {
-            client: client,
-            calls: data.calls || [],
-            message: data.message,
-        };
-    } catch {
-        transcriptData.value = { client, calls: [], message: 'Error al cargar las llamadas' };
-    } finally {
-        loadingTranscript.value = null;
-    }
-};
-
-const loadCallDetail = async (callId) => {
-    if (!transcriptData.value?.client || loadedCallsById.value[callId]) return;
-    loadingCallDetail.value = callId;
-    try {
-        const { data } = await axios.get(route('agents.clients.call-transcript', [props.agent, transcriptData.value.client]), {
-            params: { call_id: callId, ...transcriptApiParams(transcriptData.value.client) },
-        });
-        if (data.call) {
-            loadedCallsById.value = { ...loadedCallsById.value, [data.call.id]: data.call };
-        }
-    } finally {
-        loadingCallDetail.value = null;
-    }
-};
-
-const selectedCallListItem = computed(() => {
-    const d = transcriptData.value;
-    if (!d?.calls?.length) return null;
-    return d.calls[selectedCallIndex.value] ?? d.calls[0];
-});
-
-const selectedCall = computed(() => {
-    const listItem = selectedCallListItem.value;
-    if (!listItem) return null;
-    return loadedCallsById.value[listItem.id] ?? listItem;
-});
-
-const selectedCallIsFullyLoaded = computed(() => {
-    const listItem = selectedCallListItem.value;
-    return listItem && loadedCallsById.value[listItem.id];
-});
-
-const effectiveAudioBase64 = computed(() => {
-    const listItem = selectedCallListItem.value;
-    if (!listItem?.conversation_id) return null;
-    const convId = listItem.conversation_id;
-    const loaded = loadedCallsById.value[listItem.id];
-    if (loaded?.audio) return loaded.audio;
-    return fetchedAudioByConversationId.value[convId] ?? null;
-});
-
-const fetchCallAudio = async () => {
-    const listItem = selectedCallListItem.value;
-    const client = transcriptData.value?.client;
-    const convId = listItem?.conversation_id;
-    if (!convId || !client) return;
-    if (effectiveAudioBase64.value) return;
-    loadingAudio.value = convId;
-    try {
-        const { data } = await axios.get(route('agents.clients.call-audio', [props.agent, client]), {
-            params: { conversation_id: convId, ...transcriptApiParams(client) },
-        });
-        if (data.audio) {
-            fetchedAudioByConversationId.value = {
-                ...fetchedAudioByConversationId.value,
-                [convId]: data.audio,
-            };
-        } else {
-            toast.error(data.message || 'No hay audio para esta conversación');
-        }
-    } catch (e) {
-        toast.error(e.response?.data?.message || 'Error al cargar el audio');
-    } finally {
-        loadingAudio.value = null;
-    }
-};
-
-const downloadCallAudio = () => {
-    const listItem = selectedCallListItem.value;
-    const raw = effectiveAudioBase64.value;
-    if (!raw || !listItem) return;
-    const url = audioSrc(raw);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `llamada-${listItem.id}-${(listItem.conversation_id || 'audio').slice(0, 20)}.mp3`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-};
-
-const audioSrc = (audioStr) => {
-    if (!audioStr) return null;
-    if (audioStr.startsWith('data:')) return audioStr;
-    return `data:audio/mpeg;base64,${audioStr}`;
-};
-
-// El audio ya está guardado local (webhook post-call de ElevenLabs): se carga
-// solo al seleccionar la llamada, sin pulsar "reproducir".
-watch(selectedCallListItem, (item) => {
-    if (item?.conversation_id) fetchCallAudio();
-});
 
 const filterDate = ref(props.filters?.date ?? '');
 const searchInput = ref(props.filters?.search ?? '');
@@ -680,27 +534,7 @@ const formatLoadedAt = (dateStr) => {
                                     <button type="button" class="text-left text-[#1976d2] hover:underline" @click="openClientDetail(client)">{{ client.name }} {{ client.lastname }}</button>
                                 </td>
                                 <td class="max-w-[180px] truncate px-3 py-2.5 text-gray-700" :title="client.email">{{ client.email }}</td>
-                                <td class="px-3 py-2.5">
-                                    <span class="inline-flex items-center gap-1">
-                                        {{ client.phone || '-' }}
-                                        <button
-                                            v-if="client.phone"
-                                            type="button"
-                                            class="inline-flex rounded p-1 text-[#1976d2] hover:bg-[#1976d2]/10 transition"
-                                            title="Ver transcripción de llamada"
-                                            :disabled="loadingTranscript === client.id"
-                                            @click="openTranscript(client)"
-                                        >
-                                            <svg v-if="loadingTranscript === client.id" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                            </svg>
-                                            <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
-                                        </button>
-                                    </span>
-                                </td>
+                                <td class="px-3 py-2.5">{{ client.phone || '-' }}</td>
                                 <td class="whitespace-nowrap px-3 py-2.5 text-gray-700">{{ client.document_type }} {{ client.document }}</td>
                                 <td v-for="f in dynamicFields" :key="f.id" class="max-w-[120px] truncate px-3 py-2.5 text-sm text-gray-600">{{ (client.custom_fields || {})[f.field_name] ?? '-' }}</td>
                                 <td class="whitespace-nowrap px-3 py-2.5 text-sm text-gray-600">{{ client.contact_logs_count ?? 0 }}</td>
@@ -741,10 +575,12 @@ const formatLoadedAt = (dateStr) => {
                                     <button
                                         type="button"
                                         class="inline-flex items-center justify-center rounded p-1.5 text-[#25D366] hover:bg-[#25D366]/10 transition"
-                                        title="WhatsApp"
-                                        @click="openWhatsapp(client)"
+                                        title="Llamadas y WhatsApp"
+                                        @click="openContact(client, 'calls')"
                                     >
-                                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.84L3 20l1.16-3.48A7.98 7.98 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                        </svg>
                                     </button>
                                     <button class="ml-2 text-indigo-600 hover:text-indigo-900" @click="openEdit(client)">
                                         Editar
@@ -983,239 +819,16 @@ const formatLoadedAt = (dateStr) => {
             </div>
         </div>
 
-        <!-- Modal WhatsApp (componente compartido con el listado de clientes) -->
-        <ClientWhatsappModal
-            :show="showWhatsappModal"
+        <!-- Modal único de contacto: pestañas Llamadas / WhatsApp -->
+        <ClientContactModal
+            :show="showContactModal"
             :agent="agent"
-            :client="selectedClient"
+            :client="contactClient"
             :plantillas="plantillas"
             :default-plantilla-id="defaultPlantillaId"
-            @close="showWhatsappModal = false"
-        >
-            <div class="border-t pt-4">
-                <h4 class="text-sm font-medium text-gray-700 mb-2">Solicitudes de callback (registro en cliente)</h4>
-                <div v-if="loadingCallbacks" class="text-sm text-gray-500">Cargando...</div>
-                <div v-else-if="!clientCallbackRequests.length" class="text-sm text-gray-500">No hay solicitudes de callback para este cliente.</div>
-                <div v-else class="max-h-32 overflow-y-auto space-y-1 rounded border border-gray-200 bg-gray-50 p-2 text-xs">
-                    <div
-                        v-for="cb in clientCallbackRequests"
-                        :key="cb.id"
-                        class="flex items-center justify-between rounded px-2 py-1"
-                        :class="cb.status === 'pending' ? 'bg-amber-50' : cb.status === 'completed' ? 'bg-green-50' : 'bg-gray-50'"
-                    >
-                        <span>{{ cb.scheduled_date }} {{ cb.scheduled_time || '' }} - {{ cb.channel === 'call' ? 'Llamada' : 'WhatsApp' }}</span>
-                        <span class="font-medium" :class="cb.status === 'pending' ? 'text-amber-700' : cb.status === 'completed' ? 'text-green-700' : 'text-gray-500'">
-                            {{ cb.status === 'pending' ? 'Pendiente' : cb.status === 'completed' ? 'Completado' : 'Cancelado' }}
-                        </span>
-                    </div>
-                </div>
-                <p class="mt-1 text-xs text-gray-500">Para programar un nuevo callback, ve a la pestaña <strong>Callbacks</strong>.</p>
-            </div>
-        </ClientWhatsappModal>
-
-        <!-- Modal transcripción de llamada -->
-        <div
-            v-show="showTranscriptModal"
-            class="fixed inset-0 z-50 overflow-y-auto"
-            @keydown.esc="showTranscriptModal = false"
-        >
-            <div class="flex min-h-screen items-center justify-center p-4">
-                <div class="fixed inset-0 bg-black/50" @click="showTranscriptModal = false" />
-                <div class="relative max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-lg bg-white shadow-xl">
-                    <div class="flex items-center justify-between border-b border-[#e3e8ee] px-6 py-4">
-                        <h3 class="text-lg font-medium text-gray-900">
-                            Transcripción de llamada
-                            <span v-if="transcriptData?.client" class="text-sm font-normal text-gray-500">
-                                — {{ transcriptData.client.name }} {{ transcriptData.client.lastname }}
-                            </span>
-                        </h3>
-                        <button
-                            type="button"
-                            class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                            @click="showTranscriptModal = false"
-                        >
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="flex max-h-[calc(85vh-80px)] overflow-hidden">
-                        <!-- Lista de llamadas -->
-                        <div
-                            v-if="transcriptData?.calls?.length"
-                            class="w-56 shrink-0 border-r border-[#e3e8ee] overflow-y-auto bg-[#f5f8fa]"
-                        >
-                            <div class="p-2">
-                                <p class="px-2 py-1 text-xs font-medium text-gray-500">Llamadas ({{ transcriptData.calls.length }})</p>
-                                <button
-                                    v-for="(call, idx) in transcriptData.calls"
-                                    :key="call.id"
-                                    type="button"
-                                    :class="[
-                                        'mt-1 w-full rounded-lg px-3 py-2 text-left text-sm transition',
-                                        selectedCallIndex === idx
-                                            ? 'bg-[#1976d2] text-white'
-                                            : 'bg-white text-gray-700 hover:bg-[#e3e8ee]'
-                                    ]"
-                                    @click="selectedCallIndex = idx; loadCallDetail(call.id)"
-                                >
-                                    <span class="block font-medium">
-                                        {{ call.created_at ? new Date(call.created_at).toLocaleDateString('es') : '—' }}
-                                    </span>
-                                    <span class="block text-xs opacity-80">
-                                        {{ call.created_at ? new Date(call.created_at).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) : '' }}
-                                        <span v-if="call.duration_call_seg"> · {{ Math.floor(call.duration_call_seg / 60) }}:{{ String(call.duration_call_seg % 60).padStart(2, '0') }}</span>
-                                    </span>
-                                    <span v-if="call.has_audio" class="mt-0.5 block text-xs">🔊 Audio</span>
-                                </button>
-                            </div>
-                        </div>
-                        <!-- Contenido de la llamada seleccionada -->
-                        <div class="min-w-0 flex-1 overflow-y-auto p-6">
-                            <div v-if="loadingTranscript" class="py-12 text-center text-gray-500">
-                                Cargando fechas de llamadas...
-                            </div>
-                            <div
-                                v-else-if="transcriptData?.message && !transcriptData?.calls?.length"
-                                class="py-8 text-center text-gray-500"
-                            >
-                                {{ transcriptData.message }}
-                            </div>
-                            <div v-else-if="selectedCallListItem && loadingCallDetail === selectedCallListItem.id" class="py-12 text-center text-gray-500">
-                                Cargando transcripción y audio...
-                            </div>
-                            <div v-else-if="selectedCallListItem" class="space-y-4">
-                                <div
-                                    v-if="selectedCallListItem.conversation_id"
-                                    class="rounded-lg border border-[#e3e8ee] bg-[#f5f8fa] p-4"
-                                >
-                                    <h4 class="mb-2 text-sm font-semibold text-gray-800">Audio de la llamada</h4>
-                                    <p v-if="loadingAudio === selectedCallListItem.conversation_id" class="text-sm text-gray-500">
-                                        Cargando audio…
-                                    </p>
-                                    <div v-else-if="effectiveAudioBase64" class="space-y-2">
-                                        <WaveformAudioPlayer :src="audioSrc(effectiveAudioBase64)" />
-                                        <button
-                                            type="button"
-                                            class="text-sm font-medium text-[#1976d2] underline hover:text-[#1565c0]"
-                                            @click="downloadCallAudio"
-                                        >
-                                            Descargar audio
-                                        </button>
-                                    </div>
-                                    <p v-else class="text-sm text-gray-400">Sin audio para esta llamada.</p>
-                                </div>
-
-                                <div v-if="!selectedCallIsFullyLoaded" class="py-6 text-center text-sm text-gray-500">
-                                    Cargando transcripción…
-                                </div>
-                                <template v-else-if="selectedCall && selectedCallIsFullyLoaded">
-                                <p class="mb-4 text-xs text-gray-500">
-                                    Llamada del {{ selectedCall.created_at ? new Date(selectedCall.created_at).toLocaleString('es') : '—' }}
-                                    <span v-if="selectedCall.duration_call_seg">
-                                        · Duración: {{ Math.floor(selectedCall.duration_call_seg / 60) }}:{{ String(selectedCall.duration_call_seg % 60).padStart(2, '0') }}
-                                    </span>
-                                </p>
-
-                                <!-- Transcripción -->
-                                <div v-if="(selectedCall.transcript || []).filter((i) => i.message).length" class="space-y-3">
-                                    <h4 class="text-sm font-semibold text-gray-800">Transcripción</h4>
-                                    <div
-                                        v-for="(item, idx) in (selectedCall.transcript || []).filter((i) => i.message)"
-                                        :key="idx"
-                                        :class="[
-                                            'rounded-lg px-4 py-3',
-                                            item.role === 'agent'
-                                                ? 'ml-0 mr-8 bg-[#e3f2fd] border-l-4 border-[#1976d2]'
-                                                : 'ml-8 mr-0 bg-[#f5f5f5] border-l-4 border-[#757575]'
-                                        ]"
-                                    >
-                                        <span class="text-xs font-medium" :class="item.role === 'agent' ? 'text-[#1976d2]' : 'text-gray-600'">
-                                            {{ item.role === 'agent' ? 'Asistente' : 'Cliente' }}
-                                        </span>
-                                        <p class="mt-1 whitespace-pre-wrap break-words text-sm text-gray-800">{{ item.message }}</p>
-                                    </div>
-                                </div>
-
-                                <!-- Variables extraídas -->
-                                <div v-if="selectedCall.variables_extraidas" class="mt-6 border-t border-[#e3e8ee] pt-6">
-                                    <h4 class="text-sm font-semibold text-gray-800 mb-3">Variables extraídas</h4>
-                                    <div class="space-y-4">
-                                        <div v-if="selectedCall.variables_extraidas.call_summary_title" class="rounded-lg bg-[#f5f8fa] px-3 py-2">
-                                            <span class="text-xs font-medium text-gray-500">Título del resumen</span>
-                                            <p class="mt-0.5 text-sm text-gray-800">{{ selectedCall.variables_extraidas.call_summary_title }}</p>
-                                        </div>
-                                        <div v-if="selectedCall.variables_extraidas.transcript_summary" class="rounded-lg bg-[#f5f8fa] px-3 py-2">
-                                            <span class="text-xs font-medium text-gray-500">Resumen de la llamada</span>
-                                            <p class="mt-0.5 whitespace-pre-wrap text-sm text-gray-800">{{ selectedCall.variables_extraidas.transcript_summary }}</p>
-                                        </div>
-                                        <div v-if="selectedCall.variables_extraidas.call_successful" class="rounded-lg bg-[#f5f8fa] px-3 py-2">
-                                            <span class="text-xs font-medium text-gray-500">Resultado</span>
-                                            <p class="mt-0.5 text-sm">
-                                                <span
-                                                    :class="[
-                                                        'inline-flex rounded px-2 py-0.5 text-xs font-medium',
-                                                        selectedCall.variables_extraidas.call_successful === 'success'
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-amber-100 text-amber-800'
-                                                    ]"
-                                                >
-                                                    {{ selectedCall.variables_extraidas.call_successful === 'success' ? 'Éxito' : selectedCall.variables_extraidas.call_successful }}
-                                                </span>
-                                            </p>
-                                        </div>
-                                        <div v-if="selectedCall.variables_extraidas.data_collection_results_list?.length" class="space-y-2">
-                                            <span class="text-xs font-medium text-gray-500">Datos recolectados</span>
-                                            <div class="space-y-2">
-                                                <div
-                                                    v-for="(item, idx) in selectedCall.variables_extraidas.data_collection_results_list"
-                                                    :key="idx"
-                                                    class="rounded-lg border border-[#e3e8ee] bg-white px-3 py-2"
-                                                >
-                                                    <div class="flex items-baseline justify-between gap-2">
-                                                        <span class="text-sm font-medium text-[#33475b]">{{ item.data_collection_id }}</span>
-                                                        <span class="text-sm font-semibold text-[#1976d2]">{{ item.value }}</span>
-                                                    </div>
-                                                    <p v-if="item.rationale" class="mt-1 text-xs text-gray-500">{{ item.rationale }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div v-if="selectedCall.variables_extraidas.evaluation_criteria_results_list?.length" class="space-y-2">
-                                            <span class="text-xs font-medium text-gray-500">Criterios de evaluación</span>
-                                            <div class="space-y-2">
-                                                <div
-                                                    v-for="(item, idx) in selectedCall.variables_extraidas.evaluation_criteria_results_list"
-                                                    :key="idx"
-                                                    class="rounded-lg border border-[#e3e8ee] bg-white px-3 py-2"
-                                                >
-                                                    <div class="flex items-baseline justify-between gap-2">
-                                                        <span class="text-sm font-medium text-[#33475b]">{{ item.criteria_id }}</span>
-                                                        <span
-                                                            :class="[
-                                                                'inline-flex rounded px-2 py-0.5 text-xs font-medium',
-                                                                item.result === 'success' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                                                            ]"
-                                                        >
-                                                            {{ item.result === 'success' ? 'Éxito' : item.result }}
-                                                        </span>
-                                                    </div>
-                                                    <p v-if="item.rationale" class="mt-1 text-xs text-gray-500">{{ item.rationale }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div v-if="!selectedCall.transcript?.length && !selectedCall.variables_extraidas && !effectiveAudioBase64" class="py-8 text-center text-gray-500">
-                                    No hay transcripción ni variables para esta llamada.
-                                </div>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+            :initial-tab="contactInitialTab"
+            @close="showContactModal = false"
+        />
 
         <ClientDetailModal
             :show="showClientDetail"
