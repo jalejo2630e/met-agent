@@ -71,10 +71,15 @@ class RegistroEscritoLlamada extends Model
         }
 
         // La columna puede guardar solo el id o texto más largo (p. ej. JSON); alinear con
-        // `campana like '%uuid%'` en SQL crudo.
+        // `campana like '%uuid%'`. Se castea a text porque campana_id es uuid (LIKE no
+        // aplica a uuid en Postgres). Además se incluyen las filas SIN campaña: las
+        // llamadas del webhook post-call nativo no traen campana_id y deben aparecer igual.
         $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $campanaValue);
 
-        return $query->where($col, 'like', '%'.$escaped.'%');
+        return $query->where(function (Builder $q) use ($col, $escaped) {
+            $q->whereRaw('"'.$col.'"::text like ?', ['%'.$escaped.'%'])
+                ->orWhereNull($col);
+        });
     }
 
     /**

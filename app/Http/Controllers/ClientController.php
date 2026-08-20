@@ -631,16 +631,23 @@ class ClientController extends Controller
             return response()->json(['message' => 'Audio no disponible para este cliente', 'audio' => null], 403);
         }
 
+        $audio = null;
         if (CallTranscriptsConnection::usesRest()) {
             try {
                 $audio = app(SupabaseCallAudioRestService::class)->findAudioBase64($conversationId);
             } catch (\Throwable $e) {
                 report($e);
-
-                return response()->json(['message' => 'No se pudo cargar el audio desde Supabase.', 'audio' => null], 500);
             }
-        } else {
-            $row = RegistroAudioLlamada::where('conversation_id', $conversationId)->first();
+        }
+
+        // El webhook post-call nativo de ElevenLabs siempre guarda el audio en la
+        // BD local (registro_audio_llamadas) en un POST aparte, relacionado por
+        // conversation_id. Se usa como fuente principal (o fallback si el origen
+        // configurado es Supabase pero no lo tiene).
+        if ($audio === null || $audio === '') {
+            $row = RegistroAudioLlamada::where('conversation_id', $conversationId)
+                ->whereNotNull('audio')->where('audio', '!=', '')
+                ->first(['audio']);
             $audio = $row?->audio;
         }
 

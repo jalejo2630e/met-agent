@@ -56,7 +56,9 @@ const togglePostCall = (log) => {
         return;
     }
     expandedPostCallId.value = log.id;
-    if (log.has_audio) loadPostCallAudio(log);
+    // El audio suele llegar en un evento post_call_audio aparte: se busca por
+    // conversation_id, no por si este evento concreto traía audio.
+    if (log.conversation_id) loadPostCallAudio(log);
 };
 
 const currentView = (id) => postCallView.value[id] || 'transcript';
@@ -110,15 +112,14 @@ const fmtDuration = (secs) => {
 const roleLabel = (role) => role === 'agent' ? 'Agente' : role === 'user' ? 'Cliente' : (role || '—');
 
 const loadPostCallAudio = async (log) => {
-    if (!log?.has_audio || audioByLogId.value[log.id]) return;
+    // undefined = no intentado; string = base64; false = intentado sin audio.
+    if (!log?.conversation_id || audioByLogId.value[log.id] !== undefined) return;
     loadingAudioId.value = log.id;
     try {
         const { data } = await axios.get(route('agents.elevenlabs.logs.audio', [props.agent.id, log.id]));
-        if (data.audio) {
-            audioByLogId.value = { ...audioByLogId.value, [log.id]: data.audio };
-        }
+        audioByLogId.value = { ...audioByLogId.value, [log.id]: data.audio || false };
     } catch (e) {
-        /* silencioso: se muestra el estado "sin audio" */
+        audioByLogId.value = { ...audioByLogId.value, [log.id]: false };
     } finally {
         loadingAudioId.value = null;
     }
@@ -177,10 +178,14 @@ const prettyJson = (obj) => {
                                     <span v-if="log.cost != null">costo: {{ log.cost }}</span>
                                 </div>
 
-                                <!-- Audio -->
-                                <div v-if="log.has_audio" class="mb-4">
-                                    <WaveformAudioPlayer v-if="audioByLogId[log.id]" :src="audioSrc(audioByLogId[log.id])" />
-                                    <p v-else class="text-xs text-gray-400">Cargando audio…</p>
+                                <!-- Audio: llega en un POST aparte (post_call_audio) y se relaciona
+                                     por conversation_id, por eso se busca por ese id, no por el evento. -->
+                                <div v-if="log.conversation_id" class="mb-4">
+                                    <p v-if="loadingAudioId === log.id" class="text-xs text-gray-400">Cargando audio…</p>
+                                    <WaveformAudioPlayer v-else-if="typeof audioByLogId[log.id] === 'string'" :src="audioSrc(audioByLogId[log.id])" />
+                                    <p v-else-if="audioByLogId[log.id] === false" class="text-xs text-gray-400">
+                                        Sin audio para esta conversación (aún no llegó el evento <code>post_call_audio</code> de ElevenLabs).
+                                    </p>
                                 </div>
 
                                 <!-- Selector de vista -->
