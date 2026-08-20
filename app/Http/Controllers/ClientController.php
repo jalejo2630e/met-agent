@@ -47,7 +47,7 @@ class ClientController extends Controller
 
         $clients = $clientsQuery->paginate(20)->withQueryString();
         app(CallCountService::class)->attachCallCounts($clients->getCollection());
-        $agent->load(['clientFields', 'callConfig']);
+        $agent->load(['clientFields', 'callConfig', 'messageConfig']);
 
         return Inertia::render('Agents/Clients/Index', [
             'agent' => $agent,

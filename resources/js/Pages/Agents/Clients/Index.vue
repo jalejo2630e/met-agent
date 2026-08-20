@@ -897,9 +897,12 @@ const exportQueryString = computed(() => {
                             <label class="block text-xs font-medium text-gray-600 mb-1">Plantilla a enviar</label>
                             <select v-model="selectedPlantillaId" class="w-full rounded-md border-[#e3e8ee] text-sm">
                                 <option value="">— Plantilla por defecto —</option>
-                                <option v-for="p in plantillas" :key="p.id" :value="p.id">{{ p.name || p.id }}</option>
+                                <option v-for="p in plantillas" :key="p.id" :value="p.id">{{ p.name || p.id }}{{ p.from_twilio ? ' (Twilio)' : '' }}</option>
                             </select>
                         </div>
+                        <p v-else class="rounded border border-dashed border-[#e3e8ee] bg-gray-50 p-3 text-xs text-gray-500">
+                            No hay plantillas configuradas. Agrégalas en <strong>Configuración → Mensajes → Plantillas</strong> (opción "Agregar desde Twilio").
+                        </p>
                         <button
                             v-if="selectedClient?.phone"
                             type="button"
