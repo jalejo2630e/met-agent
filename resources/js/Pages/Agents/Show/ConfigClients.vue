@@ -494,6 +494,12 @@ const audioSrc = (audioStr) => {
     return `data:audio/mpeg;base64,${audioStr}`;
 };
 
+// El audio ya está guardado local (webhook post-call de ElevenLabs): se carga
+// solo al seleccionar la llamada, sin pulsar "reproducir".
+watch(selectedCallListItem, (item) => {
+    if (item?.conversation_id) fetchCallAudio();
+});
+
 const filterDate = ref(props.filters?.date ?? '');
 const searchInput = ref(props.filters?.search ?? '');
 const statusFilter = ref(props.filters?.status ?? '');
@@ -1165,17 +1171,7 @@ const formatLoadedAt = (dateStr) => {
                                     class="rounded-lg border border-[#e3e8ee] bg-[#f5f8fa] p-4"
                                 >
                                     <h4 class="mb-2 text-sm font-semibold text-gray-800">Audio de la llamada</h4>
-                                    <div v-if="!effectiveAudioBase64 && loadingAudio !== selectedCallListItem.conversation_id" class="flex flex-wrap items-center gap-3">
-                                        <button
-                                            type="button"
-                                            class="rounded-lg bg-[#1976d2] px-4 py-2 text-sm font-medium text-white hover:bg-[#1565c0]"
-                                            @click="fetchCallAudio"
-                                        >
-                                            Reproducir audio
-                                        </button>
-                                        <span class="text-xs text-gray-500">Se descarga el audio desde el servidor</span>
-                                    </div>
-                                    <p v-else-if="loadingAudio === selectedCallListItem.conversation_id" class="text-sm text-gray-500">
+                                    <p v-if="loadingAudio === selectedCallListItem.conversation_id" class="text-sm text-gray-500">
                                         Cargando audio…
                                     </p>
                                     <div v-else-if="effectiveAudioBase64" class="space-y-2">
@@ -1188,6 +1184,7 @@ const formatLoadedAt = (dateStr) => {
                                             Descargar audio
                                         </button>
                                     </div>
+                                    <p v-else class="text-sm text-gray-400">Sin audio para esta llamada.</p>
                                 </div>
 
                                 <div v-if="!selectedCallIsFullyLoaded" class="py-6 text-center text-sm text-gray-500">

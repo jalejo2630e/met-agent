@@ -51,6 +51,15 @@ RUN apt-get update && apt-get install -y \
 # Configurar PHP
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
+# Subir límites de body/memoria: el webhook post-call de ElevenLabs envía el
+# audio (base64) en un POST aparte que puede pesar varios MB. Con los defaults
+# (post_max_size=8M) se rechazaría y el audio no se guardaría.
+RUN { \
+        echo 'post_max_size = 100M'; \
+        echo 'upload_max_filesize = 100M'; \
+        echo 'memory_limit = 512M'; \
+    } > "$PHP_INI_DIR/conf.d/zz-webhook-limits.ini"
+
 # Aplicación desde vendor y assets compilados desde frontend
 COPY --from=vendor /app /app
 COPY --from=frontend /app/public/build /app/public/build
