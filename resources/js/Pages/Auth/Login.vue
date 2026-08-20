@@ -28,7 +28,7 @@ const form = useForm({
 
 const showPassword = ref(false);
 const page = usePage();
-const faviconUrl = computed(() => page.props.settings?.favicon_url || '/colsanitas.png');
+const faviconUrl = computed(() => page.props.settings?.favicon_url || '/favicon.png');
 const logoUrl = computed(() => page.props.settings?.company_logo_url || '/colsanitas.png');
 const companyName = computed(() => page.props.settings?.company_name);
 
@@ -142,7 +142,7 @@ const submit = () => {
             <!-- Footer izquierda -->
             <footer class="border-t border-[#e3e8ee] px-6 py-4 sm:px-12 lg:px-16">
                 <div class="flex items-center justify-center gap-2 text-center text-sm text-[#425b76]">
-                    <img :src="faviconUrl" alt="" class="h-6 w-6" />
+                    <img src="/ainoa.png" alt="ainoa" class="h-6 w-6" />
                     <a href="https://ainoa.app" target="_blank" rel="noopener noreferrer" class="transition hover:text-[var(--color-primary)]">
                         By ainoa
                     </a>

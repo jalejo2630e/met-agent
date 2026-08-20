@@ -14,7 +14,7 @@ const page = usePage();
 const flashSuccess = computed(() => page.props.flash?.success);
 const flashError = computed(() => page.props.flash?.error);
 const logoUrl = computed(() => page.props.settings?.company_logo_url || '/colsanitas.png');
-const faviconUrl = computed(() => page.props.settings?.favicon_url || '/colsanitas.png');
+const faviconUrl = computed(() => page.props.settings?.favicon_url || '/favicon.png');
 </script>
 
 <template>
