@@ -324,6 +324,13 @@ class ContactQueueService
             return false;
         }
         $agent->load('messageConfig');
+
+        // Plantillas de Twilio: enviar directo por Twilio (sin webhook externo).
+        $twilioResult = $this->sendWhatsappViaTwilio($agent, $client, $idPlantilla);
+        if ($twilioResult !== null) {
+            return $twilioResult;
+        }
+
         $webhookUrl = $agent->messageConfig?->webhook_url;
         if (! $webhookUrl) {
             return false;
@@ -369,6 +376,56 @@ class ContactQueueService
         }
 
         return $ok;
+    }
+
+    /**
+     * Envía la plantilla por Twilio si es una plantilla de Twilio (Content SID).
+     * Devuelve:
+     *   true/false = manejado por Twilio (enviado / falló),
+     *   null       = no aplica (no es plantilla de Twilio o Twilio sin configurar) → usar webhook.
+     */
+    private function sendWhatsappViaTwilio(Agent $agent, Client $client, ?string $idPlantilla): ?bool
+    {
+        if ($idPlantilla === null || $idPlantilla === '') {
+            return null;
+        }
+
+        $plantillas = $agent->messageConfig?->plantillas ?? [];
+        $plantilla = collect($plantillas)->first(fn ($p) => ($p['id'] ?? null) === $idPlantilla);
+        $esTwilio = ($plantilla['from_twilio'] ?? false) || str_starts_with((string) $idPlantilla, 'HX');
+        if (! $esTwilio) {
+            return null;
+        }
+
+        $twilio = app(TwilioContentService::class);
+        if (! $twilio->canSendWhatsapp()) {
+            return null; // sin Twilio configurado: intentar webhook como respaldo
+        }
+
+        $variables = $agent->messageConfig?->resolvePlantillaVariables($idPlantilla, $client, $agent) ?? [];
+        $variablesMap = [];
+        foreach ($variables as $v) {
+            $variablesMap[(string) ($v['name'] ?? '')] = (string) ($v['value'] ?? '');
+        }
+
+        try {
+            $twilio->sendWhatsappTemplate($client->phone, (string) $idPlantilla, $variablesMap);
+            Log::info('[ContactQueueService] WhatsApp enviado por Twilio', [
+                'agent_id' => $agent->id,
+                'client_id' => $client->id,
+                'plantilla' => $idPlantilla,
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::warning('[ContactQueueService] Envío WhatsApp Twilio falló', [
+                'agent_id' => $agent->id,
+                'client_id' => $client->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
     }
 
     /**

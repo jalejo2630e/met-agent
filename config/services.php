@@ -53,6 +53,8 @@ return [
         'account_sid' => env('TWILIO_ACCOUNT_SID'),
         'auth_token' => env('TWILIO_AUTH_TOKEN'),
         'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
+        // Código de país por defecto para formatear teléfonos a E.164 al enviar por WhatsApp.
+        'default_country_code' => env('TWILIO_DEFAULT_COUNTRY_CODE', '57'),
     ],
 
     /*

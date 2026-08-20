@@ -890,7 +890,7 @@ class ClientController extends Controller
         ]);
     }
 
-    public function initiateWhatsapp(Request $request, Agent $agent, Client $client)
+    public function initiateWhatsapp(Request $request, Agent $agent, Client $client, \App\Services\TwilioContentService $twilio)
     {
         $this->authorize('view', $agent);
 
@@ -900,14 +900,6 @@ class ClientController extends Controller
 
         $agent->load(['messageConfig', 'endpoints', 'clientSourceEndpoints']);
 
-        $webhookUrl = $agent->messageConfig?->webhook_url;
-        if (! $webhookUrl) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No hay webhook de mensajes configurado para este agente.',
-            ], 422);
-        }
-
         if (! $client->phone) {
             return response()->json([
                 'success' => false,
@@ -915,9 +907,10 @@ class ClientController extends Controller
             ], 422);
         }
 
+        $plantillas = $agent->messageConfig?->plantillas ?? [];
+
         $idPlantilla = $request->input('id_plantilla');
         if ($idPlantilla !== null && $idPlantilla !== '') {
-            $plantillas = $agent->messageConfig?->plantillas ?? [];
             $validIds = array_column($plantillas, 'id');
             if (! in_array($idPlantilla, $validIds, true)) {
                 return response()->json([
@@ -927,6 +920,52 @@ class ClientController extends Controller
             }
         } else {
             $idPlantilla = $agent->messageConfig?->default_plantilla_id;
+        }
+
+        // Si la plantilla es de Twilio (Content SID), se envía directo por Twilio
+        // sin pasar por el webhook externo (las plantillas ya viven en el sistema).
+        $plantilla = collect($plantillas)->first(fn ($p) => ($p['id'] ?? null) === $idPlantilla);
+        $esPlantillaTwilio = $idPlantilla
+            && (($plantilla['from_twilio'] ?? false) || str_starts_with((string) $idPlantilla, 'HX'));
+
+        if ($esPlantillaTwilio && $twilio->canSendWhatsapp()) {
+            $variables = $agent->messageConfig?->resolvePlantillaVariables($idPlantilla, $client, $agent) ?? [];
+            $variablesMap = [];
+            foreach ($variables as $v) {
+                $variablesMap[(string) ($v['name'] ?? '')] = (string) ($v['value'] ?? '');
+            }
+
+            try {
+                $twilio->sendWhatsappTemplate($client->phone, (string) $idPlantilla, $variablesMap);
+
+                ClientContactLog::create([
+                    'client_id' => $client->id,
+                    'agent_id' => $agent->id,
+                    'channel' => ClientContactLog::CHANNEL_WHATSAPP,
+                    'contacted_at' => now(),
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Mensaje de WhatsApp enviado por Twilio.',
+                ]);
+            } catch (\Throwable $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al enviar por Twilio: '.$e->getMessage(),
+                ], 502);
+            }
+        }
+
+        // Respaldo: webhook externo (plantillas manuales / integraciones existentes).
+        $webhookUrl = $agent->messageConfig?->webhook_url;
+        if (! $webhookUrl) {
+            return response()->json([
+                'success' => false,
+                'message' => $esPlantillaTwilio
+                    ? 'Twilio no está configurado para enviar WhatsApp (define TWILIO_WHATSAPP_FROM).'
+                    : 'No hay forma de enviar: elige una plantilla de Twilio o configura un webhook de mensajes.',
+            ], 422);
         }
 
         $endpointsPayload = $agent->endpoints->map(fn ($ep) => [

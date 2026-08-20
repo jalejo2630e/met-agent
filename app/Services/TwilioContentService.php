@@ -186,6 +186,72 @@ class TwilioContentService
     }
 
     /**
+     * ¿Se puede enviar WhatsApp por Twilio? (credenciales + remitente definidos).
+     */
+    public function canSendWhatsapp(): bool
+    {
+        return $this->isConfigured() && $this->whatsappFrom() !== '';
+    }
+
+    private function whatsappFrom(): string
+    {
+        return (string) config('services.twilio.whatsapp_from', '');
+    }
+
+    /**
+     * Envía una plantilla de WhatsApp directamente por la API de mensajes de
+     * Twilio (sin webhook externo). Usa el Content SID de la plantilla y sus
+     * variables como ContentVariables ({"1":"valor", ...}).
+     *
+     * @param  array<string|int, string>  $variables  mapa posición/clave => valor
+     * @return array<string, mixed>
+     */
+    public function sendWhatsappTemplate(string $toPhone, string $contentSid, array $variables = []): array
+    {
+        if (! $this->canSendWhatsapp()) {
+            throw new \RuntimeException('Twilio no está configurado para enviar WhatsApp (define TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN y TWILIO_WHATSAPP_FROM).');
+        }
+
+        $payload = [
+            'From' => $this->whatsappFrom(),
+            'To' => $this->toWhatsappAddress($toPhone),
+            'ContentSid' => $contentSid,
+        ];
+        if ($variables !== []) {
+            // Twilio espera un objeto JSON {"1":"valor"}; forzar objeto aunque las claves sean numéricas.
+            $payload['ContentVariables'] = json_encode((object) $variables, JSON_UNESCAPED_UNICODE);
+        }
+
+        $response = Http::withBasicAuth($this->sid(), $this->token())
+            ->asForm()
+            ->timeout(30)
+            ->post('https://api.twilio.com/2010-04-01/Accounts/'.$this->sid().'/Messages.json', $payload);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException('Twilio Messages API: '.$response->status().' '.$response->body());
+        }
+
+        return $response->json() ?? [];
+    }
+
+    /**
+     * Normaliza un teléfono a dirección de WhatsApp de Twilio (whatsapp:+E164).
+     * Si el número no trae código de país y parece nacional, antepone el código
+     * por defecto (TWILIO_DEFAULT_COUNTRY_CODE, 57 = Colombia).
+     */
+    private function toWhatsappAddress(string $phone): string
+    {
+        $digits = preg_replace('/\D/', '', $phone) ?? '';
+        $cc = preg_replace('/\D/', '', (string) config('services.twilio.default_country_code', '57')) ?? '';
+
+        if ($cc !== '' && ! str_starts_with($digits, $cc) && strlen($digits) <= 10) {
+            $digits = $cc.$digits;
+        }
+
+        return 'whatsapp:+'.$digits;
+    }
+
+    /**
      * Nombre válido para plantilla de WhatsApp: minúsculas, alfanumérico y guion bajo.
      */
     private function normalizeName(string $name): string

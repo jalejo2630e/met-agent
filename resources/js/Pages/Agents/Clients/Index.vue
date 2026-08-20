@@ -206,16 +206,16 @@ const plantillas = computed(() => {
 const contactarUsuarioWhatsapp = async () => {
     const client = selectedClient.value;
     if (!client?.phone) return;
-    if (!confirm('¿Enviar la información del cliente y endpoints al webhook de WhatsApp?')) return;
+    if (!confirm('¿Enviar el mensaje de WhatsApp a este cliente?')) return;
     sendingToWebhook.value = true;
     try {
         const payload = {};
         if (selectedPlantillaId.value) payload.id_plantilla = selectedPlantillaId.value;
         const { data } = await axios.post(route('agents.clients.initiate-whatsapp', [props.agent, client]), payload);
         if (data.success) {
-            toast.success(data.message || 'Datos enviados al webhook correctamente.');
+            toast.success(data.message || 'Mensaje de WhatsApp enviado.');
         } else {
-            toast.error(data.message || 'Error al enviar al webhook.');
+            toast.error(data.message || 'No se pudo enviar el mensaje.');
         }
     } catch (e) {
         toast.error(e.response?.data?.message || 'Error al enviar al webhook.');
