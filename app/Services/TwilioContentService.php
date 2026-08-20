@@ -53,6 +53,8 @@ class TwilioContentService
             $approvals = $content['approval_requests'] ?? [];
             $whatsapp = $approvals['whatsapp'] ?? $approvals;
 
+            $body = $this->extractBody($content['types'] ?? null);
+
             $out[] = [
                 'sid' => $content['sid'] ?? null,
                 'friendly_name' => $content['friendly_name'] ?? null,
@@ -60,10 +62,55 @@ class TwilioContentService
                 'status' => $whatsapp['status'] ?? ($approvals['status'] ?? 'unsubmitted'),
                 'category' => $whatsapp['category'] ?? null,
                 'date_created' => $content['date_created'] ?? null,
+                'body' => $body,
+                'variables' => $this->extractVariables($body, $content['variables'] ?? null),
             ];
         }
 
         return $out;
+    }
+
+    /**
+     * Extrae el cuerpo de texto de una plantilla desde su bloque `types`
+     * (twilio/text, twilio/quick-reply, etc.).
+     *
+     * @param  mixed  $types
+     */
+    private function extractBody($types): string
+    {
+        if (! is_array($types)) {
+            return '';
+        }
+
+        foreach ($types as $type) {
+            if (is_array($type) && isset($type['body']) && $type['body'] !== '') {
+                return (string) $type['body'];
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Variables de la plantilla: placeholders {{...}} del cuerpo, o las claves del
+     * mapa `variables` que devuelve Twilio. Devuelve una lista ordenada (numérica
+     * si son números, ej. ["1","2"]).
+     *
+     * @param  mixed  $variablesMap
+     * @return list<string>
+     */
+    private function extractVariables(string $body, $variablesMap): array
+    {
+        preg_match_all('/\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}/', $body, $matches);
+        $vars = array_values(array_unique($matches[1] ?? []));
+
+        if ($vars === [] && is_array($variablesMap)) {
+            $vars = array_map('strval', array_keys($variablesMap));
+        }
+
+        usort($vars, fn ($a, $b) => (is_numeric($a) && is_numeric($b)) ? ((int) $a <=> (int) $b) : strcmp((string) $a, (string) $b));
+
+        return $vars;
     }
 
     /**

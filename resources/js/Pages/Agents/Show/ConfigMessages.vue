@@ -144,6 +144,8 @@ function normalizePlantillas(p) {
     return list.map((x) => ({
         id: x.id ?? '',
         name: x.name ?? '',
+        from_twilio: !!x.from_twilio,
+        body: x.body ?? '',
         has_variables: !!x.has_variables,
         variables: Array.isArray(x.variables)
             ? x.variables.map((v) => ({
@@ -153,6 +155,42 @@ function normalizePlantillas(p) {
             : [],
     }));
 }
+
+// Plantillas de Twilio ya aprobadas para WhatsApp (para el selector de "agregar desde Twilio").
+const approvedTwilioTemplates = computed(
+    () => (twilioTemplates.value || []).filter((t) => t.sid)
+);
+const selectedTwilioSid = ref('');
+
+// Agrega una plantilla precargada desde Twilio: id/nombre y variables detectadas.
+const addPlantillaFromTwilio = () => {
+    const t = approvedTwilioTemplates.value.find((x) => x.sid === selectedTwilioSid.value);
+    if (!t) return;
+    const vars = Array.isArray(t.variables) ? t.variables : [];
+    // Evitar duplicar si ya está agregada.
+    const existing = form.plantillas.find((p) => p.id === t.sid);
+    if (existing) {
+        existing.from_twilio = true;
+        existing.name = t.friendly_name || existing.name;
+        existing.body = t.body || '';
+        existing.has_variables = vars.length > 0;
+        existing.variables = vars.map((v) => ({ name: String(v), source: '' }));
+    } else {
+        form.plantillas.push({
+            id: t.sid,
+            name: t.friendly_name || t.sid,
+            from_twilio: true,
+            body: t.body || '',
+            has_variables: vars.length > 0,
+            variables: vars.map((v) => ({ name: String(v), source: '' })),
+        });
+    }
+    // Quitar filas completamente vacías (p. ej. la fila inicial en blanco).
+    form.plantillas = form.plantillas.filter(
+        (p) => p.id?.trim() || p.name?.trim() || p.from_twilio || (p.variables && p.variables.length)
+    );
+    selectedTwilioSid.value = '';
+};
 
 const form = useForm({
     webhook_url: config.value.webhook_url ?? '',
@@ -167,13 +205,13 @@ watch(config, (c) => {
 }, { deep: true });
 
 const addPlantilla = () => {
-    form.plantillas.push({ id: '', name: '', has_variables: false, variables: [] });
+    form.plantillas.push({ id: '', name: '', from_twilio: false, body: '', has_variables: false, variables: [] });
 };
 
 const removePlantilla = (idx) => {
     form.plantillas.splice(idx, 1);
     if (form.plantillas.length === 0) {
-        form.plantillas.push({ id: '', name: '', has_variables: false, variables: [] });
+        form.plantillas.push({ id: '', name: '', from_twilio: false, body: '', has_variables: false, variables: [] });
     }
 };
 
@@ -185,6 +223,10 @@ const addVariable = (pIdx) => {
 const removeVariable = (pIdx, vIdx) => {
     form.plantillas[pIdx].variables.splice(vIdx, 1);
 };
+
+// Muestra el placeholder como {{nombre}} sin escribir llaves literales en el
+// template (romperían el parser de Vue).
+const placeholderLabel = (name) => `{{${name}}}`;
 
 const canEditWebhook = () => page.props.auth?.canAccessWebhooksAndTechnical === true;
 
@@ -208,6 +250,8 @@ const submit = () => {
             return {
                 id: p.id.trim(),
                 name: (p.name || '').trim(),
+                from_twilio: !!p.from_twilio,
+                body: (p.body || '').slice(0, 2000),
                 has_variables: !!p.has_variables && variables.length > 0,
                 variables,
             };
@@ -433,30 +477,52 @@ const submit = () => {
                     <div class="rounded-lg border border-emerald-200 bg-emerald-50/30 p-4">
                         <h4 class="text-sm font-medium text-gray-700">Plantillas (id_plantilla)</h4>
                         <p class="mt-1 text-xs text-gray-500">
-                            Define las plantillas disponibles. El ID debe coincidir con el de tu sistema externo (ej. WhatsApp Business o el Content SID de Twilio). Selecciona una como principal para contacto manual.
-                            Si la plantilla tiene variables dinámicas, actívalas y mapea cada una a un valor del cliente; al enviar se resuelven por cliente y se mandan al webhook en <code class="rounded bg-white px-1">variables: [{ name, value }]</code>.
+                            Elige una plantilla real de Twilio/Meta (se detectan sus variables automáticamente) o agrégala manualmente.
+                            Mapea cada variable a un dato del cliente; al enviar se resuelven por cliente y se mandan al webhook en <code class="rounded bg-white px-1">variables: [{ name, value }]</code>.
                         </p>
+
+                        <!-- Agregar plantilla desde Twilio (Content API) -->
+                        <div class="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-dashed border-emerald-300 bg-white p-2">
+                            <span class="text-xs font-medium text-gray-600">Agregar desde Twilio:</span>
+                            <select v-model="selectedTwilioSid" class="min-w-[220px] rounded-md border-[#e3e8ee] text-sm">
+                                <option value="">— Selecciona una plantilla de Twilio —</option>
+                                <option v-for="t in approvedTwilioTemplates" :key="t.sid" :value="t.sid">
+                                    {{ t.friendly_name || t.sid }}{{ t.status && t.status !== 'approved' ? ` (${t.status})` : '' }}
+                                </option>
+                            </select>
+                            <button type="button" :disabled="!selectedTwilioSid" class="rounded border border-emerald-300 px-2 py-1 text-xs text-emerald-600 hover:bg-emerald-50 disabled:opacity-40" @click="addPlantillaFromTwilio">Agregar</button>
+                            <button type="button" class="text-xs text-emerald-700 underline" @click="loadTwilioTemplates">{{ loadingTemplates ? 'Cargando…' : 'Actualizar lista' }}</button>
+                            <span v-if="!approvedTwilioTemplates.length && !loadingTemplates" class="text-xs text-gray-400">No hay plantillas en Twilio (créalas en la sección de arriba).</span>
+                        </div>
+
                         <div class="mt-3 space-y-3">
                             <div v-for="(p, idx) in form.plantillas" :key="idx" class="rounded border border-[#e3e8ee] bg-white p-3">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <input v-model="p.id" type="text" placeholder="ID plantilla (ej. bienvenida_001)" class="min-w-[140px] rounded-md border-[#e3e8ee] text-sm" />
+                                    <span v-if="p.from_twilio" class="rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700" title="Plantilla obtenida de Twilio">Twilio</span>
+                                    <input v-model="p.id" type="text" placeholder="ID plantilla (ej. bienvenida_001)" :readonly="p.from_twilio" :class="['min-w-[140px] rounded-md border-[#e3e8ee] text-sm', p.from_twilio ? 'bg-gray-50 text-gray-500' : '']" />
                                     <input v-model="p.name" type="text" placeholder="Nombre (ej. Bienvenida)" class="min-w-[120px] rounded-md border-[#e3e8ee] text-sm" />
                                     <button type="button" class="ml-auto text-red-600 hover:text-red-700" title="Quitar plantilla" @click="removePlantilla(idx)">×</button>
                                 </div>
 
-                                <label class="mt-2 inline-flex items-center gap-2 text-sm text-gray-700">
+                                <p v-if="p.body" class="mt-2 whitespace-pre-wrap rounded bg-gray-50 px-2 py-1 text-xs text-gray-600">{{ p.body }}</p>
+
+                                <!-- Manual: activar variables. En Twilio se detectan solas. -->
+                                <label v-if="!p.from_twilio" class="mt-2 inline-flex items-center gap-2 text-sm text-gray-700">
                                     <input v-model="p.has_variables" type="checkbox" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
                                     Tiene variables dinámicas
                                 </label>
 
                                 <div v-if="p.has_variables" class="mt-2 rounded-md border border-dashed border-emerald-200 bg-emerald-50/40 p-2">
                                     <p class="mb-2 text-xs text-gray-500">
-                                        Define cada variable (en orden) y el valor del cliente al que hace referencia.
+                                        {{ p.from_twilio ? 'Variables detectadas en la plantilla. Asigna a cada una un dato del cliente.' : 'Define cada variable (en orden) y el valor del cliente al que hace referencia.' }}
                                     </p>
                                     <div class="space-y-2">
                                         <div v-for="(v, vIdx) in p.variables" :key="vIdx" class="flex flex-wrap items-center gap-2">
-                                            <span class="text-xs font-medium text-gray-400">{{ vIdx + 1 }}.</span>
-                                            <input v-model="v.name" type="text" placeholder="Nombre variable (ej. nombre)" class="min-w-[140px] rounded-md border-[#e3e8ee] text-sm" />
+                                            <span v-if="p.from_twilio" class="min-w-[64px] rounded border border-[#e3e8ee] bg-white px-2 py-1 font-mono text-xs text-gray-600">{{ placeholderLabel(v.name) }}</span>
+                                            <template v-else>
+                                                <span class="text-xs font-medium text-gray-400">{{ vIdx + 1 }}.</span>
+                                                <input v-model="v.name" type="text" placeholder="Nombre variable (ej. nombre)" class="min-w-[140px] rounded-md border-[#e3e8ee] text-sm" />
+                                            </template>
                                             <span class="text-xs text-gray-400">→</span>
                                             <select v-model="v.source" class="min-w-[180px] rounded-md border-[#e3e8ee] text-sm">
                                                 <option value="">— Selecciona el valor —</option>
@@ -475,13 +541,13 @@ const submit = () => {
                                                     <option value="special:form_url">URL del formulario</option>
                                                 </optgroup>
                                             </select>
-                                            <button type="button" class="text-red-600 hover:text-red-700" title="Quitar variable" @click="removeVariable(idx, vIdx)">×</button>
+                                            <button v-if="!p.from_twilio" type="button" class="text-red-600 hover:text-red-700" title="Quitar variable" @click="removeVariable(idx, vIdx)">×</button>
                                         </div>
                                     </div>
-                                    <button type="button" class="mt-2 rounded border border-emerald-300 px-2 py-1 text-xs text-emerald-600 hover:bg-emerald-50" @click="addVariable(idx)">+ Agregar variable</button>
+                                    <button v-if="!p.from_twilio" type="button" class="mt-2 rounded border border-emerald-300 px-2 py-1 text-xs text-emerald-600 hover:bg-emerald-50" @click="addVariable(idx)">+ Agregar variable</button>
                                 </div>
                             </div>
-                            <button type="button" class="rounded border border-emerald-300 px-2 py-1 text-sm text-emerald-600 hover:bg-emerald-50" @click="addPlantilla">+ Agregar plantilla</button>
+                            <button type="button" class="rounded border border-emerald-300 px-2 py-1 text-sm text-emerald-600 hover:bg-emerald-50" @click="addPlantilla">+ Agregar plantilla manual</button>
                         </div>
                         <div v-if="form.plantillas?.filter((p) => p?.id?.trim()).length" class="mt-3">
                             <InputLabel value="Plantilla principal (para contacto manual)" />

@@ -52,6 +52,8 @@ class AgentConfigController extends Controller
             'plantillas' => 'nullable|array',
             'plantillas.*.id' => 'nullable|string|max:255',
             'plantillas.*.name' => 'nullable|string|max:255',
+            'plantillas.*.from_twilio' => 'nullable|boolean',
+            'plantillas.*.body' => 'nullable|string|max:2000',
             'plantillas.*.has_variables' => 'nullable|boolean',
             'plantillas.*.variables' => 'nullable|array',
             'plantillas.*.variables.*.name' => 'nullable|string|max:255',
