@@ -1120,7 +1120,7 @@ class ClientController extends Controller
         $validated = $request->validate([
             'file' => [
                 'required', 'file', 'max:16384',
-                'mimetypes:image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/ogg,audio/aac,audio/mp4,audio/wav,audio/webm,video/mp4,video/3gpp,application/pdf',
+                'mimetypes:image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/ogg,audio/aac,audio/mp4,audio/x-m4a,audio/wav,audio/webm,video/mp4,video/webm,video/3gpp,application/pdf',
             ],
             'caption' => ['nullable', 'string', 'max:1000'],
         ]);
