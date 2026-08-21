@@ -28,6 +28,7 @@ class Client extends Model
         'custom_fields',
         'loaded_at',
         'status',
+        'ai_paused',
     ];
 
     protected function casts(): array
@@ -35,6 +36,7 @@ class Client extends Model
         return [
             'custom_fields' => 'array',
             'loaded_at' => 'datetime',
+            'ai_paused' => 'boolean',
         ];
     }
 

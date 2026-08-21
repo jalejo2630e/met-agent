@@ -64,7 +64,16 @@ class TwilioMessageController extends Controller
 
         $reply = '';
 
-        if (! $this->aiConfigured()) {
+        // Toma de control humano: si el cliente tiene la IA pausada, no se responde
+        // automáticamente (el operador atiende manualmente desde el panel).
+        $aiPaused = $this->clientAiPaused($agent, $from);
+
+        if ($aiPaused) {
+            Log::info('Twilio webhook: IA pausada para el cliente; no se responde automáticamente.', [
+                'agent_id' => $agent->id,
+                'from' => $from,
+            ]);
+        } elseif (! $this->aiConfigured()) {
             Log::warning('Twilio webhook: proveedor de IA no configurado (OPENAI_API_KEY).');
         } else {
             try {
@@ -116,6 +125,29 @@ class TwilioMessageController extends Controller
     private function aiConfigured(): bool
     {
         return (string) config('ai.providers.'.config('ai.default').'.key', '') !== '';
+    }
+
+    /**
+     * ¿El cliente que escribe tiene la IA pausada? Empareja por teléfono
+     * (exacto, solo dígitos o por los últimos 10 dígitos).
+     */
+    private function clientAiPaused(Agent $agent, string $from): bool
+    {
+        $digits = preg_replace('/\D/', '', $from);
+        if ($digits === '') {
+            return false;
+        }
+        $last10 = substr($digits, -10);
+
+        $client = \App\Models\Client::where('agent_id', $agent->id)
+            ->where(function ($q) use ($from, $digits, $last10) {
+                $q->where('phone', $from)
+                    ->orWhere('phone', $digits)
+                    ->orWhere('phone', 'like', '%'.$last10);
+            })
+            ->first(['id', 'ai_paused']);
+
+        return (bool) ($client?->ai_paused);
     }
 
     private function twiml(string $message): Response

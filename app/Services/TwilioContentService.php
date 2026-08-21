@@ -235,6 +235,35 @@ class TwilioContentService
     }
 
     /**
+     * Envía un mensaje de texto libre de WhatsApp (mensaje de sesión, solo válido
+     * dentro de la ventana de 24h; fuera de ella Twilio lo rechaza y hay que usar
+     * una plantilla). Devuelve la respuesta de Twilio.
+     *
+     * @return array<string, mixed>
+     */
+    public function sendWhatsappText(string $toPhone, string $body): array
+    {
+        if (! $this->canSendWhatsapp()) {
+            throw new \RuntimeException('Twilio no está configurado para enviar WhatsApp (define TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN y TWILIO_WHATSAPP_FROM).');
+        }
+
+        $response = Http::withBasicAuth($this->sid(), $this->token())
+            ->asForm()
+            ->timeout(30)
+            ->post('https://api.twilio.com/2010-04-01/Accounts/'.$this->sid().'/Messages.json', [
+                'From' => $this->whatsappFrom(),
+                'To' => $this->toWhatsappAddress($toPhone),
+                'Body' => $body,
+            ]);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException('Twilio Messages API: '.$response->status().' '.$response->body());
+        }
+
+        return $response->json() ?? [];
+    }
+
+    /**
      * Normaliza un teléfono a dirección de WhatsApp de Twilio (whatsapp:+E164).
      * Si el número no trae código de país y parece nacional, antepone el código
      * por defecto (TWILIO_DEFAULT_COUNTRY_CODE, 57 = Colombia).

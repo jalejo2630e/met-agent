@@ -1036,6 +1036,74 @@ class ClientController extends Controller
         }
     }
 
+    /**
+     * Envía un mensaje de texto libre de WhatsApp por Twilio (mensaje de sesión,
+     * dentro de la ventana de 24h). Fuera de la ventana Twilio lo rechaza y hay
+     * que usar una plantilla.
+     */
+    public function sendWhatsappMessage(Request $request, Agent $agent, Client $client, \App\Services\TwilioContentService $twilio)
+    {
+        $this->authorize('view', $agent);
+
+        if ($client->agent_id !== $agent->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate(['body' => 'required|string|max:4000']);
+
+        if (! $client->phone) {
+            return response()->json(['success' => false, 'message' => 'El cliente no tiene teléfono registrado.'], 422);
+        }
+        if (! $twilio->canSendWhatsapp()) {
+            return response()->json(['success' => false, 'message' => 'Twilio no está configurado para enviar WhatsApp (define TWILIO_WHATSAPP_FROM).'], 422);
+        }
+
+        try {
+            $twilio->sendWhatsappText($client->phone, $validated['body']);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo enviar. Si pasaron más de 24h desde el último mensaje del cliente, debes reabrir con una plantilla. ('.$e->getMessage().')',
+            ], 502);
+        }
+
+        // Se registra como saliente del agente nativo para que aparezca en el historial.
+        \App\Models\TwilioMessage::create([
+            'agent_id' => $agent->id,
+            'channel' => 'whatsapp',
+            'from_number' => preg_replace('/\D/', '', (string) $client->phone),
+            'direction' => 'outbound',
+            'body' => $validated['body'],
+        ]);
+
+        ClientContactLog::create([
+            'client_id' => $client->id,
+            'agent_id' => $agent->id,
+            'channel' => ClientContactLog::CHANNEL_WHATSAPP,
+            'contacted_at' => now(),
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Mensaje enviado.']);
+    }
+
+    /**
+     * Pausa o reactiva la respuesta automática de la IA para este cliente
+     * (toma de control humano). El webhook de Twilio respeta este flag.
+     */
+    public function setAiPause(Request $request, Agent $agent, Client $client)
+    {
+        $this->authorize('view', $agent);
+
+        if ($client->agent_id !== $agent->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate(['paused' => 'required|boolean']);
+        $client->update(['ai_paused' => $validated['paused']]);
+
+        return response()->json(['success' => true, 'ai_paused' => (bool) $client->ai_paused]);
+    }
+
     public function initiateCall(Agent $agent, Client $client, \App\Services\ContactQueueService $queues)
     {
         $this->authorize('view', $agent);
