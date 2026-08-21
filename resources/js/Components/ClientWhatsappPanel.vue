@@ -117,6 +117,74 @@ async function sendText() {
     }
 }
 
+/* ---- Adjuntar archivo / audio con previsualización ---- */
+const fileInput = ref(null);
+const pendingFile = ref(null);
+const pendingUrl = ref('');
+const pendingKind = ref('other'); // 'image' | 'audio' | 'video' | 'other'
+const pendingCaption = ref('');
+const showMediaPreview = ref(false);
+const sendingMedia = ref(false);
+
+function pickFile() {
+    if (fileInput.value) fileInput.value.click();
+}
+
+function onFileChange(e) {
+    const file = e.target?.files?.[0];
+    if (fileInput.value) fileInput.value.value = ''; // permitir re-seleccionar el mismo archivo
+    if (!file) return;
+    revokePending();
+    pendingFile.value = file;
+    pendingCaption.value = '';
+    const type = file.type || '';
+    pendingKind.value = type.startsWith('image/') ? 'image' : type.startsWith('audio/') ? 'audio' : type.startsWith('video/') ? 'video' : 'other';
+    pendingUrl.value = (pendingKind.value === 'image' || pendingKind.value === 'audio' || pendingKind.value === 'video')
+        ? URL.createObjectURL(file)
+        : '';
+    showMediaPreview.value = true;
+}
+
+function revokePending() {
+    if (pendingUrl.value) {
+        URL.revokeObjectURL(pendingUrl.value);
+        pendingUrl.value = '';
+    }
+}
+
+function cancelMedia() {
+    showMediaPreview.value = false;
+    revokePending();
+    pendingFile.value = null;
+    pendingCaption.value = '';
+}
+
+async function sendMedia() {
+    const client = props.client;
+    const file = pendingFile.value;
+    if (!client?.phone || !file) return;
+    sendingMedia.value = true;
+    try {
+        const fd = new FormData();
+        fd.append('file', file);
+        if (pendingCaption.value.trim()) fd.append('caption', pendingCaption.value.trim());
+        const { data } = await axios.post(route('agents.clients.whatsapp-media', [props.agent.id, client.id]), fd, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        if (data.success) {
+            messages.value = [...messages.value, { type: 'ai', content: data.label || '📎 archivo enviado', created_at: new Date().toISOString() }];
+            toast.success(data.message || 'Archivo enviado.');
+            cancelMedia();
+        } else {
+            toast.error(data.message || 'No se pudo enviar el archivo.');
+        }
+    } catch (e) {
+        toast.error(e.response?.data?.message || 'No se pudo enviar el archivo.');
+    } finally {
+        sendingMedia.value = false;
+    }
+}
+
 async function sendTemplate() {
     const client = props.client;
     if (!client?.phone) return;
@@ -172,14 +240,26 @@ async function sendTemplate() {
             />
             <div class="mt-2 flex items-center justify-between gap-2">
                 <p class="text-xs text-gray-400">Solo dentro de las 24h desde el último mensaje del cliente. Si pasaron, reabre con una plantilla abajo.</p>
-                <button
-                    type="button"
-                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#20BD5A] disabled:opacity-60"
-                    :disabled="sendingText || !replyText.trim()"
-                    @click="sendText"
-                >
-                    {{ sendingText ? 'Enviando…' : 'Enviar' }}
-                </button>
+                <div class="flex shrink-0 items-center gap-2">
+                    <input ref="fileInput" type="file" class="hidden" accept="image/*,audio/*,video/mp4,application/pdf" @change="onFileChange" />
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-[#e3e8ee] px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-50"
+                        title="Adjuntar archivo o audio"
+                        @click="pickFile"
+                    >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                        Adjuntar
+                    </button>
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#20BD5A] disabled:opacity-60"
+                        :disabled="sendingText || !replyText.trim()"
+                        @click="sendText"
+                    >
+                        {{ sendingText ? 'Enviando…' : 'Enviar' }}
+                    </button>
+                </div>
             </div>
         </div>
         <p v-else class="text-sm text-amber-600">El cliente no tiene número de teléfono registrado.</p>
@@ -243,6 +323,36 @@ async function sendTemplate() {
                 >
                     <span class="text-xs text-gray-500">{{ m.type === 'ai' ? 'Empresa' : 'Usuario' }}</span>
                     <p class="mt-0.5 whitespace-pre-wrap break-words">{{ m.content }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Previsualización del archivo/audio antes de enviar -->
+        <div v-if="showMediaPreview" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/50" @click="cancelMedia" />
+            <div class="relative w-full max-w-md rounded-lg bg-white p-5 shadow-xl">
+                <h3 class="text-base font-medium text-gray-900">Enviar archivo por WhatsApp</h3>
+                <div class="mt-3">
+                    <img v-if="pendingKind === 'image'" :src="pendingUrl" alt="" class="max-h-64 w-full rounded object-contain" />
+                    <audio v-else-if="pendingKind === 'audio'" :src="pendingUrl" controls class="w-full" />
+                    <video v-else-if="pendingKind === 'video'" :src="pendingUrl" controls class="max-h-64 w-full rounded" />
+                    <div v-else class="flex items-center gap-2 rounded border border-[#e3e8ee] bg-gray-50 p-3 text-sm text-gray-700">
+                        <svg class="h-5 w-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                        <span class="truncate">{{ pendingFile?.name }}</span>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-400">{{ pendingFile?.name }} · {{ pendingFile ? Math.round(pendingFile.size / 1024) : 0 }} KB</p>
+                </div>
+                <textarea v-model="pendingCaption" rows="2" placeholder="Mensaje (opcional)…" class="mt-3 w-full rounded-md border-[#e3e8ee] text-sm" />
+                <div class="mt-4 flex justify-end gap-2">
+                    <button type="button" class="rounded border px-4 py-2 text-sm hover:bg-gray-50" @click="cancelMedia">Cancelar</button>
+                    <button
+                        type="button"
+                        class="rounded-lg bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#20BD5A] disabled:opacity-60"
+                        :disabled="sendingMedia"
+                        @click="sendMedia"
+                    >
+                        {{ sendingMedia ? 'Enviando…' : 'Enviar' }}
+                    </button>
                 </div>
             </div>
         </div>

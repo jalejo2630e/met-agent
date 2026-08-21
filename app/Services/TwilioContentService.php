@@ -264,6 +264,39 @@ class TwilioContentService
     }
 
     /**
+     * Envía un archivo (imagen, audio, video, PDF…) por WhatsApp usando una URL
+     * pública que Twilio descarga (MediaUrl). Solo dentro de la ventana de 24h.
+     *
+     * @return array<string, mixed>
+     */
+    public function sendWhatsappMedia(string $toPhone, string $mediaUrl, ?string $body = null): array
+    {
+        if (! $this->canSendWhatsapp()) {
+            throw new \RuntimeException('Twilio no está configurado para enviar WhatsApp (define TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN y TWILIO_WHATSAPP_FROM).');
+        }
+
+        $payload = [
+            'From' => $this->whatsappFrom(),
+            'To' => $this->toWhatsappAddress($toPhone),
+            'MediaUrl' => $mediaUrl,
+        ];
+        if ($body !== null && trim($body) !== '') {
+            $payload['Body'] = $body;
+        }
+
+        $response = Http::withBasicAuth($this->sid(), $this->token())
+            ->asForm()
+            ->timeout(60)
+            ->post('https://api.twilio.com/2010-04-01/Accounts/'.$this->sid().'/Messages.json', $payload);
+
+        if (! $response->successful()) {
+            throw new \RuntimeException('Twilio Messages API: '.$response->status().' '.$response->body());
+        }
+
+        return $response->json() ?? [];
+    }
+
+    /**
      * Normaliza un teléfono a dirección de WhatsApp de Twilio (whatsapp:+E164).
      * Si el número no trae código de país y parece nacional, antepone el código
      * por defecto (TWILIO_DEFAULT_COUNTRY_CODE, 57 = Colombia).

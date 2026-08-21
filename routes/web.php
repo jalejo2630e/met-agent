@@ -117,6 +117,7 @@ Route::middleware('auth')->group(function () {
     Route::post('agents/{agent}/clients/{client}/initiate-call', [ClientController::class, 'initiateCall'])->name('agents.clients.initiate-call')->scopeBindings();
     Route::post('agents/{agent}/clients/{client}/initiate-whatsapp', [ClientController::class, 'initiateWhatsapp'])->name('agents.clients.initiate-whatsapp')->scopeBindings();
     Route::post('agents/{agent}/clients/{client}/whatsapp-send', [ClientController::class, 'sendWhatsappMessage'])->name('agents.clients.whatsapp-send')->scopeBindings();
+    Route::post('agents/{agent}/clients/{client}/whatsapp-media', [ClientController::class, 'sendWhatsappMedia'])->name('agents.clients.whatsapp-media')->scopeBindings();
     Route::patch('agents/{agent}/clients/{client}/ai-pause', [ClientController::class, 'setAiPause'])->name('agents.clients.ai-pause')->scopeBindings();
     Route::get('agents/{agent}/contact-queues', [ClientController::class, 'indexContactQueues'])->name('agents.contact-queues.index');
     Route::post('agents/{agent}/contact-queues', [ClientController::class, 'storeContactQueue'])->name('agents.contact-queues.store');

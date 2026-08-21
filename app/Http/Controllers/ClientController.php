@@ -1104,6 +1104,67 @@ class ClientController extends Controller
         return response()->json(['success' => true, 'ai_paused' => (bool) $client->ai_paused]);
     }
 
+    /**
+     * Envía un archivo/audio por WhatsApp (Twilio). El adjunto se guarda en el
+     * disco público y se envía su URL como MediaUrl (Twilio lo descarga). Solo
+     * válido dentro de la ventana de 24h.
+     */
+    public function sendWhatsappMedia(Request $request, Agent $agent, Client $client, \App\Services\TwilioContentService $twilio)
+    {
+        $this->authorize('view', $agent);
+
+        if ($client->agent_id !== $agent->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'file' => [
+                'required', 'file', 'max:16384',
+                'mimetypes:image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/ogg,audio/aac,audio/mp4,audio/wav,audio/webm,video/mp4,video/3gpp,application/pdf',
+            ],
+            'caption' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if (! $client->phone) {
+            return response()->json(['success' => false, 'message' => 'El cliente no tiene teléfono registrado.'], 422);
+        }
+        if (! $twilio->canSendWhatsapp()) {
+            return response()->json(['success' => false, 'message' => 'Twilio no está configurado para enviar WhatsApp (define TWILIO_WHATSAPP_FROM).'], 422);
+        }
+
+        $file = $request->file('file');
+        $path = $file->store('whatsapp-media', 'public');
+        $mediaUrl = url(\Illuminate\Support\Facades\Storage::disk('public')->url($path));
+        $caption = $validated['caption'] ?? null;
+
+        try {
+            $twilio->sendWhatsappMedia($client->phone, $mediaUrl, $caption);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo enviar el archivo. Si pasaron más de 24h, reabre con una plantilla. ('.$e->getMessage().')',
+            ], 502);
+        }
+
+        $label = $caption && trim($caption) !== '' ? $caption : '📎 '.$file->getClientOriginalName();
+        \App\Models\TwilioMessage::create([
+            'agent_id' => $agent->id,
+            'channel' => 'whatsapp',
+            'from_number' => preg_replace('/\D/', '', (string) $client->phone),
+            'direction' => 'outbound',
+            'body' => $label,
+        ]);
+
+        ClientContactLog::create([
+            'client_id' => $client->id,
+            'agent_id' => $agent->id,
+            'channel' => ClientContactLog::CHANNEL_WHATSAPP,
+            'contacted_at' => now(),
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Archivo enviado.', 'label' => $label, 'media_url' => $mediaUrl]);
+    }
+
     public function initiateCall(Agent $agent, Client $client, \App\Services\ContactQueueService $queues)
     {
         $this->authorize('view', $agent);
