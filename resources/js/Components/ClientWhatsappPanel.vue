@@ -361,6 +361,23 @@ async function sendTemplate() {
             </button>
         </div>
 
+        <!-- Historial del chat -->
+        <div class="border-t pt-4">
+            <h4 class="mb-2 text-sm font-medium text-gray-700">Historial del chat</h4>
+            <div v-if="loadingMessages" class="text-sm text-gray-500">Cargando mensajes...</div>
+            <div v-else-if="!messages.length" class="text-sm text-gray-500">No hay mensajes en el historial.</div>
+            <div v-else class="max-h-72 space-y-2 overflow-y-auto rounded border border-gray-200 bg-gray-50 p-3">
+                <div
+                    v-for="(m, i) in messages"
+                    :key="i"
+                    :class="['rounded-lg px-3 py-2 text-sm', m.type === 'ai' ? 'ml-6 bg-[#dcf8c6]' : 'ml-0 mr-6 border bg-white']"
+                >
+                    <span class="text-xs text-gray-500">{{ m.type === 'ai' ? 'Empresa' : 'Usuario' }}</span>
+                    <p class="mt-0.5 whitespace-pre-wrap break-words">{{ m.content }}</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Responder (mensaje de sesión, dentro de 24h) -->
         <div v-if="client?.phone">
             <label class="mb-1 block text-xs font-medium text-gray-600">Responder por WhatsApp</label>
@@ -449,23 +466,6 @@ async function sendTemplate() {
                 </div>
             </div>
             <p class="mt-1 text-xs text-gray-500">Para programar un nuevo callback, ve a la pestaña <strong>Callbacks</strong>.</p>
-        </div>
-
-        <!-- Historial del chat -->
-        <div class="border-t pt-4">
-            <h4 class="mb-2 text-sm font-medium text-gray-700">Historial del chat</h4>
-            <div v-if="loadingMessages" class="text-sm text-gray-500">Cargando mensajes...</div>
-            <div v-else-if="!messages.length" class="text-sm text-gray-500">No hay mensajes en el historial.</div>
-            <div v-else class="max-h-64 space-y-2 overflow-y-auto rounded border border-gray-200 bg-gray-50 p-3">
-                <div
-                    v-for="(m, i) in messages"
-                    :key="i"
-                    :class="['rounded-lg px-3 py-2 text-sm', m.type === 'ai' ? 'ml-6 bg-[#dcf8c6]' : 'ml-0 mr-6 border bg-white']"
-                >
-                    <span class="text-xs text-gray-500">{{ m.type === 'ai' ? 'Empresa' : 'Usuario' }}</span>
-                    <p class="mt-0.5 whitespace-pre-wrap break-words">{{ m.content }}</p>
-                </div>
-            </div>
         </div>
 
         <!-- Previsualización del archivo/audio antes de enviar -->

@@ -28,7 +28,7 @@ watch(() => props.show, (open) => {
     <div v-show="show" class="fixed inset-0 z-50 overflow-y-auto" @keydown.esc="emit('close')">
         <div class="flex min-h-screen items-center justify-center p-4">
             <div class="fixed inset-0 bg-black/50" @click="emit('close')" />
-            <div class="relative flex h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-xl">
+            <div class="relative flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white shadow-xl">
                 <!-- Header -->
                 <div class="flex items-center justify-between border-b border-[#e3e8ee] px-6 py-4">
                     <h3 class="text-lg font-medium text-gray-900">
