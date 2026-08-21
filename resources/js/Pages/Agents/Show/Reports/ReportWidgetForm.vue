@@ -18,14 +18,14 @@ const METRICS = [
     {
         value: 'topic_progress',
         label: 'Avance por temas (campos compañeros)',
-        help: 'Determina el tema de cada cliente con campos como fatiga y emociones (0..máx). Un campo en su máximo = tema completado; el cliente pasa al otro tema. El % es valor/máximo del tema actual.',
+        help: 'Determina el tema de cada cliente con campos numéricos compañeros (0..máx). Un campo en su máximo = tema completado; el cliente pasa al otro tema. El % es valor/máximo del tema actual.',
         source: 'custom_field',
         charts: ['progress', 'doughnut', 'bar'],
     },
     {
         value: 'range_buckets',
         label: 'Distribución / Embudo por tramos',
-        help: 'Agrupa un campo numérico en tramos con etiqueta (ej. STEP 1–28 → Fatiga). Útil para campos numéricos simples.',
+        help: 'Agrupa un campo numérico en tramos con etiqueta (ej. 1–28 → Etapa inicial). Útil para campos numéricos simples.',
         source: 'custom_field',
         charts: ['doughnut', 'bar', 'funnel'],
     },
@@ -145,15 +145,14 @@ function toggleCallMetric(m) {
 /* ---- Presets ---- */
 function applyPreset(kind) {
     if (kind === 'avance') {
-        form.title = 'Avance del proceso';
+        form.title = 'Avance por temas';
         form.metric = 'topic_progress';
         form.source = 'custom_field';
         form.field_name = '';
         form.chart_type = 'progress';
         form.config.width = 'full';
         form.config.topics = [
-            { label: 'Fatiga', field: knownFields.value.find((f) => /fatiga/i.test(f)) || 'fatiga', max: 3, color: '#2e7d32' },
-            { label: 'Emociones', field: knownFields.value.find((f) => /emoci/i.test(f)) || 'emociones', max: 3, color: '#1976d2' },
+            { label: '', field: '', max: 3, color: '#2e7d32' },
         ];
     } else if (kind === 'satisfaction') {
         form.title = 'Calificación de satisfacción';
@@ -209,7 +208,7 @@ function submit() {
                 <div v-if="!isEdit">
                     <p class="mb-2 text-xs font-medium uppercase tracking-wide text-[#98a4b3]">Plantillas rápidas</p>
                     <div class="flex flex-wrap gap-2">
-                        <button type="button" class="rounded-full border border-[#e3e8ee] px-3 py-1 text-xs text-[#33475b] transition hover:border-[var(--color-primary)] hover:bg-[#f5f8fa]" @click="applyPreset('avance')">Avance por temas (Fatiga/Emociones)</button>
+                        <button type="button" class="rounded-full border border-[#e3e8ee] px-3 py-1 text-xs text-[#33475b] transition hover:border-[var(--color-primary)] hover:bg-[#f5f8fa]" @click="applyPreset('avance')">Avance por temas</button>
                         <button type="button" class="rounded-full border border-[#e3e8ee] px-3 py-1 text-xs text-[#33475b] transition hover:border-[var(--color-primary)] hover:bg-[#f5f8fa]" @click="applyPreset('satisfaction')">Satisfacción (1–5)</button>
                         <button type="button" class="rounded-full border border-[#e3e8ee] px-3 py-1 text-xs text-[#33475b] transition hover:border-[var(--color-primary)] hover:bg-[#f5f8fa]" @click="applyPreset('calls')">Llamadas</button>
                     </div>
@@ -251,8 +250,8 @@ function submit() {
                     <p class="mb-2 text-xs text-[#425b76]">Cada tema tiene un campo (0..máx). Cuando el campo llega al máximo, el tema está completado y el cliente pasa al siguiente.</p>
                     <div class="space-y-2">
                         <div v-for="(t, i) in form.config.topics" :key="i" class="flex flex-wrap items-center gap-2 rounded-md border border-[#eef2f6] bg-[#f9fbfc] p-2">
-                            <input v-model="t.label" type="text" placeholder="Tema (ej. Fatiga)" class="min-w-[7rem] flex-1 rounded border-[#e3e8ee] text-sm" />
-                            <input v-model="t.field" :list="'report-fields'" type="text" placeholder="Campo (ej. fatiga)" class="min-w-[7rem] flex-1 rounded border-[#e3e8ee] text-sm" />
+                            <input v-model="t.label" type="text" placeholder="Tema (ej. Bienvenida)" class="min-w-[7rem] flex-1 rounded border-[#e3e8ee] text-sm" />
+                            <input v-model="t.field" :list="'report-fields'" type="text" placeholder="Campo (ej. bienvenida)" class="min-w-[7rem] flex-1 rounded border-[#e3e8ee] text-sm" />
                             <label class="flex items-center gap-1 text-xs text-[#425b76]">máx
                                 <input v-model.number="t.max" type="number" min="1" class="w-16 rounded border-[#e3e8ee] text-sm" />
                             </label>
@@ -261,7 +260,7 @@ function submit() {
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
-                        <p v-if="!form.config.topics.length" class="text-xs text-[#98a4b3]">Agrega al menos un tema (ej. Fatiga → campo "fatiga", máx 3).</p>
+                        <p v-if="!form.config.topics.length" class="text-xs text-[#98a4b3]">Agrega al menos un tema (ej. Bienvenida → campo "bienvenida", máx 3).</p>
                     </div>
                     <datalist id="report-fields">
                         <option v-for="f in knownFields" :key="f" :value="f" />
@@ -279,13 +278,13 @@ function submit() {
                             <input v-model.number="r.from" type="number" placeholder="Desde" class="w-20 rounded border-[#e3e8ee] text-sm" />
                             <span class="text-[#98a4b3]">–</span>
                             <input v-model.number="r.to" type="number" placeholder="Hasta" class="w-20 rounded border-[#e3e8ee] text-sm" />
-                            <input v-model="r.label" type="text" placeholder="Etiqueta (ej. Fatiga)" class="min-w-[8rem] flex-1 rounded border-[#e3e8ee] text-sm" />
+                            <input v-model="r.label" type="text" placeholder="Etiqueta (ej. Etapa inicial)" class="min-w-[8rem] flex-1 rounded border-[#e3e8ee] text-sm" />
                             <input v-model="r.color" type="color" class="h-8 w-10 cursor-pointer rounded border-[#e3e8ee]" />
                             <button type="button" class="rounded p-1 text-red-500 hover:bg-red-50" @click="removeRange(i)">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
-                        <p v-if="!form.config.ranges.length" class="text-xs text-[#98a4b3]">Agrega al menos un tramo (ej. 1–28 → Fatiga).</p>
+                        <p v-if="!form.config.ranges.length" class="text-xs text-[#98a4b3]">Agrega al menos un tramo (ej. 1–28 → Etapa inicial).</p>
                     </div>
                 </div>
 

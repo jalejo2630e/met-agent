@@ -79,7 +79,7 @@ class CustomReportBuilderService
     }
 
     /**
-     * Avance por temas usando campos "compañeros" (ej. fatiga y emociones, 0..max).
+     * Avance por temas usando campos "compañeros" (0..max).
      *
      * Reglas (confirmadas con el usuario):
      * - Cada tema tiene un campo con valor 0..max. valor >= max ⇒ tema completado.

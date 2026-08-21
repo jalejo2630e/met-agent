@@ -228,11 +228,11 @@ class ClientController extends Controller
         }
 
         // Temas: usa la config del reporte topic_progress del agente si existe;
-        // si no, los temas por defecto (fatiga/emociones).
+        // si no hay ninguno configurado, no se calculan temas.
         $topicWidget = $agent->reportWidgets()
             ->where('metric', \App\Models\AgentReportWidget::METRIC_TOPIC_PROGRESS)
             ->first();
-        $rawTopics = $topicWidget->config['topics'] ?? \App\Support\DefaultReportWidgets::defaultTopics();
+        $rawTopics = $topicWidget?->config['topics'] ?? [];
         $topics = $reports->normalizeTopics($rawTopics);
         $progress = $topics !== []
             ? $reports->evaluateClientTopics($client->custom_fields ?? [], $topics)

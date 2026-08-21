@@ -1,15 +1,14 @@
 <?php
 
 use App\Models\AgentReportWidget;
-use App\Support\DefaultReportWidgets;
 use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
     /**
      * Convierte los widgets de "Avance del proceso" que se sembraron con la lógica
-     * antigua (tramos por STEP) a la nueva métrica topic_progress, que determina el
-     * tema con los campos compañeros (fatiga/emociones) en lugar del STEP.
+     * antigua (tramos por STEP) a la nueva métrica topic_progress (avance por temas
+     * con campos compañeros). Los temas concretos los define el usuario en el reporte.
      *
      * Solo toca los que coinciden con la firma del reporte por defecto, para no
      * pisar reportes personalizados que el usuario haya creado a mano.
@@ -25,7 +24,7 @@ return new class extends Migration
                     'metric' => AgentReportWidget::METRIC_TOPIC_PROGRESS,
                     'field_name' => null,
                     'chart_type' => 'progress',
-                    'config' => ['topics' => DefaultReportWidgets::defaultTopics(), 'width' => 'full'],
+                    'config' => ['topics' => [], 'width' => 'full'],
                 ]);
             });
     }

@@ -7,9 +7,8 @@ use App\Models\AgentReportWidget;
 
 /**
  * Definiciones de los reportes personalizados que vienen pre-creados por defecto
- * en cada agente (avance del proceso por STEP, llamadas y satisfacción). Es la
- * única fuente de verdad: la usan el observer (agentes nuevos) y la migración de
- * backfill (agentes existentes).
+ * en cada agente (llamadas y satisfacción). Es la única fuente de verdad: la usan
+ * el observer (agentes nuevos) y la migración de backfill (agentes existentes).
  */
 class DefaultReportWidgets
 {
@@ -19,17 +18,6 @@ class DefaultReportWidgets
     public static function definitions(): array
     {
         return [
-            [
-                'title' => 'Avance del proceso',
-                'metric' => AgentReportWidget::METRIC_TOPIC_PROGRESS,
-                'source' => AgentReportWidget::SOURCE_CUSTOM_FIELD,
-                'field_name' => null,
-                'chart_type' => 'progress',
-                'config' => [
-                    'topics' => self::defaultTopics(),
-                    'width' => 'full',
-                ],
-            ],
             [
                 'title' => 'Llamadas realizadas',
                 'metric' => AgentReportWidget::METRIC_CALLS,
@@ -56,19 +44,6 @@ class DefaultReportWidgets
                     ],
                 ],
             ],
-        ];
-    }
-
-    /**
-     * Temas por defecto del avance del proceso (campos compañeros 0..3).
-     *
-     * @return list<array<string, mixed>>
-     */
-    public static function defaultTopics(): array
-    {
-        return [
-            ['field' => 'fatiga', 'label' => 'Fatiga', 'max' => 3, 'color' => '#2e7d32'],
-            ['field' => 'emociones', 'label' => 'Emociones', 'max' => 3, 'color' => '#1976d2'],
         ];
     }
 
