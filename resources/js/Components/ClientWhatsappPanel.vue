@@ -295,6 +295,7 @@ async function sendRecording() {
         const ext = type.includes('ogg') ? 'ogg' : type.includes('mp4') ? 'm4a' : type.includes('mpeg') ? 'mp3' : 'webm';
         const fd = new FormData();
         fd.append('file', recordedBlob.value, `audio-${Date.now()}.${ext}`);
+        fd.append('voice', '1'); // el backend la normaliza a MP3 antes de enviar
         const { data } = await axios.post(route('agents.clients.whatsapp-media', [props.agent.id, client.id]), fd, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });

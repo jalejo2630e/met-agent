@@ -7,6 +7,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import WaveformAudioPlayer from '@/Components/WaveformAudioPlayer.vue';
 
 const props = defineProps({
     agent: Object,
@@ -377,6 +378,7 @@ async function sendRecording() {
         const fd = new FormData();
         fd.append('from', selected.value);
         fd.append('file', recordedBlob.value, `audio-${thread.value.length}.${ext}`);
+        fd.append('voice', '1'); // el backend la normaliza a MP3 antes de enviar
         const { data } = await axios.post(route('agents.twilio.inbox.media', props.agent), fd, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
@@ -418,6 +420,19 @@ function displayValue(name) {
     if (typeof v === 'boolean') return v ? 'Sí' : 'No';
     if (typeof v === 'object') return JSON.stringify(v);
     return String(v);
+}
+
+// Previsualización de media dentro del hilo
+function mediaKind(m) {
+    const t = m.media_type || '';
+    if (t.startsWith('image/')) return 'image';
+    if (t.startsWith('audio/')) return 'audio';
+    if (t.startsWith('video/')) return 'video';
+    return m.media_url ? 'file' : 'text';
+}
+// El cuerpo autogenerado (📷/🎤/🎥/📎) no se muestra como caption si ya hay preview.
+function isAutoLabel(body) {
+    return /^\s*(📷|🎤|🎥|📎)/.test(body || '');
 }
 
 function backToList() {
@@ -704,7 +719,26 @@ onMounted(loadInbox);
                                         ? 'rounded-br-sm bg-emerald-100 text-[#0f5132]'
                                         : 'rounded-bl-sm border border-[#e3e8ee] bg-white text-[#33475b]'"
                                 >
-                                    <p class="whitespace-pre-wrap break-words">{{ m.body }}</p>
+                                    <!-- Media (previsualización dentro del chat) -->
+                                    <template v-if="m.media_url">
+                                        <a v-if="mediaKind(m) === 'image'" :href="m.media_url" target="_blank" rel="noopener">
+                                            <img :src="m.media_url" alt="" class="max-h-64 w-full rounded-lg object-cover" />
+                                        </a>
+                                        <WaveformAudioPlayer v-else-if="mediaKind(m) === 'audio'" :src="m.media_url" class="my-0.5" />
+                                        <video v-else-if="mediaKind(m) === 'video'" :src="m.media_url" controls class="max-h-64 w-full rounded-lg" />
+                                        <a
+                                            v-else
+                                            :href="m.media_url"
+                                            target="_blank"
+                                            rel="noopener"
+                                            class="inline-flex items-center gap-2 rounded-md border border-current/20 px-2.5 py-1.5 underline"
+                                        >
+                                            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                            {{ m.body || 'Archivo' }}
+                                        </a>
+                                        <p v-if="m.body && !isAutoLabel(m.body)" class="mt-1 whitespace-pre-wrap break-words">{{ m.body }}</p>
+                                    </template>
+                                    <p v-else class="whitespace-pre-wrap break-words">{{ m.body }}</p>
                                     <p
                                         class="mt-1 text-right text-[11px]"
                                         :class="m.direction === 'outbound' ? 'text-emerald-600/70' : 'text-gray-400'"

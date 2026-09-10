@@ -7,6 +7,7 @@ use App\Imports\ClientsImport;
 use App\Jobs\ProcessContactQueueJob;
 use App\Models\Agent;
 use App\Models\AgentFormResponse;
+use App\Models\AgentReportWidget;
 use App\Models\AgentWhatsappConversation;
 use App\Models\AlertaCategoria;
 use App\Models\AlertaLlamada;
@@ -17,6 +18,8 @@ use App\Models\ClientNote;
 use App\Models\ContactQueue;
 use App\Models\RegistroAudioLlamada;
 use App\Models\RegistroEscritoLlamada;
+use App\Models\TwilioMessage;
+use App\Services\AudioTranscoder;
 use App\Services\CallCountService;
 use App\Services\ClientListFilterService;
 use App\Services\ContactQueueService;
@@ -24,6 +27,7 @@ use App\Services\CustomReportBuilderService;
 use App\Services\SupabaseCallAudioRestService;
 use App\Services\SupabaseCallTranscriptsRestService;
 use App\Services\SupabaseWhatsappMessagesRestService;
+use App\Services\TwilioContentService;
 use App\Support\CallTranscriptsConnection;
 use App\Support\WhatsappConversationsConnection;
 use Illuminate\Http\JsonResponse;
@@ -31,9 +35,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ClientController extends Controller
@@ -121,7 +127,7 @@ class ClientController extends Controller
             ->withMax('contactLogs as last_contacted_at', 'contacted_at')
             ->limit(5000)
             ->get();
-        $service = app(\App\Services\ContactQueueService::class);
+        $service = app(ContactQueueService::class);
         $filtered = $service->filterClientsByExecutionRules($clients, ['execution_rules' => $rules], null);
         $clientIds = $filtered->pluck('id')->values()->all();
 
@@ -230,7 +236,7 @@ class ClientController extends Controller
         // Temas: usa la config del reporte topic_progress del agente si existe;
         // si no hay ninguno configurado, no se calculan temas.
         $topicWidget = $agent->reportWidgets()
-            ->where('metric', \App\Models\AgentReportWidget::METRIC_TOPIC_PROGRESS)
+            ->where('metric', AgentReportWidget::METRIC_TOPIC_PROGRESS)
             ->first();
         $rawTopics = $topicWidget?->config['topics'] ?? [];
         $topics = $reports->normalizeTopics($rawTopics);
@@ -467,7 +473,7 @@ class ClientController extends Controller
         }
         $last10 = substr($digits, -10);
 
-        return \App\Models\TwilioMessage::where('agent_id', $agent->id)
+        return TwilioMessage::where('agent_id', $agent->id)
             ->where(function ($q) use ($phone, $digits, $last10) {
                 $q->where('from_number', $phone)
                     ->orWhere('from_number', $digits)
@@ -890,7 +896,7 @@ class ClientController extends Controller
         ]);
     }
 
-    public function initiateWhatsapp(Request $request, Agent $agent, Client $client, \App\Services\TwilioContentService $twilio)
+    public function initiateWhatsapp(Request $request, Agent $agent, Client $client, TwilioContentService $twilio)
     {
         $this->authorize('view', $agent);
 
@@ -1041,7 +1047,7 @@ class ClientController extends Controller
      * dentro de la ventana de 24h). Fuera de la ventana Twilio lo rechaza y hay
      * que usar una plantilla.
      */
-    public function sendWhatsappMessage(Request $request, Agent $agent, Client $client, \App\Services\TwilioContentService $twilio)
+    public function sendWhatsappMessage(Request $request, Agent $agent, Client $client, TwilioContentService $twilio)
     {
         $this->authorize('view', $agent);
 
@@ -1068,7 +1074,7 @@ class ClientController extends Controller
         }
 
         // Se registra como saliente del agente nativo para que aparezca en el historial.
-        \App\Models\TwilioMessage::create([
+        TwilioMessage::create([
             'agent_id' => $agent->id,
             'channel' => 'whatsapp',
             'from_number' => preg_replace('/\D/', '', (string) $client->phone),
@@ -1109,7 +1115,7 @@ class ClientController extends Controller
      * disco público y se envía su URL como MediaUrl (Twilio lo descarga). Solo
      * válido dentro de la ventana de 24h.
      */
-    public function sendWhatsappMedia(Request $request, Agent $agent, Client $client, \App\Services\TwilioContentService $twilio)
+    public function sendWhatsappMedia(Request $request, Agent $agent, Client $client, TwilioContentService $twilio, AudioTranscoder $transcoder)
     {
         $this->authorize('view', $agent);
 
@@ -1123,6 +1129,7 @@ class ClientController extends Controller
                 'mimetypes:image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/ogg,audio/aac,audio/mp4,audio/x-m4a,audio/wav,audio/webm,video/mp4,video/webm,video/3gpp,application/pdf',
             ],
             'caption' => ['nullable', 'string', 'max:1000'],
+            'voice' => ['nullable', 'boolean'],
         ]);
 
         if (! $client->phone) {
@@ -1133,8 +1140,24 @@ class ClientController extends Controller
         }
 
         $file = $request->file('file');
-        $path = $file->store('whatsapp-media', 'public');
-        $mediaUrl = url(\Illuminate\Support\Facades\Storage::disk('public')->url($path));
+        $type = (string) $file->getMimeType();
+
+        // WhatsApp rechaza WebM/OGG-Opus; normaliza toda nota de voz a MP3 mono.
+        $needsMp3 = $request->boolean('voice')
+            || (str_starts_with($type, 'audio/') && $type !== 'audio/mpeg')
+            || $type === 'video/webm';
+
+        if ($needsMp3) {
+            try {
+                [$path, $type] = $transcoder->toMp3($file->getRealPath());
+            } catch (\Throwable $e) {
+                return response()->json(['success' => false, 'message' => 'No se pudo convertir el audio a un formato compatible con WhatsApp. Verifica que ffmpeg esté instalado. ('.$e->getMessage().')'], 422);
+            }
+        } else {
+            $path = $file->store('whatsapp-media', 'public');
+        }
+
+        $mediaUrl = url(Storage::disk('public')->url($path));
         $caption = $validated['caption'] ?? null;
 
         try {
@@ -1147,7 +1170,7 @@ class ClientController extends Controller
         }
 
         $label = $caption && trim($caption) !== '' ? $caption : '📎 '.$file->getClientOriginalName();
-        \App\Models\TwilioMessage::create([
+        TwilioMessage::create([
             'agent_id' => $agent->id,
             'channel' => 'whatsapp',
             'from_number' => preg_replace('/\D/', '', (string) $client->phone),
@@ -1165,7 +1188,7 @@ class ClientController extends Controller
         return response()->json(['success' => true, 'message' => 'Archivo enviado.', 'label' => $label, 'media_url' => $mediaUrl]);
     }
 
-    public function initiateCall(Agent $agent, Client $client, \App\Services\ContactQueueService $queues)
+    public function initiateCall(Agent $agent, Client $client, ContactQueueService $queues)
     {
         $this->authorize('view', $agent);
 
@@ -1231,7 +1254,7 @@ class ClientController extends Controller
         return back()->with('success', 'Cliente eliminado.');
     }
 
-    public function downloadTemplate(Request $request, Agent $agent): StreamedResponse|\Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function downloadTemplate(Request $request, Agent $agent): StreamedResponse|BinaryFileResponse
     {
         $this->authorize('view', $agent);
 

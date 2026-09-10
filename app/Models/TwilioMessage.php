@@ -18,6 +18,8 @@ class TwilioMessage extends Model
         'from_number',
         'direction',
         'body',
+        'media_url',
+        'media_type',
         'message_sid',
         'profile_name',
     ];

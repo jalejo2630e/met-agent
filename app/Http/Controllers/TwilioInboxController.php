@@ -8,6 +8,7 @@ use App\Models\ConversationExtraction;
 use App\Models\ConversationNote;
 use App\Models\ConversationState;
 use App\Models\TwilioMessage;
+use App\Services\AudioTranscoder;
 use App\Services\ConversationExtractionService;
 use App\Services\TwilioContentService;
 use Illuminate\Http\JsonResponse;
@@ -70,7 +71,7 @@ class TwilioInboxController extends Controller
             ->where('from_number', $from)
             ->orderBy('id')
             ->limit(500)
-            ->get(['id', 'direction', 'body', 'created_at']);
+            ->get(['id', 'direction', 'body', 'media_url', 'media_type', 'created_at']);
 
         return response()->json([
             'messages' => $messages,
@@ -198,7 +199,7 @@ class TwilioInboxController extends Controller
     /**
      * Envía un archivo (imagen, audio, video, PDF) a la conversación por WhatsApp.
      */
-    public function sendMedia(Agent $agent, Request $request, TwilioContentService $twilio): JsonResponse
+    public function sendMedia(Agent $agent, Request $request, TwilioContentService $twilio, AudioTranscoder $transcoder): JsonResponse
     {
         $this->authorize('update', $agent);
 
@@ -209,6 +210,7 @@ class TwilioInboxController extends Controller
                 'mimetypes:image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/ogg,audio/aac,audio/mp4,audio/x-m4a,audio/wav,audio/webm,video/mp4,video/webm,video/3gpp,application/pdf',
             ],
             'caption' => ['nullable', 'string', 'max:1000'],
+            'voice' => ['nullable', 'boolean'],
         ]);
 
         if (! $twilio->canSendWhatsapp()) {
@@ -216,7 +218,24 @@ class TwilioInboxController extends Controller
         }
 
         $file = $request->file('file');
-        $path = $file->store('whatsapp-media', 'public');
+        $type = (string) $file->getMimeType();
+
+        // WhatsApp rechaza WebM/OGG-Opus; normaliza toda nota de voz a MP3 mono.
+        $needsMp3 = $request->boolean('voice')
+            || (str_starts_with($type, 'audio/') && $type !== 'audio/mpeg')
+            || $type === 'video/webm';
+
+        if ($needsMp3) {
+            try {
+                [$path, $mime] = $transcoder->toMp3($file->getRealPath());
+            } catch (\Throwable $e) {
+                return response()->json(['success' => false, 'message' => 'No se pudo convertir el audio a un formato compatible con WhatsApp. Verifica que ffmpeg esté instalado. ('.$e->getMessage().')'], 422);
+            }
+        } else {
+            $path = $file->store('whatsapp-media', 'public');
+            $mime = $type;
+        }
+
         $mediaUrl = url(Storage::disk('public')->url($path));
         $caption = $validated['caption'] ?? null;
 
@@ -229,10 +248,20 @@ class TwilioInboxController extends Controller
             ], 502);
         }
 
-        $label = $caption && trim($caption) !== '' ? $caption : '📎 '.$file->getClientOriginalName();
-        $message = $this->recordOutbound($agent, $validated['from'], $label);
+        $label = ($caption && trim($caption) !== '') ? $caption : $this->mediaLabel($mime, (string) $file->getClientOriginalName());
+        $message = $this->recordOutbound($agent, $validated['from'], $label, $mediaUrl, $mime);
 
         return response()->json(['success' => true, 'message' => 'Archivo enviado.', 'new_message' => $message]);
+    }
+
+    private function mediaLabel(string $mime, string $filename): string
+    {
+        return match (true) {
+            str_starts_with($mime, 'image/') => '📷 Imagen',
+            str_starts_with($mime, 'audio/') => '🎤 Nota de voz',
+            str_starts_with($mime, 'video/') => '🎥 Video',
+            default => '📎 '.$filename,
+        };
     }
 
     public function notes(Agent $agent, Request $request): JsonResponse
@@ -291,7 +320,7 @@ class TwilioInboxController extends Controller
      * Registra el mensaje saliente en el historial usando la misma clave de
      * agrupación (from_number) para que aparezca en el hilo de la conversación.
      */
-    private function recordOutbound(Agent $agent, string $from, string $body): array
+    private function recordOutbound(Agent $agent, string $from, string $body, ?string $mediaUrl = null, ?string $mediaType = null): array
     {
         $msg = TwilioMessage::create([
             'agent_id' => $agent->id,
@@ -299,12 +328,16 @@ class TwilioInboxController extends Controller
             'from_number' => $from,
             'direction' => 'outbound',
             'body' => $body,
+            'media_url' => $mediaUrl,
+            'media_type' => $mediaType,
         ]);
 
         return [
             'id' => $msg->id,
             'direction' => $msg->direction,
             'body' => $msg->body,
+            'media_url' => $msg->media_url,
+            'media_type' => $msg->media_type,
             'created_at' => $msg->created_at?->toIso8601String(),
         ];
     }
