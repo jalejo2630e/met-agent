@@ -6,6 +6,7 @@ use App\Ai\Agents\WhatsappAgent;
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\Client;
+use App\Models\ConversationState;
 use App\Models\TwilioMessage;
 use App\Services\AgentKnowledgeService;
 use App\Services\ConversationExtractionService;
@@ -67,9 +68,9 @@ class TwilioMessageController extends Controller
 
         $reply = '';
 
-        // Toma de control humano: si el cliente tiene la IA pausada, no se responde
-        // automáticamente (el operador atiende manualmente desde el panel).
-        $aiPaused = $this->clientAiPaused($agent, $from);
+        // Toma de control humano: si el cliente tiene la IA pausada, o si la
+        // conversación fue pausada desde la bandeja, no se responde automáticamente.
+        $aiPaused = $this->clientAiPaused($agent, $from) || $this->conversationPaused($agent, $from);
 
         if ($aiPaused) {
             Log::info('Twilio webhook: IA pausada para el cliente; no se responde automáticamente.', [
@@ -140,6 +141,17 @@ class TwilioMessageController extends Controller
     private function aiConfigured(): bool
     {
         return (string) config('ai.providers.'.config('ai.default').'.key', '') !== '';
+    }
+
+    /**
+     * ¿La conversación fue pausada desde la bandeja (toma de control humano)?
+     * Funciona aunque el número no tenga cliente.
+     */
+    private function conversationPaused(Agent $agent, string $from): bool
+    {
+        return (bool) ConversationState::where('agent_id', $agent->id)
+            ->where('from_number', $from)
+            ->value('bot_paused');
     }
 
     /**

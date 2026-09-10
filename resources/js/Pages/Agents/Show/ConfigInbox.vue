@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useForm } from '@inertiajs/vue3';
+import { toast } from 'vue3-toastify';
 import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
@@ -19,6 +20,26 @@ const loadingThread = ref(false);
 const search = ref('');
 const extraction = ref({ variables: [], values: {}, updated_at: null });
 const extracting = ref(false);
+
+// Toma de control humano
+const botPaused = ref(false);
+const togglingPause = ref(false);
+const replyText = ref('');
+const sendingReply = ref(false);
+const selectedPlantillaId = ref('');
+const sendingTemplate = ref(false);
+const showTemplates = ref(false);
+const notes = ref([]);
+const newNote = ref('');
+const savingNote = ref(false);
+
+// Plantillas de Twilio (las únicas enviables desde la bandeja).
+const twilioPlantillas = computed(() =>
+    (props.agent?.message_config?.plantillas || []).filter((p) => {
+        const id = (p?.id ?? '').toString().trim();
+        return id && (p.from_twilio || id.startsWith('HX'));
+    })
+);
 
 const filteredConversations = computed(() => {
     const q = search.value.trim().toLowerCase();
@@ -58,6 +79,12 @@ async function selectConversation(conv) {
     selected.value = conv.from_number;
     thread.value = [];
     extraction.value = { variables: [], values: {}, updated_at: null };
+    notes.value = [];
+    replyText.value = '';
+    newNote.value = '';
+    selectedPlantillaId.value = '';
+    showTemplates.value = false;
+    botPaused.value = !!conv.bot_paused;
     loadingThread.value = true;
     try {
         const { data } = await axios.get(route('agents.twilio.inbox.thread', props.agent), {
@@ -65,10 +92,107 @@ async function selectConversation(conv) {
         });
         thread.value = data.messages ?? [];
         extraction.value = data.extraction ?? { variables: [], values: {}, updated_at: null };
+        notes.value = data.notes ?? [];
+        botPaused.value = !!data.bot_paused;
     } catch (e) {
         thread.value = [];
     } finally {
         loadingThread.value = false;
+    }
+}
+
+async function togglePause() {
+    if (!selected.value) return;
+    const next = !botPaused.value;
+    togglingPause.value = true;
+    try {
+        const { data } = await axios.post(route('agents.twilio.inbox.pause', props.agent), {
+            from: selected.value,
+            paused: next,
+        });
+        botPaused.value = !!data.bot_paused;
+        if (selectedConv.value) selectedConv.value.bot_paused = botPaused.value;
+        toast.success(botPaused.value
+            ? 'Bot pausado: ahora respondes tú. La IA no contestará.'
+            : 'Bot reactivado: la IA vuelve a responder automáticamente.');
+    } catch (e) {
+        toast.error('No se pudo cambiar el estado del bot.');
+    } finally {
+        togglingPause.value = false;
+    }
+}
+
+async function sendReply() {
+    const body = replyText.value.trim();
+    if (!selected.value || !body) return;
+    sendingReply.value = true;
+    try {
+        const { data } = await axios.post(route('agents.twilio.inbox.reply', props.agent), {
+            from: selected.value,
+            body,
+        });
+        if (data.success) {
+            if (data.new_message) thread.value = [...thread.value, data.new_message];
+            replyText.value = '';
+            toast.success('Mensaje enviado.');
+        } else {
+            toast.error(data.message || 'No se pudo enviar.');
+        }
+    } catch (e) {
+        toast.error(e.response?.data?.message || 'No se pudo enviar el mensaje.');
+    } finally {
+        sendingReply.value = false;
+    }
+}
+
+async function sendTemplateMsg() {
+    if (!selected.value) return;
+    if (!confirm('¿Enviar esta plantilla de WhatsApp?')) return;
+    sendingTemplate.value = true;
+    try {
+        const { data } = await axios.post(route('agents.twilio.inbox.template', props.agent), {
+            from: selected.value,
+            id_plantilla: selectedPlantillaId.value || undefined,
+        });
+        if (data.success) {
+            if (data.new_message) thread.value = [...thread.value, data.new_message];
+            showTemplates.value = false;
+            toast.success('Plantilla enviada.');
+        } else {
+            toast.error(data.message || 'No se pudo enviar la plantilla.');
+        }
+    } catch (e) {
+        toast.error(e.response?.data?.message || 'No se pudo enviar la plantilla.');
+    } finally {
+        sendingTemplate.value = false;
+    }
+}
+
+async function addNote() {
+    const body = newNote.value.trim();
+    if (!selected.value || !body) return;
+    savingNote.value = true;
+    try {
+        const { data } = await axios.post(route('agents.twilio.inbox.notes.store', props.agent), {
+            from: selected.value,
+            body,
+        });
+        notes.value = data.notes ?? notes.value;
+        newNote.value = '';
+    } catch (e) {
+        toast.error('No se pudo guardar la nota.');
+    } finally {
+        savingNote.value = false;
+    }
+}
+
+async function removeNote(note) {
+    if (!confirm('¿Eliminar esta nota?')) return;
+    try {
+        const { data } = await axios.delete(route('agents.twilio.inbox.notes.destroy', [props.agent, note.id]));
+        notes.value = data.notes ?? notes.value.filter((n) => n.id !== note.id);
+    } catch (e) {
+        toast.error('No se pudo eliminar la nota.');
     }
 }
 
@@ -233,6 +357,11 @@ onMounted(loadInbox);
                                         v-else
                                         class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-amber-700"
                                     >Sin cliente</span>
+                                    <span
+                                        v-if="c.bot_paused"
+                                        class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800"
+                                        title="Bot pausado — atención humana"
+                                    ><span class="h-1.5 w-1.5 rounded-full bg-amber-500" />Humano</span>
                                 </div>
                             </div>
                         </li>
@@ -277,6 +406,18 @@ onMounted(loadInbox);
                             </div>
                             <span class="font-mono text-xs text-gray-400">{{ selectedConv.from_number }}</span>
                         </div>
+                        <!-- Pausar / reactivar el bot (toma de control) -->
+                        <button
+                            type="button"
+                            :disabled="togglingPause"
+                            class="inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition disabled:opacity-60"
+                            :class="botPaused ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'"
+                            :title="botPaused ? 'El bot está pausado; respondes tú' : 'El bot responde automáticamente'"
+                            @click="togglePause"
+                        >
+                            <span :class="['h-2 w-2 rounded-full', botPaused ? 'bg-amber-500' : 'bg-emerald-500']" />
+                            {{ togglingPause ? '…' : (botPaused ? 'Bot pausado — reactivar' : 'Tomar control') }}
+                        </button>
                         <button
                             v-if="!selectedConv.client"
                             type="button"
@@ -308,6 +449,41 @@ onMounted(loadInbox);
                         </div>
                     </div>
 
+                    <!-- Notas internas (no visibles para el cliente) -->
+                    <div class="border-b border-[#e3e8ee] bg-amber-50/60 px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <svg class="h-4 w-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            <h4 class="text-xs font-semibold uppercase tracking-wide text-amber-700">Notas internas</h4>
+                            <span class="text-[11px] text-amber-600">Solo tú las ves · no se envían al cliente</span>
+                        </div>
+                        <div v-if="notes.length" class="mt-2 space-y-1.5">
+                            <div v-for="n in notes" :key="n.id" class="group flex items-start gap-2 rounded-md border border-amber-200 bg-white px-2.5 py-1.5 text-sm">
+                                <div class="min-w-0 flex-1">
+                                    <p class="whitespace-pre-wrap break-words text-[#33475b]">{{ n.body }}</p>
+                                    <p class="mt-0.5 text-[11px] text-gray-400">{{ n.user || 'Operador' }} · {{ fmtFull(n.created_at) }}</p>
+                                </div>
+                                <button type="button" class="shrink-0 text-gray-300 opacity-0 transition hover:text-red-500 group-hover:opacity-100" title="Eliminar" @click="removeNote(n)">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2 flex items-center gap-2">
+                            <input
+                                v-model="newNote"
+                                type="text"
+                                placeholder="Agregar una nota interna…"
+                                class="min-w-0 flex-1 rounded-md border-amber-200 bg-white py-1.5 text-sm text-[#33475b] focus:border-amber-400 focus:ring-amber-400"
+                                @keydown.enter.prevent="addNote"
+                            />
+                            <button
+                                type="button"
+                                class="shrink-0 rounded-md border border-amber-300 bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-200 disabled:opacity-60"
+                                :disabled="savingNote || !newNote.trim()"
+                                @click="addNote"
+                            >{{ savingNote ? '…' : 'Agregar' }}</button>
+                        </div>
+                    </div>
+
                     <!-- Hilo de mensajes -->
                     <div class="flex-1 overflow-y-auto px-4 py-4">
                         <p v-if="loadingThread" class="text-sm text-gray-400">Cargando…</p>
@@ -333,6 +509,66 @@ onMounted(loadInbox);
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Composer: responder como humano + plantillas -->
+                    <div class="border-t border-[#e3e8ee] bg-white px-4 py-3">
+                        <!-- Selector de plantilla (desplegable) -->
+                        <div v-if="showTemplates" class="mb-2 rounded-md border border-[#e3e8ee] bg-[#f9fbfd] p-3">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-medium text-[#425b76]">Plantilla de WhatsApp (Meta/Twilio)</label>
+                                <button type="button" class="text-xs text-gray-400 hover:text-gray-600" @click="showTemplates = false">Cerrar</button>
+                            </div>
+                            <div v-if="twilioPlantillas.length" class="mt-2 flex flex-wrap items-center gap-2">
+                                <select v-model="selectedPlantillaId" class="min-w-0 flex-1 rounded-md border-[#e3e8ee] text-sm">
+                                    <option value="">— Plantilla por defecto —</option>
+                                    <option v-for="p in twilioPlantillas" :key="p.id" :value="p.id">{{ p.name || p.id }}</option>
+                                </select>
+                                <button
+                                    type="button"
+                                    class="shrink-0 rounded-lg bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#20BD5A] disabled:opacity-60"
+                                    :disabled="sendingTemplate"
+                                    @click="sendTemplateMsg"
+                                >{{ sendingTemplate ? 'Enviando…' : 'Enviar plantilla' }}</button>
+                            </div>
+                            <p v-else class="mt-2 text-xs text-gray-500">
+                                No hay plantillas de Twilio configuradas. Agrégalas en <strong>Comunicación → Mensajes → Plantillas</strong> (opción “Agregar desde Twilio”).
+                            </p>
+                        </div>
+
+                        <div class="flex items-end gap-2">
+                            <textarea
+                                v-model="replyText"
+                                rows="1"
+                                placeholder="Escribe una respuesta…"
+                                class="max-h-32 min-h-[42px] flex-1 resize-y rounded-lg border-[#e3e8ee] text-sm text-[#33475b] focus:border-emerald-400 focus:ring-emerald-400"
+                                @keydown.enter.exact.prevent="sendReply"
+                            />
+                            <button
+                                type="button"
+                                class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#e3e8ee] px-3 py-2.5 text-sm text-[#425b76] transition hover:bg-[#f5f8fa]"
+                                title="Enviar plantilla de Meta"
+                                @click="showTemplates = !showTemplates"
+                            >
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                                Plantillas
+                            </button>
+                            <button
+                                type="button"
+                                class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#25D366] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#20BD5A] disabled:opacity-60"
+                                :disabled="sendingReply || !replyText.trim()"
+                                @click="sendReply"
+                            >
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                                {{ sendingReply ? 'Enviando…' : 'Enviar' }}
+                            </button>
+                        </div>
+                        <p v-if="!botPaused" class="mt-1.5 text-[11px] text-amber-600">
+                            El bot sigue activo y también responderá. Usa “Tomar control” para pausarlo mientras atiendes tú.
+                        </p>
+                        <p class="mt-1 text-[11px] text-gray-400">
+                            El texto libre solo funciona dentro de las 24h del último mensaje del cliente; fuera de esa ventana, usa una plantilla.
+                        </p>
                     </div>
                 </template>
             </div>

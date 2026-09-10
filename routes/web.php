@@ -70,6 +70,19 @@ Route::middleware('auth')->group(function () {
     Route::post('agents/{agent}/twilio/inbox/extract', [TwilioInboxController::class, 'extract'])
         ->whereNumber('agent')
         ->name('agents.twilio.inbox.extract');
+    // Toma de control humano desde la bandeja
+    Route::post('agents/{agent}/twilio/inbox/pause', [TwilioInboxController::class, 'pause'])
+        ->whereNumber('agent')->name('agents.twilio.inbox.pause');
+    Route::post('agents/{agent}/twilio/inbox/reply', [TwilioInboxController::class, 'reply'])
+        ->whereNumber('agent')->name('agents.twilio.inbox.reply');
+    Route::post('agents/{agent}/twilio/inbox/template', [TwilioInboxController::class, 'sendTemplate'])
+        ->whereNumber('agent')->name('agents.twilio.inbox.template');
+    Route::get('agents/{agent}/twilio/inbox/notes', [TwilioInboxController::class, 'notes'])
+        ->whereNumber('agent')->name('agents.twilio.inbox.notes.index');
+    Route::post('agents/{agent}/twilio/inbox/notes', [TwilioInboxController::class, 'storeNote'])
+        ->whereNumber('agent')->name('agents.twilio.inbox.notes.store');
+    Route::delete('agents/{agent}/twilio/inbox/notes/{note}', [TwilioInboxController::class, 'destroyNote'])
+        ->whereNumber('agent')->name('agents.twilio.inbox.notes.destroy')->scopeBindings();
 
     // Base de conocimiento del agente (PDF/TXT/MD -> Markdown)
     Route::get('agents/{agent}/knowledge-base', [AgentKnowledgeBaseController::class, 'index'])
