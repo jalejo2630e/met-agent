@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Agent;
 use App\Models\Client;
+use App\Models\ConversationExtraction;
 use App\Models\TwilioMessage;
+use App\Services\ConversationExtractionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -59,7 +61,51 @@ class TwilioInboxController extends Controller
             ->limit(500)
             ->get(['id', 'direction', 'body', 'created_at']);
 
-        return response()->json(['messages' => $messages]);
+        return response()->json([
+            'messages' => $messages,
+            'extraction' => $this->extractionPayload($agent, $from),
+        ]);
+    }
+
+    /**
+     * Fuerza una nueva extracción de variables de recolección para la conversación.
+     */
+    public function extract(Agent $agent, Request $request, ConversationExtractionService $service): JsonResponse
+    {
+        $this->authorize('view', $agent);
+
+        $from = (string) $request->input('from', '');
+        if ($from !== '') {
+            $service->extractForConversation($agent, $from);
+        }
+
+        return response()->json(['extraction' => $this->extractionPayload($agent, $from)]);
+    }
+
+    /**
+     * Variables de recolección definidas + valores extraídos de la conversación.
+     *
+     * @return array{variables: array<int, array<string, mixed>>, values: array<string, mixed>, updated_at: ?string}
+     */
+    private function extractionPayload(Agent $agent, string $from): array
+    {
+        $variables = $agent->extractionVariables()->orderBy('order')->orderBy('id')->get()
+            ->map(fn ($v) => [
+                'name' => $v->name,
+                'label' => $v->label,
+                'description' => $v->description,
+                'type' => $v->type,
+            ])->values();
+
+        $extraction = ConversationExtraction::where('agent_id', $agent->id)
+            ->where('from_number', $from)
+            ->first();
+
+        return [
+            'variables' => $variables->all(),
+            'values' => (array) ($extraction?->values ?? []),
+            'updated_at' => $extraction?->updated_at?->toIso8601String(),
+        ];
     }
 
     private function findClient(Agent $agent, string $from): ?Client

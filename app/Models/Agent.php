@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Observers\AgentObserver;
 use App\Support\WhatsappConversationsConnection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -48,7 +49,7 @@ class Agent extends Model
             return WhatsappConversationsConnection::supabaseTableNameForAgent($this->id);
         }
 
-        return \App\Observers\AgentObserver::getTableName($this->id);
+        return AgentObserver::getTableName($this->id);
     }
 
     public function user(): BelongsTo
@@ -74,6 +75,16 @@ class Agent extends Model
     public function dataVariables(): HasMany
     {
         return $this->hasMany(AgentDataVariable::class)->orderBy('order');
+    }
+
+    public function knowledgeDocuments(): HasMany
+    {
+        return $this->hasMany(AgentKnowledgeDocument::class)->orderBy('order')->orderBy('id');
+    }
+
+    public function extractionVariables(): HasMany
+    {
+        return $this->hasMany(AgentExtractionVariable::class)->orderBy('order')->orderBy('id');
     }
 
     public function apiKeys(): HasMany
@@ -122,7 +133,7 @@ class Agent extends Model
             return WhatsappConversationsConnection::supabaseTableNameForAgent($this->id);
         }
 
-        return \App\Observers\AgentObserver::getTableName($this->id);
+        return AgentObserver::getTableName($this->id);
     }
 
     public function whatsappConversations()

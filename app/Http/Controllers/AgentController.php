@@ -10,6 +10,7 @@ use App\Models\PostCallWebhookLog;
 use App\Observers\AgentObserver;
 use App\Services\CallCountService;
 use App\Services\ClientListFilterService;
+use App\Support\WhatsappConversationsConnection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -87,11 +88,11 @@ class AgentController extends Controller
 
             DB::commit();
 
-            $tableName = \App\Support\WhatsappConversationsConnection::readsViaRest()
-                ? \App\Support\WhatsappConversationsConnection::supabaseTableNameForAgent($agent->id)
+            $tableName = WhatsappConversationsConnection::readsViaRest()
+                ? WhatsappConversationsConnection::supabaseTableNameForAgent($agent->id)
                 : AgentObserver::getTableName($agent->id);
 
-            $success = \App\Support\WhatsappConversationsConnection::managesLocalTables()
+            $success = WhatsappConversationsConnection::managesLocalTables()
                 ? "Agente creado exitosamente. Tabla de conversaciones creada: {$tableName}"
                 : "Agente creado exitosamente. Conversaciones WhatsApp en Supabase (tabla esperada: {$tableName}).";
 
@@ -120,6 +121,7 @@ class AgentController extends Controller
             'messageConfig',
             'callConfig',
             'dataVariables',
+            'extractionVariables',
             'apiKeys',
             'clientFields',
             'clientSourceEndpoints',
@@ -265,5 +267,4 @@ class AgentController extends Controller
             return back()->withErrors(['error' => 'Error al eliminar: '.$e->getMessage()]);
         }
     }
-
 }

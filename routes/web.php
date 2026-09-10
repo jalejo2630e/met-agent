@@ -4,18 +4,19 @@ use App\Http\Controllers\AgentConfigController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\AgentEndpointController;
 use App\Http\Controllers\AgentFormController;
+use App\Http\Controllers\AgentKnowledgeBaseController;
 use App\Http\Controllers\AgentReportController;
 use App\Http\Controllers\AgentReportWidgetController;
 use App\Http\Controllers\CallAnalysisController;
-use App\Http\Controllers\CustomReportController;
-use App\Http\Controllers\PublicFormController;
-use App\Http\Controllers\SendAgentReportController;
 use App\Http\Controllers\ClientCallbackRequestController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\CustomReportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\PostCallLogController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicFormController;
+use App\Http\Controllers\SendAgentReportController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TwilioInboxController;
 use App\Http\Controllers\TwilioTemplateController;
@@ -66,6 +67,19 @@ Route::middleware('auth')->group(function () {
     Route::get('agents/{agent}/twilio/inbox/thread', [TwilioInboxController::class, 'thread'])
         ->whereNumber('agent')
         ->name('agents.twilio.inbox.thread');
+    Route::post('agents/{agent}/twilio/inbox/extract', [TwilioInboxController::class, 'extract'])
+        ->whereNumber('agent')
+        ->name('agents.twilio.inbox.extract');
+
+    // Base de conocimiento del agente (PDF/TXT/MD -> Markdown)
+    Route::get('agents/{agent}/knowledge-base', [AgentKnowledgeBaseController::class, 'index'])
+        ->whereNumber('agent')->name('agents.knowledge-base.index');
+    Route::post('agents/{agent}/knowledge-base', [AgentKnowledgeBaseController::class, 'store'])
+        ->whereNumber('agent')->name('agents.knowledge-base.store');
+    Route::put('agents/{agent}/knowledge-base/{document}', [AgentKnowledgeBaseController::class, 'update'])
+        ->whereNumber('agent')->name('agents.knowledge-base.update')->scopeBindings();
+    Route::delete('agents/{agent}/knowledge-base/{document}', [AgentKnowledgeBaseController::class, 'destroy'])
+        ->whereNumber('agent')->name('agents.knowledge-base.destroy')->scopeBindings();
 
     Route::put('agents/{agent}/call-config', [AgentConfigController::class, 'updateCallConfig'])->name('agents.call-config.update');
     Route::put('agents/{agent}/prompt-config', [AgentConfigController::class, 'updatePromptConfig'])->name('agents.prompt-config.update');
@@ -73,6 +87,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('agents/{agent}/data-variables', [AgentConfigController::class, 'storeDataVariable'])->name('agents.data-variables.store');
     Route::delete('agents/{agent}/data-variables/{variable}', [AgentConfigController::class, 'destroyDataVariable'])->name('agents.data-variables.destroy');
+
+    Route::post('agents/{agent}/extraction-variables', [AgentConfigController::class, 'storeExtractionVariable'])->name('agents.extraction-variables.store');
+    Route::delete('agents/{agent}/extraction-variables/{variable}', [AgentConfigController::class, 'destroyExtractionVariable'])->name('agents.extraction-variables.destroy');
 
     Route::post('agents/{agent}/api-keys', [AgentConfigController::class, 'generateApiKey'])->name('agents.api-keys.store');
     Route::delete('agents/{agent}/api-keys/{apiKey}', [AgentConfigController::class, 'destroyApiKey'])->name('agents.api-keys.destroy');

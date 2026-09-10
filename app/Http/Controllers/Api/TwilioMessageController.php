@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Ai\Agents\WhatsappAgent;
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
+use App\Models\Client;
 use App\Models\TwilioMessage;
+use App\Services\AgentKnowledgeService;
+use App\Services\ConversationExtractionService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -78,6 +81,11 @@ class TwilioMessageController extends Controller
         } else {
             try {
                 $systemPrompt = (string) data_get($agent->prompt_configuration, 'system_prompt', '');
+                // Inyecta la base de conocimiento habilitada del agente como contexto.
+                $knowledge = app(AgentKnowledgeService::class)->promptContext($agent);
+                if ($knowledge !== '') {
+                    $systemPrompt = trim($systemPrompt."\n\n".$knowledge);
+                }
                 $provider = data_get($agent->prompt_configuration, 'ai_provider') ?: null;
                 $model = data_get($agent->prompt_configuration, 'ai_model') ?: null;
                 $response = (new WhatsappAgent($systemPrompt, $history))->prompt($body, provider: $provider, model: $model);
@@ -95,6 +103,13 @@ class TwilioMessageController extends Controller
                 'direction' => 'outbound',
                 'body' => $reply,
             ]);
+        }
+
+        // Extrae las variables de recolección definidas para el agente (best-effort).
+        try {
+            app(ConversationExtractionService::class)->extractForConversation($agent, $from);
+        } catch (\Throwable $e) {
+            report($e);
         }
 
         return $this->twiml($reply);
@@ -139,7 +154,7 @@ class TwilioMessageController extends Controller
         }
         $last10 = substr($digits, -10);
 
-        $client = \App\Models\Client::where('agent_id', $agent->id)
+        $client = Client::where('agent_id', $agent->id)
             ->where(function ($q) use ($from, $digits, $last10) {
                 $q->where('phone', $from)
                     ->orWhere('phone', $digits)

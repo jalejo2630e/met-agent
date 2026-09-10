@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Agent;
 use App\Models\AgentApiKey;
+use App\Models\AgentClientField;
 use App\Models\AgentClientSourceEndpoint;
 use App\Models\AgentDataVariable;
 use App\Models\AgentEndpoint;
-use App\Services\ElevenLabsSyncService;
+use App\Models\AgentExtractionVariable;
 use App\Services\N8nSyncService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -163,6 +164,36 @@ class AgentConfigController extends Controller
         return back()->with('success', 'Variable eliminada.');
     }
 
+    public function storeExtractionVariable(Request $request, Agent $agent)
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|regex:/^[a-zA-Z_][a-zA-Z0-9_]*$/',
+            'label' => 'nullable|string|max:255',
+            'description' => 'required|string|max:1000',
+            'type' => 'required|in:string,number,boolean',
+        ]);
+
+        $agent->extractionVariables()->create([
+            ...$validated,
+            'order' => (int) $agent->extractionVariables()->max('order') + 1,
+        ]);
+
+        return back()->with('success', 'Variable de recolección agregada.');
+    }
+
+    public function destroyExtractionVariable(Agent $agent, AgentExtractionVariable $variable)
+    {
+        $this->authorize('update', $agent);
+        if ($variable->agent_id !== $agent->id) {
+            abort(404);
+        }
+        $variable->delete();
+
+        return back()->with('success', 'Variable de recolección eliminada.');
+    }
+
     public function generateApiKey(Request $request, Agent $agent)
     {
         $this->authorize('update', $agent);
@@ -200,7 +231,7 @@ class AgentConfigController extends Controller
         return back()->with('success', 'Campo agregado.');
     }
 
-    public function destroyClientField(Agent $agent, \App\Models\AgentClientField $clientField)
+    public function destroyClientField(Agent $agent, AgentClientField $clientField)
     {
         $this->authorize('update', $agent);
         if ($clientField->agent_id !== $agent->id) {
