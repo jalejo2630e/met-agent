@@ -5,14 +5,22 @@ namespace App\Http\Controllers\Api;
 use App\Ai\Agents\WhatsappAgent;
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
+use App\Models\AiUsageLog;
 use App\Models\Client;
 use App\Models\ConversationState;
 use App\Models\TwilioMessage;
 use App\Services\AgentKnowledgeService;
+use App\Services\AudioTranscoder;
 use App\Services\ConversationExtractionService;
+use App\Services\TwilioContentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Laravel\Ai\AnonymousAgent;
+use Laravel\Ai\Files\Image;
+use Laravel\Ai\Transcription;
 
 /**
  * Webhook de Twilio (WhatsApp/SMS) para atender mensajes con un agente de IA
@@ -26,6 +34,9 @@ use Illuminate\Support\Facades\Log;
  */
 class TwilioMessageController extends Controller
 {
+    /** Modelo de IA por defecto para las respuestas de WhatsApp. */
+    private const DEFAULT_MODEL = 'gpt-4.1-mini';
+
     public function __invoke(Request $request, Agent $agent): Response
     {
         $token = (string) config('services.twilio.auth_token', '');
@@ -37,8 +48,10 @@ class TwilioMessageController extends Controller
         $channel = str_starts_with($fromRaw, 'whatsapp:') ? 'whatsapp' : 'sms';
         $from = trim(str_replace('whatsapp:', '', $fromRaw));
         $body = trim((string) $request->input('Body', ''));
+        $numMedia = (int) $request->input('NumMedia', 0);
 
-        if ($from === '' || $body === '') {
+        // Nada que procesar si no hay texto ni archivos adjuntos.
+        if ($from === '' || ($body === '' && $numMedia < 1)) {
             return $this->twiml('');
         }
 
@@ -56,12 +69,31 @@ class TwilioMessageController extends Controller
             ->values()
             ->all();
 
+        // Descarga y guarda la media entrante (nota de voz, imagen, etc.) para
+        // poder previsualizarla en la bandeja. Best-effort.
+        [$mediaUrl, $mediaType, $mediaPath] = $numMedia > 0 ? $this->storeInboundMedia($request) : [null, null, null];
+
+        // Si el mensaje es solo media (sin texto), intenta entenderla para que la
+        // IA sepa qué contestar: audio -> transcripción, imagen -> descripción.
+        $understood = ($body === '' && $mediaPath !== null && $mediaType !== null)
+            ? $this->understandMedia($mediaPath, $mediaType, $agent->id, $from)
+            : '';
+
+        // Texto que procesa la IA: el del cliente o lo entendido de la media.
+        $aiInput = $body !== '' ? $body : $understood;
+
+        // Cuerpo que se guarda/muestra en la bandeja.
+        $storedBody = $body !== '' ? $body
+            : ($understood !== '' ? $understood : ($mediaType ? $this->mediaLabel($mediaType) : ''));
+
         TwilioMessage::create([
             'agent_id' => $agent->id,
             'channel' => $channel,
             'from_number' => $from,
             'direction' => 'inbound',
-            'body' => $body,
+            'body' => $storedBody,
+            'media_url' => $mediaUrl,
+            'media_type' => $mediaType,
             'message_sid' => $request->input('MessageSid'),
             'profile_name' => $request->input('ProfileName'),
         ]);
@@ -77,6 +109,9 @@ class TwilioMessageController extends Controller
                 'agent_id' => $agent->id,
                 'from' => $from,
             ]);
+        } elseif ($aiInput === '') {
+            // Media que no se pudo entender (sticker, transcripción vacía…): queda
+            // en la bandeja para que un humano la atienda.
         } elseif (! $this->aiConfigured()) {
             Log::warning('Twilio webhook: proveedor de IA no configurado (OPENAI_API_KEY).');
         } else {
@@ -88,9 +123,11 @@ class TwilioMessageController extends Controller
                     $systemPrompt = trim($systemPrompt."\n\n".$knowledge);
                 }
                 $provider = data_get($agent->prompt_configuration, 'ai_provider') ?: null;
-                $model = data_get($agent->prompt_configuration, 'ai_model') ?: null;
-                $response = (new WhatsappAgent($systemPrompt, $history))->prompt($body, provider: $provider, model: $model);
+                // Modelo por defecto: gpt-4.1-mini (si el agente no define uno).
+                $model = data_get($agent->prompt_configuration, 'ai_model') ?: self::DEFAULT_MODEL;
+                $response = (new WhatsappAgent($systemPrompt, $history))->prompt($aiInput, provider: $provider, model: $model);
                 $reply = trim((string) $response);
+                AiUsageLog::record($agent->id, $from, 'message', $response->meta->model ?? $model, $response->usage->promptTokens, $response->usage->completionTokens);
             } catch (\Throwable $e) {
                 report($e);
             }
@@ -141,6 +178,123 @@ class TwilioMessageController extends Controller
     private function aiConfigured(): bool
     {
         return (string) config('ai.providers.'.config('ai.default').'.key', '') !== '';
+    }
+
+    /**
+     * Descarga la primera media entrante de Twilio, la guarda en el disco public
+     * y (si es audio no-MP3) la transcodifica a MP3 para reproducción universal.
+     *
+     * @return array{0: ?string, 1: ?string, 2: ?string} [url pública, content-type, ruta local]
+     */
+    private function storeInboundMedia(Request $request): array
+    {
+        $url = (string) $request->input('MediaUrl0', '');
+        if ($url === '') {
+            return [null, null, null];
+        }
+
+        $declared = trim(explode(';', (string) $request->input('MediaContentType0', ''))[0]);
+
+        $downloaded = app(TwilioContentService::class)->downloadMedia($url);
+        if ($downloaded === null) {
+            return [null, null, null];
+        }
+        [$contents, $headerType] = $downloaded;
+        $type = $declared !== '' ? $declared : (trim(explode(';', $headerType)[0]) ?: 'application/octet-stream');
+
+        try {
+            $path = 'whatsapp-media/in/'.Str::uuid()->toString().'.'.$this->extForType($type);
+            Storage::disk('public')->put($path, $contents);
+
+            // WhatsApp manda las notas de voz en OGG/Opus; Safari no lo reproduce.
+            if (str_starts_with($type, 'audio/') && $type !== 'audio/mpeg') {
+                try {
+                    [$mp3Path, $mp3Mime] = app(AudioTranscoder::class)->toMp3(Storage::disk('public')->path($path));
+                    Storage::disk('public')->delete($path);
+                    $path = $mp3Path;
+                    $type = $mp3Mime;
+                } catch (\Throwable) {
+                    // Si ffmpeg falla, se conserva el original (audible en Chrome/Firefox).
+                }
+            }
+
+            return [url(Storage::disk('public')->url($path)), $type, Storage::disk('public')->path($path)];
+        } catch (\Throwable $e) {
+            report($e);
+
+            return [null, null, null];
+        }
+    }
+
+    /**
+     * Convierte la media entrante en texto para que la IA sepa qué contestar:
+     * transcribe el audio (Whisper) y describe las imágenes (visión). Los
+     * stickers de WhatsApp (image/webp) se ignoran para no gastar tokens.
+     */
+    private function understandMedia(string $absPath, string $mime, int $agentId, ?string $from): string
+    {
+        try {
+            if (str_starts_with($mime, 'audio/')) {
+                $resp = Transcription::fromPath($absPath)->language('es')->timeout(60)->generate();
+                $seconds = app(AudioTranscoder::class)->durationSeconds($absPath);
+                AiUsageLog::record($agentId, $from, 'audio', $resp->meta->model ?? 'whisper-1', $resp->usage->promptTokens, $resp->usage->completionTokens, $seconds);
+
+                return trim((string) $resp->text);
+            }
+
+            // Imágenes con visión, EXCEPTO stickers de WhatsApp (webp): no se leen.
+            if (str_starts_with($mime, 'image/') && $mime !== 'image/webp') {
+                $describer = new AnonymousAgent(
+                    'Eres un asistente de atención al cliente. Describe en español, en 1-2 frases, qué muestra la imagen que envió el cliente, enfocándote en lo relevante para poder responderle.',
+                    [], []
+                );
+                $resp = $describer->prompt(
+                    'Describe brevemente esta imagen enviada por el cliente.',
+                    attachments: [Image::fromPath($absPath, $mime)],
+                    model: self::DEFAULT_MODEL,
+                );
+                AiUsageLog::record($agentId, $from, 'image', $resp->meta->model ?? self::DEFAULT_MODEL, $resp->usage->promptTokens, $resp->usage->completionTokens);
+
+                $desc = trim((string) $resp);
+
+                return $desc !== '' ? '[Imagen del cliente] '.$desc : '';
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return '';
+    }
+
+    private function mediaLabel(string $mime): string
+    {
+        return match (true) {
+            str_starts_with($mime, 'image/') => '📷 Imagen',
+            str_starts_with($mime, 'audio/') => '🎤 Nota de voz',
+            str_starts_with($mime, 'video/') => '🎥 Video',
+            default => '📎 Archivo',
+        };
+    }
+
+    private function extForType(string $type): string
+    {
+        return match ($type) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            'image/gif' => 'gif',
+            'audio/mpeg' => 'mp3',
+            'audio/ogg' => 'ogg',
+            'audio/amr' => 'amr',
+            'audio/mp4', 'audio/x-m4a' => 'm4a',
+            'audio/aac' => 'aac',
+            'audio/wav' => 'wav',
+            'video/mp4' => 'mp4',
+            'video/3gpp' => '3gp',
+            'video/webm' => 'webm',
+            'application/pdf' => 'pdf',
+            default => 'bin',
+        };
     }
 
     /**

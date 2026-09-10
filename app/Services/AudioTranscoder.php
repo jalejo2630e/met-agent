@@ -25,6 +25,24 @@ class AudioTranscoder
     }
 
     /**
+     * Duración en segundos de un archivo de audio/video (ffprobe). 0 si falla.
+     */
+    public function durationSeconds(string $path): float
+    {
+        try {
+            $result = Process::timeout(30)->run([
+                'ffprobe', '-i', $path,
+                '-show_entries', 'format=duration',
+                '-v', 'quiet', '-of', 'csv=p=0',
+            ]);
+
+            return $result->successful() ? (float) trim($result->output()) : 0.0;
+        } catch (\Throwable) {
+            return 0.0;
+        }
+    }
+
+    /**
      * Transcodifica el archivo de audio a MP3 mono y lo guarda en el disco public.
      *
      * @return array{0: string, 1: string} [ruta relativa en el disco public, mime]

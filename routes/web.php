@@ -7,6 +7,7 @@ use App\Http\Controllers\AgentFormController;
 use App\Http\Controllers\AgentKnowledgeBaseController;
 use App\Http\Controllers\AgentReportController;
 use App\Http\Controllers\AgentReportWidgetController;
+use App\Http\Controllers\AiCostController;
 use App\Http\Controllers\CallAnalysisController;
 use App\Http\Controllers\ClientCallbackRequestController;
 use App\Http\Controllers\ClientController;
@@ -85,6 +86,10 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('agent')->name('agents.twilio.inbox.notes.store');
     Route::delete('agents/{agent}/twilio/inbox/notes/{note}', [TwilioInboxController::class, 'destroyNote'])
         ->whereNumber('agent')->name('agents.twilio.inbox.notes.destroy')->scopeBindings();
+
+    // Costos estimados de IA por agente
+    Route::get('agents/{agent}/ai-costs', [AiCostController::class, 'index'])
+        ->whereNumber('agent')->name('agents.ai-costs.index');
 
     // Base de conocimiento del agente (PDF/TXT/MD -> Markdown)
     Route::get('agents/{agent}/knowledge-base', [AgentKnowledgeBaseController::class, 'index'])

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Ai\Agents\ConversationExtractor;
 use App\Models\Agent;
+use App\Models\AiUsageLog;
 use App\Models\ConversationExtraction;
 use App\Models\TwilioMessage;
 use Illuminate\Support\Facades\Log;
@@ -48,6 +49,8 @@ class ConversationExtractionService
         try {
             $response = (new ConversationExtractor($variables, (string) $agent->name))
                 ->prompt("Extrae los datos de la siguiente conversación:\n\n".$transcript);
+
+            AiUsageLog::record($agent->id, $from, 'extraction', $response->meta->model ?? null, $response->usage->promptTokens, $response->usage->completionTokens);
 
             /** @var array<string, mixed> $data */
             $data = json_decode((string) $response, true) ?: [];

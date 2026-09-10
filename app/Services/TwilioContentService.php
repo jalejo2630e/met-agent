@@ -193,6 +193,35 @@ class TwilioContentService
         return $this->isConfigured() && $this->whatsappFrom() !== '';
     }
 
+    /**
+     * Descarga una media entrante de Twilio (las URLs de media requieren
+     * autenticación con SID + Auth Token). Devuelve el binario y su content-type.
+     *
+     * @return array{0: string, 1: string}|null [contenido, content-type]
+     */
+    public function downloadMedia(string $url): ?array
+    {
+        if ($url === '') {
+            return null;
+        }
+
+        try {
+            $request = Http::timeout(30);
+            if ($this->isConfigured()) {
+                $request = $request->withBasicAuth($this->sid(), $this->token());
+            }
+            $response = $request->get($url);
+
+            if (! $response->successful()) {
+                return null;
+            }
+
+            return [$response->body(), (string) $response->header('Content-Type')];
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     private function whatsappFrom(): string
     {
         return (string) config('services.twilio.whatsapp_from', '');
