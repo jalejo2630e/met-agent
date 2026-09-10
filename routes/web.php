@@ -77,6 +77,8 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('agent')->name('agents.twilio.inbox.reply');
     Route::post('agents/{agent}/twilio/inbox/template', [TwilioInboxController::class, 'sendTemplate'])
         ->whereNumber('agent')->name('agents.twilio.inbox.template');
+    Route::post('agents/{agent}/twilio/inbox/media', [TwilioInboxController::class, 'sendMedia'])
+        ->whereNumber('agent')->name('agents.twilio.inbox.media');
     Route::get('agents/{agent}/twilio/inbox/notes', [TwilioInboxController::class, 'notes'])
         ->whereNumber('agent')->name('agents.twilio.inbox.notes.index');
     Route::post('agents/{agent}/twilio/inbox/notes', [TwilioInboxController::class, 'storeNote'])

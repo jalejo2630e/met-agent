@@ -196,6 +196,209 @@ async function removeNote(note) {
     }
 }
 
+function appendOutbound(data) {
+    if (data?.new_message) thread.value = [...thread.value, data.new_message];
+}
+
+/* ---- Adjuntar archivo / audio con previsualización ---- */
+const fileInput = ref(null);
+const pendingFile = ref(null);
+const pendingUrl = ref('');
+const pendingKind = ref('other'); // 'image' | 'audio' | 'video' | 'other'
+const pendingCaption = ref('');
+const showMediaPreview = ref(false);
+const sendingMedia = ref(false);
+
+function pickFile() {
+    if (fileInput.value) fileInput.value.click();
+}
+
+function onFileChange(e) {
+    const file = e.target?.files?.[0];
+    if (fileInput.value) fileInput.value.value = '';
+    if (!file) return;
+    revokePending();
+    pendingFile.value = file;
+    pendingCaption.value = '';
+    const type = file.type || '';
+    pendingKind.value = type.startsWith('image/') ? 'image' : type.startsWith('audio/') ? 'audio' : type.startsWith('video/') ? 'video' : 'other';
+    pendingUrl.value = (pendingKind.value === 'image' || pendingKind.value === 'audio' || pendingKind.value === 'video')
+        ? URL.createObjectURL(file)
+        : '';
+    showMediaPreview.value = true;
+}
+
+function revokePending() {
+    if (pendingUrl.value) {
+        URL.revokeObjectURL(pendingUrl.value);
+        pendingUrl.value = '';
+    }
+}
+
+function cancelMedia() {
+    showMediaPreview.value = false;
+    revokePending();
+    pendingFile.value = null;
+    pendingCaption.value = '';
+}
+
+async function sendMedia() {
+    const file = pendingFile.value;
+    if (!selected.value || !file) return;
+    sendingMedia.value = true;
+    try {
+        const fd = new FormData();
+        fd.append('from', selected.value);
+        fd.append('file', file);
+        if (pendingCaption.value.trim()) fd.append('caption', pendingCaption.value.trim());
+        const { data } = await axios.post(route('agents.twilio.inbox.media', props.agent), fd, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        if (data.success) {
+            appendOutbound(data);
+            toast.success('Archivo enviado.');
+            cancelMedia();
+        } else {
+            toast.error(data.message || 'No se pudo enviar el archivo.');
+        }
+    } catch (e) {
+        toast.error(e.response?.data?.message || 'No se pudo enviar el archivo.');
+    } finally {
+        sendingMedia.value = false;
+    }
+}
+
+/* ---- Grabar audio con selector de micrófono + preescucha ---- */
+const showRecorder = ref(false);
+const mics = ref([]);
+const selectedMicId = ref('');
+const recording = ref(false);
+const recordedBlob = ref(null);
+const recordedUrl = ref('');
+const recordSeconds = ref(0);
+const recorderError = ref('');
+const sendingRecording = ref(false);
+let mediaRecorder = null;
+let mediaStream = null;
+let recordChunks = [];
+let recordTimer = null;
+
+const recorderSupported = typeof window !== 'undefined' && !!(navigator.mediaDevices && window.MediaRecorder);
+
+async function openRecorder() {
+    recorderError.value = '';
+    discardRecording();
+    showRecorder.value = true;
+    if (!recorderSupported) {
+        recorderError.value = 'Tu navegador no soporta grabación de audio.';
+        return;
+    }
+    await loadMics();
+}
+
+async function loadMics() {
+    try {
+        const tmp = await navigator.mediaDevices.getUserMedia({ audio: true });
+        tmp.getTracks().forEach((t) => t.stop());
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        mics.value = devices.filter((d) => d.kind === 'audioinput');
+        if (!selectedMicId.value && mics.value.length) selectedMicId.value = mics.value[0].deviceId;
+    } catch (e) {
+        recorderError.value = 'No se pudo acceder al micrófono. Revisa los permisos del navegador (requiere HTTPS).';
+    }
+}
+
+function pickRecorderMime() {
+    const candidates = ['audio/ogg;codecs=opus', 'audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'];
+    for (const m of candidates) {
+        if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+    }
+    return '';
+}
+
+async function startRecording() {
+    recorderError.value = '';
+    discardRecording();
+    try {
+        const constraints = { audio: selectedMicId.value ? { deviceId: { exact: selectedMicId.value } } : true };
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        const mime = pickRecorderMime();
+        mediaRecorder = mime ? new MediaRecorder(mediaStream, { mimeType: mime }) : new MediaRecorder(mediaStream);
+        recordChunks = [];
+        mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size) recordChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+            const type = mediaRecorder?.mimeType || 'audio/webm';
+            recordedBlob.value = new Blob(recordChunks, { type });
+            if (recordedUrl.value) URL.revokeObjectURL(recordedUrl.value);
+            recordedUrl.value = URL.createObjectURL(recordedBlob.value);
+            stopStream();
+        };
+        mediaRecorder.start();
+        recording.value = true;
+        recordSeconds.value = 0;
+        recordTimer = setInterval(() => { recordSeconds.value++; }, 1000);
+    } catch (e) {
+        recorderError.value = 'No se pudo iniciar la grabación. Revisa el micrófono y los permisos.';
+        stopStream();
+    }
+}
+
+function stopRecording() {
+    if (mediaRecorder && recording.value) {
+        try { mediaRecorder.stop(); } catch (e) { /* noop */ }
+    }
+    recording.value = false;
+    if (recordTimer) { clearInterval(recordTimer); recordTimer = null; }
+}
+
+function stopStream() {
+    if (mediaStream) { mediaStream.getTracks().forEach((t) => t.stop()); mediaStream = null; }
+}
+
+function discardRecording() {
+    recordedBlob.value = null;
+    if (recordedUrl.value) { URL.revokeObjectURL(recordedUrl.value); recordedUrl.value = ''; }
+    recordSeconds.value = 0;
+}
+
+function closeRecorder() {
+    stopRecording();
+    stopStream();
+    discardRecording();
+    showRecorder.value = false;
+}
+
+async function sendRecording() {
+    if (!selected.value || !recordedBlob.value) return;
+    sendingRecording.value = true;
+    try {
+        const type = recordedBlob.value.type || '';
+        const ext = type.includes('ogg') ? 'ogg' : type.includes('mp4') ? 'm4a' : type.includes('mpeg') ? 'mp3' : 'webm';
+        const fd = new FormData();
+        fd.append('from', selected.value);
+        fd.append('file', recordedBlob.value, `audio-${thread.value.length}.${ext}`);
+        const { data } = await axios.post(route('agents.twilio.inbox.media', props.agent), fd, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        if (data.success) {
+            appendOutbound(data);
+            toast.success('Audio enviado.');
+            closeRecorder();
+        } else {
+            toast.error(data.message || 'No se pudo enviar el audio.');
+        }
+    } catch (e) {
+        toast.error(e.response?.data?.message || 'No se pudo enviar el audio.');
+    } finally {
+        sendingRecording.value = false;
+    }
+}
+
+function fmtRec(s) {
+    const m = Math.floor(s / 60);
+    return `${m}:${String(s % 60).padStart(2, '0')}`;
+}
+
 async function reExtract() {
     if (!selected.value) return;
     extracting.value = true;
@@ -537,6 +740,7 @@ onMounted(loadInbox);
                         </div>
 
                         <div class="flex items-end gap-2">
+                            <input ref="fileInput" type="file" class="hidden" accept="image/*,audio/*,video/mp4,application/pdf" @change="onFileChange" />
                             <textarea
                                 v-model="replyText"
                                 rows="1"
@@ -546,12 +750,28 @@ onMounted(loadInbox);
                             />
                             <button
                                 type="button"
+                                class="inline-flex shrink-0 items-center justify-center rounded-lg border border-[#e3e8ee] p-2.5 text-[#425b76] transition hover:bg-[#f5f8fa]"
+                                title="Adjuntar archivo o audio"
+                                @click="pickFile"
+                            >
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                            </button>
+                            <button
+                                type="button"
+                                class="inline-flex shrink-0 items-center justify-center rounded-lg border border-[#e3e8ee] p-2.5 text-[#425b76] transition hover:bg-[#f5f8fa]"
+                                title="Grabar audio"
+                                @click="openRecorder"
+                            >
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" /></svg>
+                            </button>
+                            <button
+                                type="button"
                                 class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#e3e8ee] px-3 py-2.5 text-sm text-[#425b76] transition hover:bg-[#f5f8fa]"
                                 title="Enviar plantilla de Meta"
                                 @click="showTemplates = !showTemplates"
                             >
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                                Plantillas
+                                <span class="hidden sm:inline">Plantillas</span>
                             </button>
                             <button
                                 type="button"
@@ -573,6 +793,94 @@ onMounted(loadInbox);
                 </template>
             </div>
         </div>
+
+        <!-- Previsualización del archivo/audio antes de enviar -->
+        <Teleport to="body">
+            <div v-if="showMediaPreview" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                <div class="fixed inset-0 bg-black/50" @click="cancelMedia" />
+                <div class="relative w-full max-w-md rounded-lg bg-white p-5 shadow-xl">
+                    <h3 class="text-base font-medium text-gray-900">Enviar archivo por WhatsApp</h3>
+                    <div class="mt-3">
+                        <img v-if="pendingKind === 'image'" :src="pendingUrl" alt="" class="max-h-64 w-full rounded object-contain" />
+                        <audio v-else-if="pendingKind === 'audio'" :src="pendingUrl" controls class="w-full" />
+                        <video v-else-if="pendingKind === 'video'" :src="pendingUrl" controls class="max-h-64 w-full rounded" />
+                        <div v-else class="flex items-center gap-2 rounded border border-[#e3e8ee] bg-gray-50 p-3 text-sm text-gray-700">
+                            <svg class="h-5 w-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                            <span class="truncate">{{ pendingFile?.name }}</span>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-400">{{ pendingFile?.name }} · {{ pendingFile ? Math.round(pendingFile.size / 1024) : 0 }} KB</p>
+                    </div>
+                    <textarea v-model="pendingCaption" rows="2" placeholder="Mensaje (opcional)…" class="mt-3 w-full rounded-md border-[#e3e8ee] text-sm" />
+                    <div class="mt-4 flex justify-end gap-2">
+                        <button type="button" class="rounded border px-4 py-2 text-sm hover:bg-gray-50" @click="cancelMedia">Cancelar</button>
+                        <button
+                            type="button"
+                            class="rounded-lg bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#20BD5A] disabled:opacity-60"
+                            :disabled="sendingMedia"
+                            @click="sendMedia"
+                        >{{ sendingMedia ? 'Enviando…' : 'Enviar' }}</button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
+        <!-- Grabador de audio con selector de micrófono + preescucha -->
+        <Teleport to="body">
+            <div v-if="showRecorder" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                <div class="fixed inset-0 bg-black/50" @click="closeRecorder" />
+                <div class="relative w-full max-w-md rounded-lg bg-white p-5 shadow-xl">
+                    <h3 class="text-base font-medium text-gray-900">Grabar audio</h3>
+                    <p v-if="recorderError" class="mt-2 rounded bg-red-50 px-3 py-2 text-sm text-red-700">{{ recorderError }}</p>
+
+                    <div class="mt-3">
+                        <label class="mb-1 block text-xs font-medium text-gray-600">Micrófono</label>
+                        <select v-model="selectedMicId" :disabled="recording" class="w-full rounded-md border-[#e3e8ee] text-sm">
+                            <option v-if="!mics.length" value="">(sin micrófonos detectados)</option>
+                            <option v-for="m in mics" :key="m.deviceId" :value="m.deviceId">{{ m.label || 'Micrófono' }}</option>
+                        </select>
+                    </div>
+
+                    <div class="mt-4 flex items-center gap-3">
+                        <button
+                            v-if="!recording && !recordedBlob"
+                            type="button"
+                            class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-60"
+                            :disabled="!recorderSupported"
+                            @click="startRecording"
+                        >
+                            <span class="h-2.5 w-2.5 rounded-full bg-white" /> Grabar
+                        </button>
+                        <button
+                            v-if="recording"
+                            type="button"
+                            class="inline-flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-900"
+                            @click="stopRecording"
+                        >
+                            <span class="h-2.5 w-2.5 rounded-sm bg-white" /> Detener
+                        </button>
+                        <span v-if="recording" class="flex items-center gap-1 text-sm text-red-600">
+                            <span class="h-2 w-2 animate-pulse rounded-full bg-red-600" /> {{ fmtRec(recordSeconds) }}
+                        </span>
+                    </div>
+
+                    <div v-if="recordedBlob && !recording" class="mt-4 space-y-2">
+                        <p class="text-xs font-medium text-gray-600">Escucha antes de enviar</p>
+                        <audio :src="recordedUrl" controls class="w-full" />
+                        <button type="button" class="text-xs font-medium text-[#1976d2] underline" @click="startRecording">Regrabar</button>
+                    </div>
+
+                    <div class="mt-5 flex justify-end gap-2">
+                        <button type="button" class="rounded border px-4 py-2 text-sm hover:bg-gray-50" @click="closeRecorder">Cancelar</button>
+                        <button
+                            type="button"
+                            class="rounded-lg bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#20BD5A] disabled:opacity-60"
+                            :disabled="!recordedBlob || recording || sendingRecording"
+                            @click="sendRecording"
+                        >{{ sendingRecording ? 'Enviando…' : 'Enviar audio' }}</button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
 
         <!-- Modal: crear cliente desde el mensaje -->
         <Teleport to="body">

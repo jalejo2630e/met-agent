@@ -12,6 +12,7 @@ use App\Services\ConversationExtractionService;
 use App\Services\TwilioContentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Bandeja de mensajes recibidos por el webhook de Twilio (WhatsApp/SMS).
@@ -192,6 +193,46 @@ class TwilioInboxController extends Controller
         $message = $this->recordOutbound($agent, $validated['from'], $label);
 
         return response()->json(['success' => true, 'message' => 'Plantilla enviada.', 'new_message' => $message]);
+    }
+
+    /**
+     * Envía un archivo (imagen, audio, video, PDF) a la conversación por WhatsApp.
+     */
+    public function sendMedia(Agent $agent, Request $request, TwilioContentService $twilio): JsonResponse
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate([
+            'from' => 'required|string|max:40',
+            'file' => [
+                'required', 'file', 'max:16384',
+                'mimetypes:image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/ogg,audio/aac,audio/mp4,audio/x-m4a,audio/wav,audio/webm,video/mp4,video/webm,video/3gpp,application/pdf',
+            ],
+            'caption' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if (! $twilio->canSendWhatsapp()) {
+            return response()->json(['success' => false, 'message' => 'Twilio no está configurado para enviar WhatsApp (define TWILIO_WHATSAPP_FROM).'], 422);
+        }
+
+        $file = $request->file('file');
+        $path = $file->store('whatsapp-media', 'public');
+        $mediaUrl = url(Storage::disk('public')->url($path));
+        $caption = $validated['caption'] ?? null;
+
+        try {
+            $twilio->sendWhatsappMedia($validated['from'], $mediaUrl, $caption);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo enviar el archivo. Si pasaron más de 24h, reabre con una plantilla. ('.$e->getMessage().')',
+            ], 502);
+        }
+
+        $label = $caption && trim($caption) !== '' ? $caption : '📎 '.$file->getClientOriginalName();
+        $message = $this->recordOutbound($agent, $validated['from'], $label);
+
+        return response()->json(['success' => true, 'message' => 'Archivo enviado.', 'new_message' => $message]);
     }
 
     public function notes(Agent $agent, Request $request): JsonResponse
