@@ -22,6 +22,7 @@ use App\Models\TwilioMessage;
 use App\Services\AudioTranscoder;
 use App\Services\CallCountService;
 use App\Services\ClientListFilterService;
+use App\Services\ConversationExtractionService;
 use App\Services\ContactQueueService;
 use App\Services\CustomReportBuilderService;
 use App\Services\SupabaseCallAudioRestService;
@@ -53,7 +54,8 @@ class ClientController extends Controller
 
         $clients = $clientsQuery->paginate(20)->withQueryString();
         app(CallCountService::class)->attachCallCounts($clients->getCollection());
-        $agent->load(['clientFields', 'callConfig', 'messageConfig']);
+        app(ConversationExtractionService::class)->attachToClients($agent, $clients->getCollection());
+        $agent->load(['clientFields', 'callConfig', 'messageConfig', 'extractionVariables']);
 
         return Inertia::render('Agents/Clients/Index', [
             'agent' => $agent,

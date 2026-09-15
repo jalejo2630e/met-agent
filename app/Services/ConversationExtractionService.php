@@ -86,4 +86,32 @@ class ConversationExtractionService
             ['values' => $clean],
         );
     }
+
+    /**
+     * Adjunta a cada cliente las variables extraídas de su conversación de texto
+     * (tabla conversation_extractions), cruzando por teléfono. El cruce usa los
+     * últimos 10 dígitos, igual que el resto de la app (el from_number de WhatsApp
+     * trae código de país `+57...` y el phone del cliente puede no traerlo).
+     *
+     * Deja en cada cliente el atributo `extracted_variables` (objeto clave=>valor).
+     *
+     * @param  iterable<\App\Models\Client>  $clients
+     */
+    public function attachToClients(Agent $agent, iterable $clients): void
+    {
+        $map = [];
+        foreach (ConversationExtraction::where('agent_id', $agent->id)->get(['from_number', 'values']) as $extraction) {
+            $digits = preg_replace('/\D/', '', (string) $extraction->from_number);
+            if ($digits === '') {
+                continue;
+            }
+            $map[substr($digits, -10)] = $extraction->values ?? [];
+        }
+
+        foreach ($clients as $client) {
+            $digits = preg_replace('/\D/', '', (string) $client->phone);
+            $key = $digits !== '' ? substr($digits, -10) : '';
+            $client->extracted_variables = ($key !== '' && isset($map[$key])) ? $map[$key] : (object) [];
+        }
+    }
 }
