@@ -10,6 +10,7 @@ use App\Models\PostCallWebhookLog;
 use App\Observers\AgentObserver;
 use App\Services\CallCountService;
 use App\Services\ClientListFilterService;
+use App\Services\ConversationExtractionService;
 use App\Support\WhatsappConversationsConnection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -187,6 +188,7 @@ class AgentController extends Controller
 
         $clients = $clientsQuery->paginate(20)->withQueryString();
         app(CallCountService::class)->attachCallCounts($clients->getCollection());
+        app(ConversationExtractionService::class)->attachToClients($agent, $clients->getCollection());
 
         return Inertia::render('Agents/Show', [
             'agent' => $agent,

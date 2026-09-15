@@ -102,6 +102,10 @@ const form = useForm({
 
 const dynamicFields = computed(() => props.agent?.client_fields || props.agent?.clientFields || []);
 
+// Variables que el agente extrae de las conversaciones de texto (WhatsApp/SMS).
+// Se muestran como columnas y se llenan cruzando por teléfono (ver ConversationExtractionService).
+const extractionVars = computed(() => props.agent?.extraction_variables || props.agent?.extractionVariables || []);
+
 const statusOptions = [
     { value: 'no_contactado', label: 'No contactado' },
     { value: 'llamada_programada', label: 'Llamada programada' },
@@ -507,6 +511,7 @@ const formatLoadedAt = (dateStr) => {
                                 <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Teléfono</th>
                                 <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Documento</th>
                                 <th v-for="f in dynamicFields" :key="f.id" class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">{{ f.field_name }}</th>
+                                <th v-for="v in extractionVars" :key="'ev-' + v.id" class="whitespace-nowrap px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-emerald-700" :title="v.description || 'Extraído de la conversación por IA'">{{ v.label || v.name }}</th>
                                 <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Contactos</th>
                                 <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Llamadas</th>
                                 <th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Cargas</th>
@@ -537,6 +542,7 @@ const formatLoadedAt = (dateStr) => {
                                 <td class="px-3 py-2.5">{{ client.phone || '-' }}</td>
                                 <td class="whitespace-nowrap px-3 py-2.5 text-gray-700">{{ client.document_type }} {{ client.document }}</td>
                                 <td v-for="f in dynamicFields" :key="f.id" class="max-w-[120px] truncate px-3 py-2.5 text-sm text-gray-600">{{ (client.custom_fields || {})[f.field_name] ?? '-' }}</td>
+                                <td v-for="v in extractionVars" :key="'ev-' + v.id" class="max-w-[160px] truncate px-3 py-2.5 text-sm text-gray-700" :title="String((client.extracted_variables || {})[v.name] ?? '')">{{ (client.extracted_variables || {})[v.name] ?? '-' }}</td>
                                 <td class="whitespace-nowrap px-3 py-2.5 text-sm text-gray-600">{{ client.contact_logs_count ?? 0 }}</td>
                                 <td class="whitespace-nowrap px-3 py-2.5 text-sm text-gray-600">{{ client.calls_count ?? 0 }}</td>
                                 <td class="whitespace-nowrap px-3 py-2.5 text-sm text-gray-600">{{ client.load_dates_count ?? 0 }}</td>
@@ -595,7 +601,7 @@ const formatLoadedAt = (dateStr) => {
                                 </td>
                             </tr>
                             <tr v-if="!clients.data?.length">
-                                <td :colspan="12 + dynamicFields.length" class="px-4 py-10 text-center text-gray-500">Sin clientes con los filtros actuales.</td>
+                                <td :colspan="12 + dynamicFields.length + extractionVars.length" class="px-4 py-10 text-center text-gray-500">Sin clientes con los filtros actuales.</td>
                             </tr>
                         </tbody>
                     </table>

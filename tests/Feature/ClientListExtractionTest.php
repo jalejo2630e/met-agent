@@ -103,4 +103,35 @@ class ClientListExtractionTest extends TestCase
             ->where('clients.data.0.extracted_variables.tipo_documento', 'CC')
         );
     }
+
+    public function test_la_vista_show_del_agente_tambien_incluye_valores_extraidos(): void
+    {
+        $owner = $this->makeUser();
+        $agent = $this->makeAgent($owner);
+
+        AgentExtractionVariable::create([
+            'agent_id' => $agent->id,
+            'name' => 'tipo_documento',
+            'label' => 'Tipo de documento',
+            'description' => 'El tipo de documento del cliente',
+            'type' => 'string',
+            'order' => 1,
+        ]);
+
+        $this->makeClient($agent, 'Ana', '3001234567');
+        ConversationExtraction::create([
+            'agent_id' => $agent->id,
+            'from_number' => '+573001234567',
+            'values' => ['tipo_documento' => 'CC'],
+        ]);
+
+        $response = $this->actingAs($owner)->get(route('agents.show', $agent));
+
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Agents/Show')
+            ->where('agent.extraction_variables.0.name', 'tipo_documento')
+            ->where('clients.data.0.extracted_variables.tipo_documento', 'CC')
+        );
+    }
 }
