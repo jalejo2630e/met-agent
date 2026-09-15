@@ -6,6 +6,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import { toast } from 'vue3-toastify';
 
 const props = defineProps({
     agent: Object,
@@ -43,15 +44,85 @@ const modelSuggestions = {
 };
 const currentModelSuggestions = computed(() => modelSuggestions[aiProvider.value] ?? []);
 
+// --- Borrador local: evita perder el prompt si la sesión expira al guardar ---
+// Si la sesión caduca, el servidor redirige a /login y el componente se
+// desmonta; guardamos el texto en localStorage en cada cambio para poder
+// recuperarlo cuando la persona vuelva a entrar.
+const draftKey = computed(() => `agent-prompt-draft-${props.agent?.id ?? 'new'}`);
+const recoverableDraft = ref(null);
+
+const currentValues = () => ({
+    system_prompt: systemPrompt.value ?? '',
+    ai_provider: aiProvider.value ?? '',
+    ai_model: aiModel.value ?? '',
+});
+const savedValues = () => ({
+    system_prompt: props.agent?.prompt_configuration?.system_prompt ?? '',
+    ai_provider: props.agent?.prompt_configuration?.ai_provider ?? '',
+    ai_model: props.agent?.prompt_configuration?.ai_model ?? '',
+});
+const sameValues = (a, b) =>
+    a.system_prompt === b.system_prompt
+    && a.ai_provider === b.ai_provider
+    && a.ai_model === b.ai_model;
+
+const readDraft = () => {
+    try {
+        const raw = window.localStorage.getItem(draftKey.value);
+        return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+};
+const writeDraft = (values) => {
+    try { window.localStorage.setItem(draftKey.value, JSON.stringify(values)); } catch { /* almacenamiento no disponible */ }
+};
+const clearDraft = () => {
+    try { window.localStorage.removeItem(draftKey.value); } catch { /* almacenamiento no disponible */ }
+    recoverableDraft.value = null;
+};
+
+// Guarda el borrador en cada cambio (solo si difiere de lo ya guardado en el servidor).
+watch([systemPrompt, aiProvider, aiModel], () => {
+    if (sameValues(currentValues(), savedValues())) {
+        clearDraft();
+    } else {
+        writeDraft(currentValues());
+    }
+});
+
+// Al montar, si hay un borrador de una sesión anterior distinto de lo guardado,
+// se ofrece recuperarlo (p. ej. tras haber sido enviado a login por sesión expirada).
+onMounted(() => {
+    const draft = readDraft();
+    if (draft && !sameValues(draft, savedValues()) && !sameValues(draft, currentValues())) {
+        recoverableDraft.value = draft;
+    }
+});
+
+const restoreDraft = () => {
+    if (!recoverableDraft.value) return;
+    systemPrompt.value = recoverableDraft.value.system_prompt ?? '';
+    aiProvider.value = recoverableDraft.value.ai_provider ?? '';
+    aiModel.value = recoverableDraft.value.ai_model ?? '';
+    recoverableDraft.value = null;
+    toast.info('Borrador recuperado. Revisa y guarda para aplicar los cambios.');
+};
+const discardDraft = () => {
+    clearDraft();
+    toast.info('Borrador descartado.');
+};
+
 const submittingPrompt = ref(false);
 const submitPrompt = () => {
     submittingPrompt.value = true;
+    // Asegura el borrador antes de enviar: si la sesión ya expiró, el texto queda a salvo.
+    writeDraft(currentValues());
     router.put(route('agents.prompt-config.update', props.agent), {
         system_prompt: systemPrompt.value ?? '',
         ai_provider: aiProvider.value || null,
         ai_model: aiModel.value || null,
     }, {
         preserveScroll: true,
+        onSuccess: () => { clearDraft(); },
         onFinish: () => { submittingPrompt.value = false; },
     });
 };
@@ -311,6 +382,30 @@ const submit = () => {
                     Instrucciones completas del agente de WhatsApp/Twilio en un <strong>solo campo</strong>.
                     Es el mismo <em>system prompt</em> que usa el agente de IA nativo de Laravel.
                 </p>
+            </div>
+            <div
+                v-if="recoverableDraft"
+                class="mx-6 mt-4 flex flex-col gap-3 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <span>
+                    Tienes un <strong>borrador sin guardar</strong> de una edición anterior (posiblemente tu sesión expiró antes de guardar).
+                </span>
+                <span class="flex shrink-0 gap-2">
+                    <button
+                        type="button"
+                        class="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+                        @click="restoreDraft"
+                    >
+                        Recuperar borrador
+                    </button>
+                    <button
+                        type="button"
+                        class="rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+                        @click="discardDraft"
+                    >
+                        Descartar
+                    </button>
+                </span>
             </div>
             <form @submit.prevent="submitPrompt" class="space-y-4 p-6">
                 <div class="grid gap-3 sm:grid-cols-2">
