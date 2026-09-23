@@ -97,9 +97,9 @@ Route::middleware('auth')->group(function () {
     Route::post('agents/{agent}/knowledge-base', [AgentKnowledgeBaseController::class, 'store'])
         ->whereNumber('agent')->name('agents.knowledge-base.store');
     Route::put('agents/{agent}/knowledge-base/{document}', [AgentKnowledgeBaseController::class, 'update'])
-        ->whereNumber('agent')->name('agents.knowledge-base.update')->scopeBindings();
+        ->whereNumber('agent')->name('agents.knowledge-base.update');
     Route::delete('agents/{agent}/knowledge-base/{document}', [AgentKnowledgeBaseController::class, 'destroy'])
-        ->whereNumber('agent')->name('agents.knowledge-base.destroy')->scopeBindings();
+        ->whereNumber('agent')->name('agents.knowledge-base.destroy');
 
     Route::put('agents/{agent}/call-config', [AgentConfigController::class, 'updateCallConfig'])->name('agents.call-config.update');
     Route::put('agents/{agent}/prompt-config', [AgentConfigController::class, 'updatePromptConfig'])->name('agents.prompt-config.update');
