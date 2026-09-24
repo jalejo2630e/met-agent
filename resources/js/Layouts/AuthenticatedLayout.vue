@@ -65,6 +65,12 @@ const faviconUrl = computed(() => page.props.settings?.favicon_url || '/favicon.
                                     Usuarios
                                 </NavLink>
                                 <NavLink
+                                    :href="route('library.index')"
+                                    :active="route().current('library.*')"
+                                >
+                                    Library
+                                </NavLink>
+                                <NavLink
                                     :href="route('docs.index')"
                                     :active="route().current('docs.*')"
                                 >
@@ -208,6 +214,12 @@ const faviconUrl = computed(() => page.props.settings?.favicon_url || '/favicon.
                             :active="route().current('users.*')"
                         >
                             Usuarios
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('library.index')"
+                            :active="route().current('library.*')"
+                        >
+                            Library
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             :href="route('docs.index')"

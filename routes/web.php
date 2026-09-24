@@ -14,6 +14,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CustomReportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocsController;
+use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\PostCallLogController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicFormController;
@@ -86,6 +87,13 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('agent')->name('agents.twilio.inbox.notes.store');
     Route::delete('agents/{agent}/twilio/inbox/notes/{note}', [TwilioInboxController::class, 'destroyNote'])
         ->whereNumber('agent')->name('agents.twilio.inbox.notes.destroy')->scopeBindings();
+
+    // Biblioteca de archivos (enlace público o privado, se puede cambiar en cualquier momento)
+    Route::get('library', [LibraryController::class, 'index'])->name('library.index');
+    Route::post('library', [LibraryController::class, 'store'])->name('library.store');
+    Route::put('library/{file}', [LibraryController::class, 'update'])->whereNumber('file')->name('library.update');
+    Route::delete('library/{file}', [LibraryController::class, 'destroy'])->whereNumber('file')->name('library.destroy');
+    Route::get('library/{file}/download', [LibraryController::class, 'download'])->whereNumber('file')->name('library.download');
 
     // Costos estimados de IA por agente
     Route::get('agents/{agent}/ai-costs', [AiCostController::class, 'index'])
@@ -201,5 +209,10 @@ Route::get('/f/{token}', [PublicFormController::class, 'show'])->name('public.fo
 Route::post('/f/{token}', [PublicFormController::class, 'submit'])
     ->middleware('throttle:30,1')
     ->name('public.form.submit');
+
+// Enlace público de un archivo de la biblioteca (solo si está marcado como público)
+Route::get('/archivos/{token}', [LibraryController::class, 'publicShow'])
+    ->where('token', '[A-Za-z0-9]{40}')
+    ->name('library.public');
 
 require __DIR__.'/auth.php';
