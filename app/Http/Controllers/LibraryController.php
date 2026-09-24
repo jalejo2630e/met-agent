@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Mime\MimeTypes;
 
 class LibraryController extends Controller
 {
@@ -87,7 +88,7 @@ class LibraryController extends Controller
     }
 
     /** Enlace público sin sesión: solo si el archivo está marcado como público. */
-    public function publicShow(string $token): StreamedResponse
+    public function publicShow(string $token, ?string $ext = null): StreamedResponse
     {
         $file = LibraryFile::where('token', $token)->where('is_public', true)->firstOrFail();
 
@@ -99,13 +100,49 @@ class LibraryController extends Controller
         $disk = Storage::disk(LibraryFile::DISK);
         abort_unless($disk->exists($file->path), 404);
 
-        // inline: el navegador muestra PDF/imagen/audio; el resto se descarga.
-        // CSP sandbox + nosniff: un HTML/SVG subido no puede ejecutar scripts en nuestro dominio.
-        return $disk->response($file->path, $file->original_filename, [
-            'Content-Type' => $file->mime ?: 'application/octet-stream',
-            'Content-Security-Policy' => 'sandbox',
+        $mime = $this->mimeFor($file);
+        $headers = [
+            'Content-Type' => $mime,
             'X-Content-Type-Options' => 'nosniff',
-        ]);
+            'Cache-Control' => $file->is_public ? 'public, max-age=300' : 'private, no-store',
+        ];
+
+        // Solo los tipos que pueden ejecutar scripts (HTML/SVG/XML) van en sandbox:
+        // aplicarlo a todo rompía el visor de PDF del navegador.
+        if (preg_match('#(html|svg|xml|javascript)#i', $mime)) {
+            $headers['Content-Security-Policy'] = 'sandbox';
+        }
+
+        // inline: el navegador muestra PDF/imagen/audio/video; el resto se descarga.
+        return $disk->response($file->path, $file->original_filename, $headers);
+    }
+
+    /** Tipo MIME fiable: el detectado al subir, o el de la extensión si no fue concluyente. */
+    private function mimeFor(LibraryFile $file): string
+    {
+        $mime = $file->mime;
+        if (! $mime || in_array($mime, ['application/octet-stream', 'text/plain'], true)) {
+            $guessed = MimeTypes::getDefault()->getMimeTypes($this->extension($file))[0] ?? null;
+            $mime = $guessed ?: ($mime ?: 'application/octet-stream');
+        }
+
+        return $mime;
+    }
+
+    private function extension(LibraryFile $file): string
+    {
+        $ext = strtolower(pathinfo($file->original_filename, PATHINFO_EXTENSION));
+
+        return preg_match('/^[a-z0-9]{1,10}$/', $ext) ? $ext : '';
+    }
+
+    private function publicUrl(LibraryFile $file): string
+    {
+        $ext = $this->extension($file);
+
+        return $ext !== ''
+            ? route('library.public', ['token' => $file->token, 'ext' => $ext])
+            : route('library.public.legacy', $file->token);
     }
 
     private function present(LibraryFile $f): array
@@ -117,7 +154,7 @@ class LibraryController extends Controller
             'mime' => $f->mime,
             'size' => $f->size,
             'is_public' => $f->is_public,
-            'public_url' => route('library.public', $f->token),
+            'public_url' => $this->publicUrl($f),
             'private_url' => route('library.download', $f->id),
             'uploaded_by' => $f->user?->name,
             'user_id' => $f->user_id,

@@ -213,8 +213,13 @@ Route::post('/f/{token}', [PublicFormController::class, 'submit'])
     ->name('public.form.submit');
 
 // Enlace público de un archivo de la biblioteca (solo si está marcado como público)
+// Con extensión (/archivos/{token}.pdf) para que navegadores y apps reconozcan el tipo;
+// sin extensión se mantiene para los enlaces que ya se compartieron.
+Route::get('/archivos/{token}.{ext}', [LibraryController::class, 'publicShow'])
+    ->where(['token' => '[A-Za-z0-9]{40}', 'ext' => '[A-Za-z0-9]{1,10}'])
+    ->name('library.public');
 Route::get('/archivos/{token}', [LibraryController::class, 'publicShow'])
     ->where('token', '[A-Za-z0-9]{40}')
-    ->name('library.public');
+    ->name('library.public.legacy');
 
 require __DIR__.'/auth.php';
