@@ -302,6 +302,53 @@ class TwilioInboxController extends Controller
     }
 
     /**
+     * Vacía la conversación de un número (solo administrador): borra los mensajes,
+     * sus archivos de media guardados y las variables extraídas. El bot usa estos
+     * mensajes como memoria, así que también empieza de cero con esa persona.
+     * Se conservan las notas internas, el estado de pausa y el cliente.
+     */
+    public function clear(Agent $agent, Request $request): JsonResponse
+    {
+        $this->authorize('update', $agent);
+
+        $validated = $request->validate([
+            'from' => 'required|string|max:40',
+        ]);
+        $from = $validated['from'];
+
+        $messages = TwilioMessage::where('agent_id', $agent->id)->where('from_number', $from);
+
+        $storagePrefix = rtrim(Storage::disk('public')->url(''), '/').'/';
+        $mediaPaths = (clone $messages)->whereNotNull('media_url')->pluck('media_url')
+            ->map(function (string $url) use ($storagePrefix) {
+                $path = parse_url($url, PHP_URL_PATH) ?: '';
+                $prefix = parse_url($storagePrefix, PHP_URL_PATH) ?: '/storage/';
+
+                return str_starts_with($path, $prefix) ? substr($path, strlen($prefix)) : null;
+            })
+            ->filter(fn ($p) => $p && str_starts_with($p, 'whatsapp-media/'))
+            ->unique()
+            ->values();
+
+        $deleted = $messages->delete();
+
+        ConversationExtraction::where('agent_id', $agent->id)->where('from_number', $from)->delete();
+
+        // Solo borra archivos que ningún otro mensaje siga usando.
+        foreach ($mediaPaths as $path) {
+            $stillUsed = TwilioMessage::where('media_url', 'like', '%/'.$path)->exists();
+            if (! $stillUsed) {
+                Storage::disk('public')->delete($path);
+            }
+        }
+
+        return response()->json([
+            'deleted' => $deleted,
+            'message' => "Conversación vaciada ({$deleted} mensajes eliminados).",
+        ]);
+    }
+
+    /**
      * Fuerza una nueva extracción de variables de recolección para la conversación.
      */
     public function extract(Agent $agent, Request $request, ConversationExtractionService $service): JsonResponse

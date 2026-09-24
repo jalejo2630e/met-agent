@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
@@ -31,6 +31,10 @@ const selectedPlantillaId = ref('');
 const sendingTemplate = ref(false);
 const showTemplates = ref(false);
 const notes = ref([]);
+
+// Vaciar conversación (solo administrador)
+const isAdmin = computed(() => usePage().props.auth?.canAccessSettings ?? false);
+const clearing = ref(false);
 const newNote = ref('');
 const savingNote = ref(false);
 
@@ -120,6 +124,25 @@ async function togglePause() {
         toast.error('No se pudo cambiar el estado del bot.');
     } finally {
         togglingPause.value = false;
+    }
+}
+
+async function clearConversation() {
+    if (!selected.value || !isAdmin.value) return;
+    const name = selectedConv.value?.profile_name || selectedConv.value?.client?.name || selected.value;
+    if (!confirm(`¿Vaciar la conversación con ${name}?\n\nSe borrarán todos los mensajes, sus archivos y las variables extraídas. El bot olvidará el historial con esta persona. Las notas internas se conservan. Esta acción no se puede deshacer.`)) return;
+    clearing.value = true;
+    try {
+        const { data } = await axios.delete(route('agents.twilio.inbox.clear', props.agent), {
+            data: { from: selected.value },
+        });
+        toast.success(data.message || 'Conversación vaciada.');
+        conversations.value = conversations.value.filter((c) => c.from_number !== selected.value);
+        backToList();
+    } catch (e) {
+        toast.error(e.response?.data?.message || 'No se pudo vaciar la conversación.');
+    } finally {
+        clearing.value = false;
     }
 }
 
@@ -636,6 +659,15 @@ onMounted(loadInbox);
                             <span :class="['h-2 w-2 rounded-full', botPaused ? 'bg-amber-500' : 'bg-emerald-500']" />
                             {{ togglingPause ? '…' : (botPaused ? 'Bot pausado — reactivar' : 'Tomar control') }}
                         </button>
+                        <!-- Vaciar conversación (solo administrador) -->
+                        <button
+                            v-if="isAdmin"
+                            type="button"
+                            :disabled="clearing"
+                            class="shrink-0 rounded-md border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
+                            title="Borrar todos los mensajes de esta persona"
+                            @click="clearConversation"
+                        >{{ clearing ? 'Vaciando…' : 'Vaciar' }}</button>
                         <button
                             v-if="!selectedConv.client"
                             type="button"

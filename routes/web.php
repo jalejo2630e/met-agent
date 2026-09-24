@@ -81,6 +81,8 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('agent')->name('agents.twilio.inbox.template');
     Route::post('agents/{agent}/twilio/inbox/media', [TwilioInboxController::class, 'sendMedia'])
         ->whereNumber('agent')->name('agents.twilio.inbox.media');
+    Route::delete('agents/{agent}/twilio/inbox/conversation', [TwilioInboxController::class, 'clear'])
+        ->whereNumber('agent')->middleware('role:administrador')->name('agents.twilio.inbox.clear');
     Route::get('agents/{agent}/twilio/inbox/notes', [TwilioInboxController::class, 'notes'])
         ->whereNumber('agent')->name('agents.twilio.inbox.notes.index');
     Route::post('agents/{agent}/twilio/inbox/notes', [TwilioInboxController::class, 'storeNote'])
