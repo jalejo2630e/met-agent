@@ -8,6 +8,7 @@ use App\Http\Controllers\AgentKnowledgeBaseController;
 use App\Http\Controllers\AgentReportController;
 use App\Http\Controllers\AgentReportWidgetController;
 use App\Http\Controllers\AiCostController;
+use App\Http\Controllers\SedeMetricsController;
 use App\Http\Controllers\CallAnalysisController;
 use App\Http\Controllers\ClientCallbackRequestController;
 use App\Http\Controllers\ClientController;
@@ -96,6 +97,10 @@ Route::middleware('auth')->group(function () {
     Route::put('library/{file}', [LibraryController::class, 'update'])->whereNumber('file')->name('library.update');
     Route::delete('library/{file}', [LibraryController::class, 'destroy'])->whereNumber('file')->name('library.destroy');
     Route::get('library/{file}/download', [LibraryController::class, 'download'])->whereNumber('file')->name('library.download');
+
+    // Métricas de interacción por sede (Bogotá / Chía)
+    Route::get('agents/{agent}/sede-metrics', [SedeMetricsController::class, 'index'])
+        ->whereNumber('agent')->name('agents.sede-metrics.index');
 
     // Costos estimados de IA por agente
     Route::get('agents/{agent}/ai-costs', [AiCostController::class, 'index'])

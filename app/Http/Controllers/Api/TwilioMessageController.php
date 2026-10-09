@@ -12,6 +12,7 @@ use App\Models\TwilioMessage;
 use App\Services\AgentKnowledgeService;
 use App\Services\AudioTranscoder;
 use App\Services\ConversationExtractionService;
+use App\Services\SedeResolver;
 use App\Services\TwilioContentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -47,6 +48,8 @@ class TwilioMessageController extends Controller
         $fromRaw = (string) $request->input('From', '');
         $channel = str_starts_with($fromRaw, 'whatsapp:') ? 'whatsapp' : 'sms';
         $from = trim(str_replace('whatsapp:', '', $fromRaw));
+        $to = trim(str_replace('whatsapp:', '', (string) $request->input('To', '')));
+        $sede = SedeResolver::fromNumber($to);
         $body = trim((string) $request->input('Body', ''));
         $numMedia = (int) $request->input('NumMedia', 0);
 
@@ -89,7 +92,9 @@ class TwilioMessageController extends Controller
         TwilioMessage::create([
             'agent_id' => $agent->id,
             'channel' => $channel,
+            'sede' => $sede,
             'from_number' => $from,
+            'to_number' => $to !== '' ? $to : null,
             'direction' => 'inbound',
             'body' => $storedBody,
             'media_url' => $mediaUrl,
@@ -137,7 +142,9 @@ class TwilioMessageController extends Controller
             TwilioMessage::create([
                 'agent_id' => $agent->id,
                 'channel' => $channel,
+                'sede' => $sede,
                 'from_number' => $from,
+                'to_number' => $to !== '' ? $to : null,
                 'direction' => 'outbound',
                 'body' => $reply,
             ]);

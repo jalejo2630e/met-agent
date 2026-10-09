@@ -372,6 +372,7 @@ class TwilioInboxController extends Controller
         $msg = TwilioMessage::create([
             'agent_id' => $agent->id,
             'channel' => 'whatsapp',
+            'sede' => TwilioMessage::sedeFor($agent->id, $from),
             'from_number' => $from,
             'direction' => 'outbound',
             'body' => $body,

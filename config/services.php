@@ -55,6 +55,12 @@ return [
         'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
         // Código de país por defecto para formatear teléfonos a E.164 al enviar por WhatsApp.
         'default_country_code' => env('TWILIO_DEFAULT_COUNTRY_CODE', '57'),
+        // Sedes de MET: cada una tiene su propio número de WhatsApp en Twilio.
+        // El mensaje se asigna a la sede según el número que lo recibe (campo "To").
+        'sedes' => [
+            'bogota' => ['label' => 'Bogotá', 'number' => env('TWILIO_SEDE_BOGOTA_NUMBER')],
+            'chia' => ['label' => 'Chía', 'number' => env('TWILIO_SEDE_CHIA_NUMBER')],
+        ],
     ],
 
     /*

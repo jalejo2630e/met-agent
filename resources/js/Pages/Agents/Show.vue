@@ -10,6 +10,7 @@ import ConfigInbox from './Show/ConfigInbox.vue';
 import ConfigKnowledge from './Show/ConfigKnowledge.vue';
 import ConfigExtraction from './Show/ConfigExtraction.vue';
 import ConfigCosts from './Show/ConfigCosts.vue';
+import ConfigSedes from './Show/ConfigSedes.vue';
 import ConfigCalls from './Show/ConfigCalls.vue';
 import ConfigCallbacks from './Show/ConfigCallbacks.vue';
 import ConfigCampaigns from './Show/ConfigCampaigns.vue';
@@ -73,6 +74,7 @@ const groups = [
     },
     { id: 'form', label: 'Formulario', icon: 'form', technical: false },
     { id: 'reports', label: 'Reportes', icon: 'reports', technical: false },
+    { id: 'sedes', label: 'Sedes', icon: 'reports', technical: false },
     { id: 'costs', label: 'Costos', icon: 'coin', technical: false },
     { id: 'logs', label: 'Logs', icon: 'logs', technical: true },
 ];
@@ -285,6 +287,7 @@ const statusColors = {
                 <ConfigCollectData v-if="activeTab === 'collect' && canAccessWebhooksAndTechnical" :agent="agent" :collect-data-url="collectDataUrl" />
                 <ConfigForm v-if="activeTab === 'form'" :agent="agent" />
                 <ConfigReports v-if="activeTab === 'reports'" :agent="agent" />
+                <ConfigSedes v-if="activeTab === 'sedes'" :agent="agent" />
                 <ConfigCosts v-if="activeTab === 'costs'" :agent="agent" />
             </div>
         </div>

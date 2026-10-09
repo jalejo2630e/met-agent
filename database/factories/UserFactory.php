@@ -23,7 +23,7 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
-        $suffix = Str::random(8);
+        $suffix = Str::lower(Str::random(8));
 
         return [
             'name' => 'User ' . $suffix,

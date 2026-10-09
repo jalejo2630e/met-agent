@@ -1079,6 +1079,7 @@ class ClientController extends Controller
         TwilioMessage::create([
             'agent_id' => $agent->id,
             'channel' => 'whatsapp',
+            'sede' => TwilioMessage::sedeFor($agent->id, (string) $client->phone),
             'from_number' => preg_replace('/\D/', '', (string) $client->phone),
             'direction' => 'outbound',
             'body' => $validated['body'],
@@ -1175,6 +1176,7 @@ class ClientController extends Controller
         TwilioMessage::create([
             'agent_id' => $agent->id,
             'channel' => 'whatsapp',
+            'sede' => TwilioMessage::sedeFor($agent->id, (string) $client->phone),
             'from_number' => preg_replace('/\D/', '', (string) $client->phone),
             'direction' => 'outbound',
             'body' => $label,
