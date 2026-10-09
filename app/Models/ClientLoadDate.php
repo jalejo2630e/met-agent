@@ -13,6 +13,8 @@ class ClientLoadDate extends Model
 
     public const SOURCE_API = 'api';
 
+    public const SOURCE_WHATSAPP = 'whatsapp';
+
     protected $fillable = [
         'client_id',
         'agent_id',

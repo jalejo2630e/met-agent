@@ -14,6 +14,7 @@ use App\Services\AudioTranscoder;
 use App\Services\ConversationExtractionService;
 use App\Services\SedeResolver;
 use App\Services\TwilioContentService;
+use App\Services\WhatsappClientService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -102,6 +103,13 @@ class TwilioMessageController extends Controller
             'message_sid' => $request->input('MessageSid'),
             'profile_name' => $request->input('ProfileName'),
         ]);
+
+        // Quien escribe por primera vez queda registrado como cliente (best-effort).
+        try {
+            app(WhatsappClientService::class)->ensure($agent, $from, (string) $request->input('ProfileName', ''));
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         $reply = '';
 
