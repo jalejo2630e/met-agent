@@ -53,7 +53,7 @@ class OperationReportMail extends Mailable
         $branding = MailBranding::data();
         $logoUrl = $branding['logo_url'] ?? null;
         if (! is_string($logoUrl) || $logoUrl === '') {
-            $logoUrl = asset('colsanitas.png');
+            $logoUrl = asset('met-logo.png');
         }
 
         return $this->subject('Reporte de operación — '.$this->agentName)

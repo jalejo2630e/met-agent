@@ -344,8 +344,8 @@ const submit = () => {
         <!-- Agente de IA nativo (Twilio) — reemplaza n8n en el canal de texto -->
         <div class="overflow-hidden rounded-lg border border-emerald-200 bg-white">
             <div class="border-b border-emerald-200 bg-emerald-50/50 px-6 py-4">
-                <h3 class="text-lg font-semibold text-[#33475b]">Agente de IA nativo · WhatsApp/SMS por Twilio</h3>
-                <p class="mt-1 text-sm text-[#425b76]">
+                <h3 class="text-lg font-semibold text-[#133c75]">Agente de IA nativo · WhatsApp/SMS por Twilio</h3>
+                <p class="mt-1 text-sm text-[#444444]">
                     La IA responde <strong>dentro de esta app</strong> usando el prompt de abajo, <strong>sin n8n</strong>.
                     Pega esta URL en Twilio → <em>Messaging</em> → “When a message comes in” con método <strong>POST</strong>.
                 </p>
@@ -356,7 +356,7 @@ const submit = () => {
                     <input
                         :value="twilioWebhookUrl"
                         readonly
-                        class="min-w-0 flex-1 rounded-md border-[#e3e8ee] bg-[#f5f8fa] font-mono text-sm text-[#33475b]"
+                        class="min-w-0 flex-1 rounded-md border-[#e3e8ee] bg-[#f5f8fa] font-mono text-sm text-[#133c75]"
                         @focus="(e) => e.target.select()"
                     />
                     <button
@@ -377,8 +377,8 @@ const submit = () => {
         <!-- Prompt del sistema (un solo campo = instructions del agente de texto) -->
         <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
             <div class="border-b border-[#e3e8ee] px-6 py-4">
-                <h3 class="text-lg font-semibold text-[#33475b]">Prompt del sistema (agente de texto)</h3>
-                <p class="mt-1 text-sm text-[#425b76]">
+                <h3 class="text-lg font-semibold text-[#133c75]">Prompt del sistema (agente de texto)</h3>
+                <p class="mt-1 text-sm text-[#444444]">
                     Instrucciones completas del agente de WhatsApp/Twilio en un <strong>solo campo</strong>.
                     Es el mismo <em>system prompt</em> que usa el agente de IA nativo de Laravel.
                 </p>
@@ -437,7 +437,7 @@ const submit = () => {
                         <datalist id="ai-model-suggestions">
                             <option v-for="m in currentModelSuggestions" :key="m" :value="m" />
                         </datalist>
-                        <p class="mt-1 text-xs text-[#425b76]">Vacío = modelo por defecto del proveedor. Requiere su API key en el servidor.</p>
+                        <p class="mt-1 text-xs text-[#444444]">Vacío = modelo por defecto del proveedor. Requiere su API key en el servidor.</p>
                     </div>
                 </div>
                 <div>
@@ -449,7 +449,7 @@ const submit = () => {
                         class="mt-1 block w-full rounded-md border-[#e3e8ee] font-mono text-sm shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                         placeholder="Eres el asistente de [empresa]. Tu rol es... Tono y estilo: ... Reglas del negocio: ... Solo respondes sobre [ámbito]; si te preguntan algo fuera de contexto, indícalo de forma amable. No compartas datos sensibles ni inventes información."
                     />
-                    <p class="mt-1 text-xs text-[#425b76]">Incluye aquí el rol, tono, reglas del negocio y límites del agente. Todo el texto se envía como instrucciones al modelo.</p>
+                    <p class="mt-1 text-xs text-[#444444]">Incluye aquí el rol, tono, reglas del negocio y límites del agente. Todo el texto se envía como instrucciones al modelo.</p>
                     <InputError
                         v-if="promptErrors.system_prompt"
                         :message="Array.isArray(promptErrors.system_prompt) ? promptErrors.system_prompt[0] : promptErrors.system_prompt"
@@ -467,8 +467,8 @@ const submit = () => {
         <!-- Plantillas de WhatsApp en Twilio (Content API) -->
         <div class="overflow-hidden rounded-lg border border-emerald-200 bg-white">
             <div class="border-b border-emerald-200 bg-emerald-50/50 px-6 py-4">
-                <h3 class="text-lg font-semibold text-[#33475b]">Plantillas de WhatsApp (Twilio)</h3>
-                <p class="mt-1 text-sm text-[#425b76]">Crea plantillas directamente en Twilio (Content API) y envíalas a aprobación de WhatsApp, sin salir del panel.</p>
+                <h3 class="text-lg font-semibold text-[#133c75]">Plantillas de WhatsApp (Twilio)</h3>
+                <p class="mt-1 text-sm text-[#444444]">Crea plantillas directamente en Twilio (Content API) y envíalas a aprobación de WhatsApp, sin salir del panel.</p>
             </div>
             <div class="space-y-4 p-6">
                 <p v-if="!twilioConfigured" class="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
@@ -535,7 +535,7 @@ const submit = () => {
                     <p v-else-if="!twilioTemplates.length" class="mt-2 text-xs text-gray-400">Aún no hay plantillas.</p>
                     <ul v-else class="mt-2 divide-y divide-[#eef2f6] rounded-md border border-[#eef2f6]">
                         <li v-for="t in twilioTemplates" :key="t.sid" class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
-                            <span class="font-medium text-[#33475b]">{{ t.friendly_name || t.sid }}</span>
+                            <span class="font-medium text-[#133c75]">{{ t.friendly_name || t.sid }}</span>
                             <span class="font-mono text-xs text-gray-400">{{ t.sid }}</span>
                             <span
                                 class="rounded-full px-2 py-0.5 text-xs"
@@ -554,8 +554,8 @@ const submit = () => {
                 <p class="mt-1 text-sm text-gray-500">Webhook y plantillas para contactar por WhatsApp/mensaje. La configuración de campañas masivas está en la pestaña <strong>Campañas</strong>.</p>
 
                 <div v-if="agent.whatsapp_conversations_table" class="mt-4 rounded-lg border border-[#e3e8ee] bg-[#f5f8fa] px-4 py-3">
-                    <p class="text-xs font-medium uppercase tracking-wider text-[#425b76]">Tabla de conversaciones WhatsApp</p>
-                    <p class="mt-1 font-mono text-sm text-[#33475b]" :title="agent.whatsapp_conversations_table">{{ agent.whatsapp_conversations_table }}</p>
+                    <p class="text-xs font-medium uppercase tracking-wider text-[#444444]">Tabla de conversaciones WhatsApp</p>
+                    <p class="mt-1 font-mono text-sm text-[#133c75]" :title="agent.whatsapp_conversations_table">{{ agent.whatsapp_conversations_table }}</p>
                     <p class="mt-1 text-xs text-[#64748b]">
                         Origen: <strong>{{ whatsappConversationsSourceLabel }}</strong> (Configuración general). Solo lectura si es Supabase; con BD interna la tabla se crea al crear la empresa.
                     </p>
@@ -564,7 +564,7 @@ const submit = () => {
                 <form @submit.prevent="submit" class="mt-6 space-y-6">
                     <div v-if="canEditWebhook()">
                         <InputLabel value="Webhook URL de salida (envío de campañas / contacto manual)" />
-                        <p class="mt-0.5 text-xs text-[#425b76]">URL a la que la app envía mensajes salientes. Los mensajes <strong>entrantes</strong> los atiende el agente de IA nativo por el webhook de Twilio de arriba.</p>
+                        <p class="mt-0.5 text-xs text-[#444444]">URL a la que la app envía mensajes salientes. Los mensajes <strong>entrantes</strong> los atiende el agente de IA nativo por el webhook de Twilio de arriba.</p>
                         <TextInput v-model="form.webhook_url" type="url" class="mt-1 block w-full" placeholder="https://..." />
                         <InputError :message="form.errors.webhook_url" />
                     </div>

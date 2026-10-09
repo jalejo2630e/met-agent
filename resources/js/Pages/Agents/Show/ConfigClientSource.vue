@@ -273,22 +273,22 @@ const submitImport = async () => {
 
                 <!-- API para crear clientes -->
                 <div class="mt-8 rounded-lg border border-[#e3e8ee] bg-[#f5f8fa] p-4">
-                    <h4 class="text-sm font-semibold text-[#33475b]">API para crear o actualizar clientes</h4>
-                    <p class="mt-1 text-sm text-[#425b76]">
+                    <h4 class="text-sm font-semibold text-[#133c75]">API para crear o actualizar clientes</h4>
+                    <p class="mt-1 text-sm text-[#444444]">
                         Desde integraciones o cualquier sistema externo puedes crear o actualizar clientes de la empresa con la API. Si el cliente ya existe (mismo <code class="rounded bg-[#e3e8ee] px-1">document</code> o <code class="rounded bg-[#e3e8ee] px-1">phone</code>), se actualiza; si no, se crea.
                     </p>
                     <div class="mt-3 space-y-2 text-sm">
-                        <p class="font-medium text-[#33475b]">Método y URL</p>
-                        <code class="block rounded bg-[#e3e8ee] p-2 font-mono text-[#33475b]">POST {{ apiClientsUrl }}</code>
-                        <p class="font-medium text-[#33475b] mt-3">Autenticación</p>
-                        <p class="text-[#425b76]">Header <code class="rounded bg-[#e3e8ee] px-1">Authorization: Bearer TU_API_KEY</code> o <code class="rounded bg-[#e3e8ee] px-1">X-Api-Key: TU_API_KEY</code> (API key de la empresa, en Configuración).</p>
-                        <p class="font-medium text-[#33475b] mt-3">Cuerpo (JSON)</p>
-                        <pre class="overflow-x-auto rounded bg-[#e3e8ee] p-3 text-xs text-[#33475b]">{{ "{\n  \"name\": \"Juan\",\n  \"lastname\": \"Pérez\",\n  \"email\": \"juan@ejemplo.com\",\n  \"phone\": \"+573001234567\",\n  \"document_type\": \"CC\",\n  \"document\": \"12345678\",\n  \"custom_fields\": { \"ciudad\": \"Bogotá\" }\n}" }}</pre>
-                        <p class="text-[#425b76]"><strong>Requeridos:</strong> <code class="rounded bg-[#e3e8ee] px-1">name</code>, <code class="rounded bg-[#e3e8ee] px-1">lastname</code>, <code class="rounded bg-[#e3e8ee] px-1">email</code>. Opcionales: <code class="rounded bg-[#e3e8ee] px-1">phone</code>, <code class="rounded bg-[#e3e8ee] px-1">document_type</code>, <code class="rounded bg-[#e3e8ee] px-1">document</code>, <code class="rounded bg-[#e3e8ee] px-1">custom_fields</code> (objeto).</p>
-                        <p class="font-medium text-[#33475b] mt-3">Respuesta (201 creado / 200 actualizado)</p>
-                        <pre class="overflow-x-auto rounded bg-[#e3e8ee] p-3 text-xs text-[#33475b]">{{ "{\n  \"success\": true,\n  \"message\": \"Cliente creado\",\n  \"client\": {\n    \"id\": 1,\n    \"name\": \"Juan\",\n    \"lastname\": \"Pérez\",\n    \"email\": \"juan@ejemplo.com\",\n    \"phone\": \"+573001234567\",\n    \"document_type\": \"CC\",\n    \"document\": \"12345678\"\n  }\n}" }}</pre>
-                        <p class="font-medium text-[#33475b] mt-3">Ejemplo cURL</p>
-                        <pre class="overflow-x-auto rounded bg-[#e3e8ee] p-3 text-xs text-[#33475b]">curl -X POST "{{ apiClientsUrl }}" \
+                        <p class="font-medium text-[#133c75]">Método y URL</p>
+                        <code class="block rounded bg-[#e3e8ee] p-2 font-mono text-[#133c75]">POST {{ apiClientsUrl }}</code>
+                        <p class="font-medium text-[#133c75] mt-3">Autenticación</p>
+                        <p class="text-[#444444]">Header <code class="rounded bg-[#e3e8ee] px-1">Authorization: Bearer TU_API_KEY</code> o <code class="rounded bg-[#e3e8ee] px-1">X-Api-Key: TU_API_KEY</code> (API key de la empresa, en Configuración).</p>
+                        <p class="font-medium text-[#133c75] mt-3">Cuerpo (JSON)</p>
+                        <pre class="overflow-x-auto rounded bg-[#e3e8ee] p-3 text-xs text-[#133c75]">{{ "{\n  \"name\": \"Juan\",\n  \"lastname\": \"Pérez\",\n  \"email\": \"juan@ejemplo.com\",\n  \"phone\": \"+573001234567\",\n  \"document_type\": \"CC\",\n  \"document\": \"12345678\",\n  \"custom_fields\": { \"ciudad\": \"Bogotá\" }\n}" }}</pre>
+                        <p class="text-[#444444]"><strong>Requeridos:</strong> <code class="rounded bg-[#e3e8ee] px-1">name</code>, <code class="rounded bg-[#e3e8ee] px-1">lastname</code>, <code class="rounded bg-[#e3e8ee] px-1">email</code>. Opcionales: <code class="rounded bg-[#e3e8ee] px-1">phone</code>, <code class="rounded bg-[#e3e8ee] px-1">document_type</code>, <code class="rounded bg-[#e3e8ee] px-1">document</code>, <code class="rounded bg-[#e3e8ee] px-1">custom_fields</code> (objeto).</p>
+                        <p class="font-medium text-[#133c75] mt-3">Respuesta (201 creado / 200 actualizado)</p>
+                        <pre class="overflow-x-auto rounded bg-[#e3e8ee] p-3 text-xs text-[#133c75]">{{ "{\n  \"success\": true,\n  \"message\": \"Cliente creado\",\n  \"client\": {\n    \"id\": 1,\n    \"name\": \"Juan\",\n    \"lastname\": \"Pérez\",\n    \"email\": \"juan@ejemplo.com\",\n    \"phone\": \"+573001234567\",\n    \"document_type\": \"CC\",\n    \"document\": \"12345678\"\n  }\n}" }}</pre>
+                        <p class="font-medium text-[#133c75] mt-3">Ejemplo cURL</p>
+                        <pre class="overflow-x-auto rounded bg-[#e3e8ee] p-3 text-xs text-[#133c75]">curl -X POST "{{ apiClientsUrl }}" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer TU_API_KEY" \
   -d '{"name":"Juan","lastname":"Pérez","email":"juan@ejemplo.com","phone":"+573001234567"}'</pre>

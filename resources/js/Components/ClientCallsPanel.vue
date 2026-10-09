@@ -264,7 +264,7 @@ const audioSrc = (audioStr) => {
                                 <div class="space-y-2">
                                     <div v-for="(item, idx) in selectedCall.variables_extraidas.data_collection_results_list" :key="idx" class="rounded-lg border border-[#e3e8ee] bg-white px-3 py-2">
                                         <div class="flex items-baseline justify-between gap-2">
-                                            <span class="text-sm font-medium text-[#33475b]">{{ item.data_collection_id }}</span>
+                                            <span class="text-sm font-medium text-[#133c75]">{{ item.data_collection_id }}</span>
                                             <span class="text-sm font-semibold text-[#1976d2]">{{ item.value }}</span>
                                         </div>
                                         <p v-if="item.rationale" class="mt-1 text-xs text-gray-500">{{ item.rationale }}</p>
@@ -276,7 +276,7 @@ const audioSrc = (audioStr) => {
                                 <div class="space-y-2">
                                     <div v-for="(item, idx) in selectedCall.variables_extraidas.evaluation_criteria_results_list" :key="idx" class="rounded-lg border border-[#e3e8ee] bg-white px-3 py-2">
                                         <div class="flex items-baseline justify-between gap-2">
-                                            <span class="text-sm font-medium text-[#33475b]">{{ item.criteria_id }}</span>
+                                            <span class="text-sm font-medium text-[#133c75]">{{ item.criteria_id }}</span>
                                             <span :class="['inline-flex rounded px-2 py-0.5 text-xs font-medium', item.result === 'success' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800']">
                                                 {{ item.result === 'success' ? 'Éxito' : item.result }}
                                             </span>

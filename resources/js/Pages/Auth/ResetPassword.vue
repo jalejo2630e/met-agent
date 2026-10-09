@@ -35,10 +35,10 @@ const submit = () => {
     <GuestLayout>
         <Head title="Restablecer contraseña" />
 
-        <h1 class="text-center text-xl font-bold text-[#33475b]">
+        <h1 class="text-center text-xl font-bold text-[#133c75]">
             Restablecer contraseña
         </h1>
-        <p class="mt-2 text-center text-sm text-[#425b76]">
+        <p class="mt-2 text-center text-sm text-[#444444]">
             Define tu nueva contraseña para recuperar el acceso a tu cuenta.
         </p>
 

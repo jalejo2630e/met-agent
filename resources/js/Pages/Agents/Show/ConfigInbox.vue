@@ -523,8 +523,8 @@ onMounted(loadInbox);
         <!-- Encabezado -->
         <div class="flex items-center justify-between border-b border-[#e3e8ee] px-6 py-4">
             <div>
-                <h3 class="text-lg font-semibold text-[#33475b]">Bandeja de mensajes (Twilio)</h3>
-                <p class="mt-1 text-sm text-[#425b76]">Mensajes de WhatsApp/SMS recibidos por el webhook. Si el número no tiene cliente, créalo desde aquí.</p>
+                <h3 class="text-lg font-semibold text-[#133c75]">Bandeja de mensajes (Twilio)</h3>
+                <p class="mt-1 text-sm text-[#444444]">Mensajes de WhatsApp/SMS recibidos por el webhook. Si el número no tiene cliente, créalo desde aquí.</p>
             </div>
             <button
                 type="button"
@@ -551,7 +551,7 @@ onMounted(loadInbox);
                             v-model="search"
                             type="text"
                             placeholder="Buscar conversación…"
-                            class="w-full rounded-md border-[#e3e8ee] bg-[#f5f8fa] py-2 pl-9 pr-3 text-sm text-[#33475b] focus:border-emerald-400 focus:bg-white focus:ring-emerald-400"
+                            class="w-full rounded-md border-[#e3e8ee] bg-[#f5f8fa] py-2 pl-9 pr-3 text-sm text-[#133c75] focus:border-emerald-400 focus:bg-white focus:ring-emerald-400"
                         />
                     </div>
                 </div>
@@ -575,16 +575,16 @@ onMounted(loadInbox);
                             <!-- Avatar -->
                             <div
                                 class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
-                                :class="c.client ? 'bg-emerald-100 text-emerald-700' : 'bg-[#e3e8ee] text-[#425b76]'"
+                                :class="c.client ? 'bg-emerald-100 text-emerald-700' : 'bg-[#e3e8ee] text-[#444444]'"
                             >{{ initials(c) }}</div>
 
                             <!-- Resumen -->
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-2">
-                                    <span class="truncate font-medium text-[#33475b]">{{ c.profile_name || c.client?.name || c.from_number }}</span>
+                                    <span class="truncate font-medium text-[#133c75]">{{ c.profile_name || c.client?.name || c.from_number }}</span>
                                     <span class="ml-auto shrink-0 text-xs text-gray-400">{{ fmtTime(c.last_message?.created_at) }}</span>
                                 </div>
-                                <p class="mt-0.5 truncate text-sm text-[#425b76]">
+                                <p class="mt-0.5 truncate text-sm text-[#444444]">
                                     <span v-if="c.last_message?.direction === 'outbound'" class="text-gray-400">Tú: </span>
                                     {{ c.last_message?.body }}
                                 </p>
@@ -618,7 +618,7 @@ onMounted(loadInbox);
                 <!-- Estado vacío -->
                 <div v-if="!selectedConv" class="flex flex-1 flex-col items-center justify-center px-6 text-center">
                     <svg class="h-12 w-12 text-[#cbd6e2]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.9 9.9 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                    <p class="mt-3 text-sm text-[#425b76]">Selecciona una conversación para verla aquí.</p>
+                    <p class="mt-3 text-sm text-[#444444]">Selecciona una conversación para verla aquí.</p>
                 </div>
 
                 <template v-else>
@@ -626,7 +626,7 @@ onMounted(loadInbox);
                     <div class="flex items-center gap-3 border-b border-[#e3e8ee] bg-white px-4 py-3">
                         <button
                             type="button"
-                            class="-ml-1 rounded-md p-1 text-[#425b76] hover:bg-[#f5f8fa] md:hidden"
+                            class="-ml-1 rounded-md p-1 text-[#444444] hover:bg-[#f5f8fa] md:hidden"
                             title="Volver"
                             @click="backToList"
                         >
@@ -634,11 +634,11 @@ onMounted(loadInbox);
                         </button>
                         <div
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
-                            :class="selectedConv.client ? 'bg-emerald-100 text-emerald-700' : 'bg-[#e3e8ee] text-[#425b76]'"
+                            :class="selectedConv.client ? 'bg-emerald-100 text-emerald-700' : 'bg-[#e3e8ee] text-[#444444]'"
                         >{{ initials(selectedConv) }}</div>
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2">
-                                <span class="truncate font-semibold text-[#33475b]">{{ selectedConv.profile_name || selectedConv.client?.name || selectedConv.from_number }}</span>
+                                <span class="truncate font-semibold text-[#133c75]">{{ selectedConv.profile_name || selectedConv.client?.name || selectedConv.from_number }}</span>
                                 <span
                                     v-if="selectedConv.client"
                                     class="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700"
@@ -679,7 +679,7 @@ onMounted(loadInbox);
                     <!-- Variables extraídas de la conversación -->
                     <div v-if="extraction.variables.length" class="border-b border-[#e3e8ee] bg-white px-4 py-3">
                         <div class="flex items-center justify-between">
-                            <h4 class="text-xs font-semibold uppercase tracking-wide text-[#425b76]">Variables extraídas</h4>
+                            <h4 class="text-xs font-semibold uppercase tracking-wide text-[#444444]">Variables extraídas</h4>
                             <button
                                 type="button"
                                 class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700 disabled:opacity-60"
@@ -692,8 +692,8 @@ onMounted(loadInbox);
                         </div>
                         <div class="mt-2 grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2">
                             <div v-for="v in extraction.variables" :key="v.name" class="flex items-baseline gap-2 text-sm">
-                                <span class="shrink-0 text-[#425b76]">{{ v.label || v.name }}:</span>
-                                <span v-if="displayValue(v.name)" class="min-w-0 break-words font-medium text-[#33475b]">{{ displayValue(v.name) }}</span>
+                                <span class="shrink-0 text-[#444444]">{{ v.label || v.name }}:</span>
+                                <span v-if="displayValue(v.name)" class="min-w-0 break-words font-medium text-[#133c75]">{{ displayValue(v.name) }}</span>
                                 <span v-else class="text-gray-300">—</span>
                             </div>
                         </div>
@@ -709,7 +709,7 @@ onMounted(loadInbox);
                         <div v-if="notes.length" class="mt-2 space-y-1.5">
                             <div v-for="n in notes" :key="n.id" class="group flex items-start gap-2 rounded-md border border-amber-200 bg-white px-2.5 py-1.5 text-sm">
                                 <div class="min-w-0 flex-1">
-                                    <p class="whitespace-pre-wrap break-words text-[#33475b]">{{ n.body }}</p>
+                                    <p class="whitespace-pre-wrap break-words text-[#133c75]">{{ n.body }}</p>
                                     <p class="mt-0.5 text-[11px] text-gray-400">{{ n.user || 'Operador' }} · {{ fmtFull(n.created_at) }}</p>
                                 </div>
                                 <button type="button" class="shrink-0 text-gray-300 opacity-0 transition hover:text-red-500 group-hover:opacity-100" title="Eliminar" @click="removeNote(n)">
@@ -722,7 +722,7 @@ onMounted(loadInbox);
                                 v-model="newNote"
                                 type="text"
                                 placeholder="Agregar una nota interna…"
-                                class="min-w-0 flex-1 rounded-md border-amber-200 bg-white py-1.5 text-sm text-[#33475b] focus:border-amber-400 focus:ring-amber-400"
+                                class="min-w-0 flex-1 rounded-md border-amber-200 bg-white py-1.5 text-sm text-[#133c75] focus:border-amber-400 focus:ring-amber-400"
                                 @keydown.enter.prevent="addNote"
                             />
                             <button
@@ -749,7 +749,7 @@ onMounted(loadInbox);
                                     class="max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow-sm"
                                     :class="m.direction === 'outbound'
                                         ? 'rounded-br-sm bg-emerald-100 text-[#0f5132]'
-                                        : 'rounded-bl-sm border border-[#e3e8ee] bg-white text-[#33475b]'"
+                                        : 'rounded-bl-sm border border-[#e3e8ee] bg-white text-[#133c75]'"
                                 >
                                     <!-- Media (previsualización dentro del chat) -->
                                     <template v-if="m.media_url">
@@ -785,7 +785,7 @@ onMounted(loadInbox);
                         <!-- Selector de plantilla (desplegable) -->
                         <div v-if="showTemplates" class="mb-2 rounded-md border border-[#e3e8ee] bg-[#f9fbfd] p-3">
                             <div class="flex items-center justify-between">
-                                <label class="text-xs font-medium text-[#425b76]">Plantilla de WhatsApp (Meta/Twilio)</label>
+                                <label class="text-xs font-medium text-[#444444]">Plantilla de WhatsApp (Meta/Twilio)</label>
                                 <button type="button" class="text-xs text-gray-400 hover:text-gray-600" @click="showTemplates = false">Cerrar</button>
                             </div>
                             <div v-if="twilioPlantillas.length" class="mt-2 flex flex-wrap items-center gap-2">
@@ -811,12 +811,12 @@ onMounted(loadInbox);
                                 v-model="replyText"
                                 rows="1"
                                 placeholder="Escribe una respuesta…"
-                                class="max-h-32 min-h-[42px] flex-1 resize-y rounded-lg border-[#e3e8ee] text-sm text-[#33475b] focus:border-emerald-400 focus:ring-emerald-400"
+                                class="max-h-32 min-h-[42px] flex-1 resize-y rounded-lg border-[#e3e8ee] text-sm text-[#133c75] focus:border-emerald-400 focus:ring-emerald-400"
                                 @keydown.enter.exact.prevent="sendReply"
                             />
                             <button
                                 type="button"
-                                class="inline-flex shrink-0 items-center justify-center rounded-lg border border-[#e3e8ee] p-2.5 text-[#425b76] transition hover:bg-[#f5f8fa]"
+                                class="inline-flex shrink-0 items-center justify-center rounded-lg border border-[#e3e8ee] p-2.5 text-[#444444] transition hover:bg-[#f5f8fa]"
                                 title="Adjuntar archivo o audio"
                                 @click="pickFile"
                             >
@@ -824,7 +824,7 @@ onMounted(loadInbox);
                             </button>
                             <button
                                 type="button"
-                                class="inline-flex shrink-0 items-center justify-center rounded-lg border border-[#e3e8ee] p-2.5 text-[#425b76] transition hover:bg-[#f5f8fa]"
+                                class="inline-flex shrink-0 items-center justify-center rounded-lg border border-[#e3e8ee] p-2.5 text-[#444444] transition hover:bg-[#f5f8fa]"
                                 title="Grabar audio"
                                 @click="openRecorder"
                             >
@@ -832,7 +832,7 @@ onMounted(loadInbox);
                             </button>
                             <button
                                 type="button"
-                                class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#e3e8ee] px-3 py-2.5 text-sm text-[#425b76] transition hover:bg-[#f5f8fa]"
+                                class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#e3e8ee] px-3 py-2.5 text-sm text-[#444444] transition hover:bg-[#f5f8fa]"
                                 title="Enviar plantilla de Meta"
                                 @click="showTemplates = !showTemplates"
                             >
@@ -954,7 +954,7 @@ onMounted(loadInbox);
                 <div class="absolute inset-0 bg-black/50" @click="showCreate = false" />
                 <div class="relative w-full max-w-md overflow-hidden rounded-lg border border-[#e3e8ee] bg-white shadow-xl">
                     <div class="border-b border-[#e3e8ee] bg-[#f5f8fa] px-4 py-3">
-                        <h2 class="text-lg font-semibold text-[#33475b]">Crear cliente desde el mensaje</h2>
+                        <h2 class="text-lg font-semibold text-[#133c75]">Crear cliente desde el mensaje</h2>
                     </div>
                     <form @submit.prevent="submitCreate" class="space-y-3 p-4">
                         <div>
@@ -978,7 +978,7 @@ onMounted(loadInbox);
                             <InputError :message="createForm.errors.phone" class="mt-1" />
                         </div>
                         <div class="flex justify-end gap-2 border-t border-[#e3e8ee] pt-3">
-                            <button type="button" class="rounded-md border border-[#e3e8ee] px-3 py-2 text-sm text-[#33475b] hover:bg-[#f5f8fa]" @click="showCreate = false">Cancelar</button>
+                            <button type="button" class="rounded-md border border-[#e3e8ee] px-3 py-2 text-sm text-[#133c75] hover:bg-[#f5f8fa]" @click="showCreate = false">Cancelar</button>
                             <PrimaryButton type="submit" :disabled="createForm.processing">{{ createForm.processing ? 'Creando...' : 'Crear cliente' }}</PrimaryButton>
                         </div>
                     </form>

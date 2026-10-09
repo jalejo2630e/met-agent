@@ -29,7 +29,7 @@ const form = useForm({
 const showPassword = ref(false);
 const page = usePage();
 const faviconUrl = computed(() => page.props.settings?.favicon_url || '/favicon.png');
-const logoUrl = computed(() => page.props.settings?.company_logo_url || '/colsanitas.png');
+const logoUrl = computed(() => page.props.settings?.company_logo_url || '/met-logo.png');
 const companyName = computed(() => page.props.settings?.company_name);
 
 const submit = () => {
@@ -49,14 +49,14 @@ const submit = () => {
                 <!-- Logo y formulario centrados -->
                 <div class="mx-auto flex w-full max-w-sm flex-1 flex-col items-center pt-4 sm:pt-8">
                     <Link href="/" class="flex justify-center">
-                        <img :src="logoUrl" :alt="companyName || 'Logo'" :title="companyName || 'Logo'" class="h-14 w-auto" />
+                        <img :src="logoUrl" :alt="companyName || 'Logo'" :title="companyName || 'Logo'" class="h-20 w-auto" />
                     </Link>
 
                     <div class="mt-12 flex w-full flex-1 flex-col sm:mt-16">
-                    <h1 class="text-center text-2xl font-bold text-[#33475b] sm:text-3xl">
+                    <h1 class="text-center text-2xl font-bold text-[#133c75] sm:text-3xl">
                         ¡Bienvenido!
                     </h1>
-                    <p class="mt-2 text-center text-sm text-[#425b76]">
+                    <p class="mt-2 text-center text-sm text-[#444444]">
                         Ingresa tus credenciales para continuar
                     </p>
 
@@ -95,7 +95,7 @@ const submit = () => {
                                 <button
                                     type="button"
                                     @click="showPassword = !showPassword"
-                                    class="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 flex items-center justify-center text-[#425b76] hover:text-[#33475b] focus:outline-none"
+                                    class="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 flex items-center justify-center text-[#444444] hover:text-[#133c75] focus:outline-none"
                                     tabindex="-1"
                                     aria-label="Mostrar u ocultar contraseña"
                                 >
@@ -114,13 +114,13 @@ const submit = () => {
                         <div class="flex items-center justify-between">
                             <label class="flex items-center">
                                 <Checkbox name="remember" v-model:checked="form.remember" />
-                                <span class="ms-2 text-sm text-[#425b76]">Recordarme</span>
+                                <span class="ms-2 text-sm text-[#444444]">Recordarme</span>
                             </label>
 
                             <Link
                                 v-if="canResetPassword"
                                 :href="route('password.request')"
-                                class="text-sm text-[#425b76] underline hover:text-[var(--color-primary)]"
+                                class="text-sm text-[#444444] underline hover:text-[var(--color-primary)]"
                             >
                                 ¿Olvidaste tu contraseña?
                             </Link>
@@ -141,7 +141,7 @@ const submit = () => {
 
             <!-- Footer izquierda -->
             <footer class="border-t border-[#e3e8ee] px-6 py-4 sm:px-12 lg:px-16">
-                <div class="flex items-center justify-center gap-2 text-center text-sm text-[#425b76]">
+                <div class="flex items-center justify-center gap-2 text-center text-sm text-[#444444]">
                     <img src="/ainoa.png" alt="ainoa" class="h-6 w-6" />
                     <a href="https://ainoa.app" target="_blank" rel="noopener noreferrer" class="transition hover:text-[var(--color-primary)]">
                         By ainoa
@@ -167,10 +167,10 @@ const submit = () => {
 
             <div class="relative z-10 flex flex-1 flex-col justify-center">
                 <h2 class="text-3xl font-bold text-white drop-shadow-sm xl:text-4xl">
-                    Administrador de Empresas
+                    Centro Médico MET
                 </h2>
                 <p class="mt-4 max-w-md text-lg text-white/95 drop-shadow-sm">
-                    Gestiona tus empresas, configura integraciones y optimiza la atención a tus clientes desde una sola plataforma.
+                    Atención de pacientes en las sedes de Bogotá y Chía: conversaciones, clientes y métricas desde una sola plataforma.
                 </p>
             </div>
 

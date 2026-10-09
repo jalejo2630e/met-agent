@@ -83,7 +83,7 @@ const submit = () => {
 
                         <div class="mb-6">
                             <InputLabel for="system_prompt" value="Prompt del sistema (agente de texto)" />
-                            <p class="mt-0.5 text-xs text-[#425b76]">Instrucciones completas del agente en un solo campo: rol, tono, reglas del negocio y límites.</p>
+                            <p class="mt-0.5 text-xs text-[#444444]">Instrucciones completas del agente en un solo campo: rol, tono, reglas del negocio y límites.</p>
                             <textarea
                                 id="system_prompt"
                                 v-model="form.prompt_configuration.system_prompt"
@@ -98,7 +98,7 @@ const submit = () => {
                         <div class="flex justify-end gap-3">
                             <Link
                                 :href="route('agents.show', agent)"
-                                class="rounded-md border border-[#e3e8ee] px-4 py-2 text-[#33475b] hover:bg-[#f5f8fa]"
+                                class="rounded-md border border-[#e3e8ee] px-4 py-2 text-[#133c75] hover:bg-[#f5f8fa]"
                             >
                                 Cancelar
                             </Link>

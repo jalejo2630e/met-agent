@@ -39,7 +39,7 @@ class CallAnalyst implements Agent, HasStructuredOutput
         $empresa = $this->agentName !== '' ? $this->agentName : 'un agente de salud';
 
         return <<<TEXT
-        Eres un analista de calidad de llamadas para {$empresa} (sector salud, Colsanitas).
+        Eres un analista de calidad de llamadas para {$empresa} (Centro Médico MET, sector salud y medicina deportiva).
         Recibirás la transcripción de una llamada entre un agente y un cliente/paciente.
         Analiza la conversación y responde SIEMPRE en español, de forma objetiva y concisa.
 

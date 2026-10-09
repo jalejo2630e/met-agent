@@ -27,10 +27,10 @@ class MailBranding
         $defaults = [
             'company_name' => $appName,
             'display_name' => $appName,
-            'primary_hex' => '#a3e635',
+            'primary_hex' => '#009B41',
             'button_foreground' => '#1a1a1a',
             'link_hex' => '#33475b',
-            'logo_url' => asset('colsanitas.png'),
+            'logo_url' => asset('met-logo.png'),
             'app_name' => $appName,
         ];
 
@@ -39,9 +39,9 @@ class MailBranding
                 return $defaults;
             }
 
-            $primary = Setting::get('primary_color') ?? '#a3e635';
+            $primary = Setting::get('primary_color') ?? '#009B41';
             if (! is_string($primary) || ! preg_match('/^#[0-9A-Fa-f]{6}$/', $primary)) {
-                $primary = '#a3e635';
+                $primary = '#009B41';
             }
 
             $companyName = Setting::get('company_name');
@@ -52,7 +52,7 @@ class MailBranding
             $logoPath = Setting::get('company_logo');
             $logoUrl = (is_string($logoPath) && $logoPath !== '')
                 ? asset('storage/'.$logoPath)
-                : asset('colsanitas.png');
+                : asset('met-logo.png');
 
             $fg = self::buttonForegroundForHex($primary);
             $link = self::linkColorForPrimary($primary);

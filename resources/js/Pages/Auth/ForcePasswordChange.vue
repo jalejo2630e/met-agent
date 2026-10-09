@@ -22,10 +22,10 @@ const submit = () => {
     <GuestLayout>
         <Head title="Cambia tu contraseña" />
 
-        <h1 class="text-center text-xl font-bold text-[#33475b]">
+        <h1 class="text-center text-xl font-bold text-[#133c75]">
             Crea tu contraseña
         </h1>
-        <p class="mt-2 text-center text-sm text-[#425b76]">
+        <p class="mt-2 text-center text-sm text-[#444444]">
             Estás usando una contraseña temporal. Define una contraseña nueva para continuar.
         </p>
 
@@ -73,7 +73,7 @@ const submit = () => {
                     :href="route('logout')"
                     method="post"
                     as="button"
-                    class="text-sm text-[#425b76] underline hover:text-[var(--color-primary)]"
+                    class="text-sm text-[#444444] underline hover:text-[var(--color-primary)]"
                 >
                     Cerrar sesión
                 </Link>

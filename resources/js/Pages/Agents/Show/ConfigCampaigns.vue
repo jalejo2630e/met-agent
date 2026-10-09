@@ -497,7 +497,7 @@ onMounted(() => loadQueues());
                 <div class="mt-6">
                     <button
                         type="button"
-                        class="flex w-full items-center justify-between rounded-lg border border-[#e3e8ee] bg-[#f5f8fa] px-4 py-3 text-left text-sm font-medium text-[#33475b] hover:bg-[#e3e8ee]"
+                        class="flex w-full items-center justify-between rounded-lg border border-[#e3e8ee] bg-[#f5f8fa] px-4 py-3 text-left text-sm font-medium text-[#133c75] hover:bg-[#e3e8ee]"
                         @click="showScheduleConfig = !showScheduleConfig"
                     >
                         <span>Configuración de horarios (para "Programar según horarios")</span>
@@ -665,14 +665,14 @@ onMounted(() => loadQueues());
                     <table class="min-w-full text-sm">
                         <thead class="bg-[#f5f8fa]">
                             <tr>
-                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">ID</th>
-                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">Tipo</th>
-                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">Estado</th>
-                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">Clientes</th>
-                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">Próxima ejecución</th>
-                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">Última ejecución</th>
-                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">Creado</th>
-                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-right font-medium text-[#33475b]">Acciones</th>
+                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">ID</th>
+                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">Tipo</th>
+                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">Estado</th>
+                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">Clientes</th>
+                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">Próxima ejecución</th>
+                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">Última ejecución</th>
+                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">Creado</th>
+                                <th class="border-b border-[#e3e8ee] px-3 py-2 text-right font-medium text-[#133c75]">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>

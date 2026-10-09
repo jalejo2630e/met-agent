@@ -39,10 +39,10 @@ const goToDashboard = () => {
     <GuestLayout>
         <Head title="Códigos de recuperación" />
 
-        <h1 class="text-center text-xl font-bold text-[#33475b]">
+        <h1 class="text-center text-xl font-bold text-[#133c75]">
             Guarda tus códigos de recuperación
         </h1>
-        <p class="mt-2 text-center text-sm text-[#425b76]">
+        <p class="mt-2 text-center text-sm text-[#444444]">
             Úsalos para entrar si pierdes acceso a tu app de autenticación.
             Cada código funciona <strong>una sola vez</strong>. Guárdalos en un lugar seguro:
             no volverás a verlos.
@@ -52,7 +52,7 @@ const goToDashboard = () => {
             <code
                 v-for="code in recoveryCodes"
                 :key="code"
-                class="rounded bg-white px-2 py-1 text-center text-sm font-semibold tracking-wider text-[#33475b]"
+                class="rounded bg-white px-2 py-1 text-center text-sm font-semibold tracking-wider text-[#133c75]"
             >
                 {{ code }}
             </code>

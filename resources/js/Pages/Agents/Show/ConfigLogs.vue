@@ -143,7 +143,7 @@ const prettyJson = (obj) => {
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <h3 class="text-lg font-medium text-gray-900">Post-Call ElevenLabs</h3>
-                        <p class="mt-1 text-sm text-[#425b76]">
+                        <p class="mt-1 text-sm text-[#444444]">
                             Todo lo recibido en el webhook post-call: transcripción, audio y variables de análisis de cada llamada.
                         </p>
                     </div>
@@ -151,7 +151,7 @@ const prettyJson = (obj) => {
                 </div>
 
                 <div class="mt-4">
-                    <div v-if="!postCallLogs?.length" class="rounded-lg border border-dashed border-[#e3e8ee] py-12 text-center text-[#425b76]">
+                    <div v-if="!postCallLogs?.length" class="rounded-lg border border-dashed border-[#e3e8ee] py-12 text-center text-[#444444]">
                         Aún no se han recibido eventos post-call de ElevenLabs.
                     </div>
                     <div v-else class="space-y-2">
@@ -159,8 +159,8 @@ const prettyJson = (obj) => {
                             <!-- Cabecera -->
                             <div class="flex cursor-pointer flex-wrap items-center gap-2 px-4 py-3" @click="togglePostCall(log)">
                                 <span :class="['h-2 w-2 shrink-0 rounded-full', log.call_successful === 'success' ? 'bg-green-500' : log.call_successful === 'failure' ? 'bg-red-500' : 'bg-gray-300']" />
-                                <span class="text-sm font-medium text-[#33475b]">{{ log.phone || 'Sin teléfono' }}</span>
-                                <span class="text-xs text-[#425b76]">{{ formatDate(log.created_at) }}</span>
+                                <span class="text-sm font-medium text-[#133c75]">{{ log.phone || 'Sin teléfono' }}</span>
+                                <span class="text-xs text-[#444444]">{{ formatDate(log.created_at) }}</span>
                                 <span v-if="log.duration_secs != null" class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">{{ fmtDuration(log.duration_secs) }}</span>
                                 <span v-if="log.call_successful" :class="['rounded px-1.5 py-0.5 text-xs font-medium', log.call_successful === 'success' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800']">{{ log.call_successful === 'success' ? 'Éxito' : log.call_successful }}</span>
                                 <span v-if="log.has_audio" class="rounded bg-indigo-100 px-1.5 py-0.5 text-xs text-indigo-700">Audio</span>
@@ -171,8 +171,8 @@ const prettyJson = (obj) => {
 
                             <!-- Detalle -->
                             <div v-show="expandedPostCallId === log.id" class="border-t border-[#e3e8ee] px-4 py-4">
-                                <div class="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#425b76]">
-                                    <span v-if="log.conversation_id">conversation_id: <span class="font-mono text-[#33475b]">{{ log.conversation_id }}</span></span>
+                                <div class="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#444444]">
+                                    <span v-if="log.conversation_id">conversation_id: <span class="font-mono text-[#133c75]">{{ log.conversation_id }}</span></span>
                                     <span v-if="log.event_type">tipo: {{ log.event_type }}</span>
                                     <span v-if="log.status">status: {{ log.status }}</span>
                                     <span v-if="log.cost != null">costo: {{ log.cost }}</span>
@@ -209,7 +209,7 @@ const prettyJson = (obj) => {
                                             :key="idx"
                                             :class="['rounded-lg px-3 py-2', turn.role === 'agent' ? 'bg-[#f5f8fa]' : 'bg-indigo-50']"
                                         >
-                                            <span class="text-xs font-medium" :class="turn.role === 'agent' ? 'text-[#425b76]' : 'text-indigo-700'">{{ roleLabel(turn.role) }}</span>
+                                            <span class="text-xs font-medium" :class="turn.role === 'agent' ? 'text-[#444444]' : 'text-indigo-700'">{{ roleLabel(turn.role) }}</span>
                                             <p class="mt-0.5 whitespace-pre-wrap break-words text-sm text-gray-800">{{ turn.message }}</p>
                                         </div>
                                     </div>
@@ -232,7 +232,7 @@ const prettyJson = (obj) => {
                                             <div class="mt-1 space-y-2">
                                                 <div v-for="(item, idx) in dataCollectionList(log)" :key="idx" class="rounded-lg border border-[#e3e8ee] bg-white px-3 py-2">
                                                     <div class="flex items-baseline justify-between gap-2">
-                                                        <span class="text-sm font-medium text-[#33475b]">{{ item.id }}</span>
+                                                        <span class="text-sm font-medium text-[#133c75]">{{ item.id }}</span>
                                                         <span class="text-sm font-semibold text-[#1976d2]">{{ item.value }}</span>
                                                     </div>
                                                     <p v-if="item.rationale" class="mt-1 text-xs text-gray-500">{{ item.rationale }}</p>
@@ -244,7 +244,7 @@ const prettyJson = (obj) => {
                                             <div class="mt-1 space-y-2">
                                                 <div v-for="(item, idx) in evaluationList(log)" :key="idx" class="rounded-lg border border-[#e3e8ee] bg-white px-3 py-2">
                                                     <div class="flex items-baseline justify-between gap-2">
-                                                        <span class="text-sm font-medium text-[#33475b]">{{ item.id }}</span>
+                                                        <span class="text-sm font-medium text-[#133c75]">{{ item.id }}</span>
                                                         <span :class="['inline-flex rounded px-2 py-0.5 text-xs font-medium', item.result === 'success' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800']">{{ item.result === 'success' ? 'Éxito' : item.result }}</span>
                                                     </div>
                                                     <p v-if="item.rationale" class="mt-1 text-xs text-gray-500">{{ item.rationale }}</p>
@@ -267,7 +267,7 @@ const prettyJson = (obj) => {
             </div>
 
             <h3 class="text-lg font-medium text-gray-900">Logs de ejecución</h3>
-            <p class="mt-1 text-sm text-[#425b76]">
+            <p class="mt-1 text-sm text-[#444444]">
                 Endpoints precargados, contactos WhatsApp/Llamadas registrados y ejecuciones de colas programadas (cron).
             </p>
 
@@ -284,7 +284,7 @@ const prettyJson = (obj) => {
             </div>
 
             <div class="mt-4">
-                <div v-if="!filteredLogs.length" class="rounded-lg border border-dashed border-[#e3e8ee] py-12 text-center text-[#425b76]">
+                <div v-if="!filteredLogs.length" class="rounded-lg border border-dashed border-[#e3e8ee] py-12 text-center text-[#444444]">
                     No hay logs de ejecución
                 </div>
                 <div v-else class="space-y-2">
@@ -305,7 +305,7 @@ const prettyJson = (obj) => {
                                 <span class="text-sm font-medium">
                                     {{ log.endpoint?.name || 'Endpoint' }}
                                 </span>
-                                <span class="text-xs text-[#425b76]">
+                                <span class="text-xs text-[#444444]">
                                     {{ log.request_method }} — {{ formatDate(log.created_at) }}
                                 </span>
                                 <span
@@ -358,9 +358,9 @@ const prettyJson = (obj) => {
             <!-- Contactos WhatsApp / Llamadas -->
             <div class="mt-8">
                 <h4 class="text-sm font-medium text-gray-700">Contactos WhatsApp / Llamadas</h4>
-                <p class="mt-1 text-xs text-[#425b76]">Registros de contacto con clientes (tu integración debe escribir en ClientContactLog para que aparezcan aquí).</p>
+                <p class="mt-1 text-xs text-[#444444]">Registros de contacto con clientes (tu integración debe escribir en ClientContactLog para que aparezcan aquí).</p>
                 <div class="mt-3">
-                    <div v-if="!contactLogs?.length" class="rounded-lg border border-dashed border-[#e3e8ee] py-8 text-center text-sm text-[#425b76]">
+                    <div v-if="!contactLogs?.length" class="rounded-lg border border-dashed border-[#e3e8ee] py-8 text-center text-sm text-[#444444]">
                         No hay registros de contacto
                     </div>
                     <div v-else class="space-y-1.5">
@@ -372,9 +372,9 @@ const prettyJson = (obj) => {
                             <span class="rounded px-1.5 py-0.5 text-xs font-medium" :class="log.channel === 'whatsapp' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'">
                                 {{ channelLabel(log.channel) }}
                             </span>
-                            <span class="text-[#33475b]">{{ log.client?.name }} {{ log.client?.lastname }}</span>
-                            <span class="text-[#425b76]">{{ log.client?.phone || '—' }}</span>
-                            <span class="ml-auto text-xs text-[#425b76]">{{ formatDate(log.contacted_at) }}</span>
+                            <span class="text-[#133c75]">{{ log.client?.name }} {{ log.client?.lastname }}</span>
+                            <span class="text-[#444444]">{{ log.client?.phone || '—' }}</span>
+                            <span class="ml-auto text-xs text-[#444444]">{{ formatDate(log.contacted_at) }}</span>
                         </div>
                     </div>
                 </div>
@@ -383,9 +383,9 @@ const prettyJson = (obj) => {
             <!-- Ejecuciones de colas programadas (cron) -->
             <div class="mt-8">
                 <h4 class="text-sm font-medium text-gray-700">Ejecuciones de colas programadas (cron)</h4>
-                <p class="mt-1 text-xs text-[#425b76]">Últimas colas de mensajes/llamadas ejecutadas por el cron (contact-queues:process).</p>
+                <p class="mt-1 text-xs text-[#444444]">Últimas colas de mensajes/llamadas ejecutadas por el cron (contact-queues:process).</p>
                 <div class="mt-3">
-                    <div v-if="!queueRuns?.length" class="rounded-lg border border-dashed border-[#e3e8ee] py-8 text-center text-sm text-[#425b76]">
+                    <div v-if="!queueRuns?.length" class="rounded-lg border border-dashed border-[#e3e8ee] py-8 text-center text-sm text-[#444444]">
                         No hay ejecuciones recientes
                     </div>
                     <div v-else class="space-y-1.5">
@@ -400,9 +400,9 @@ const prettyJson = (obj) => {
                             <span class="rounded px-1.5 py-0.5 text-xs" :class="run.status === 'completed' ? 'bg-gray-100 text-gray-700' : 'bg-amber-100 text-amber-800'">
                                 {{ run.status }}
                             </span>
-                            <span class="text-[#425b76]">{{ run.processed_count }}/{{ run.total }} procesados</span>
+                            <span class="text-[#444444]">{{ run.processed_count }}/{{ run.total }} procesados</span>
                             <span v-if="run.failed_count" class="text-xs text-red-600">{{ run.failed_count }} fallidos</span>
-                            <span class="ml-auto text-xs text-[#425b76]">{{ formatDate(run.last_run_at) }}</span>
+                            <span class="ml-auto text-xs text-[#444444]">{{ formatDate(run.last_run_at) }}</span>
                         </div>
                     </div>
                 </div>

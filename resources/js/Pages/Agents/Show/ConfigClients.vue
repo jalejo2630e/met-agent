@@ -400,7 +400,7 @@ const formatLoadedAt = (dateStr) => {
                     <div class="flex flex-wrap items-center gap-2">
                         <a
                             :href="route('agents.clients.export', agent) + exportQueryString"
-                            class="inline-flex items-center gap-1.5 rounded-md border border-[#e3e8ee] bg-white px-3 py-2 text-sm text-[#33475b] hover:bg-[#f5f8fa]"
+                            class="inline-flex items-center gap-1.5 rounded-md border border-[#e3e8ee] bg-white px-3 py-2 text-sm text-[#133c75] hover:bg-[#f5f8fa]"
                             download
                         >
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

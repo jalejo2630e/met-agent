@@ -124,8 +124,8 @@ async function copyPostCallWebhook() {
         <!-- Webhook Post-Call de ElevenLabs -->
         <div class="overflow-hidden rounded-lg border border-emerald-200 bg-white">
             <div class="border-b border-emerald-200 bg-emerald-50/50 px-6 py-4">
-                <h3 class="text-lg font-semibold text-[#33475b]">Webhook Post-Call (ElevenLabs)</h3>
-                <p class="mt-1 text-sm text-[#425b76]">
+                <h3 class="text-lg font-semibold text-[#133c75]">Webhook Post-Call (ElevenLabs)</h3>
+                <p class="mt-1 text-sm text-[#444444]">
                     Pega esta URL en ElevenLabs → <em>Conversational AI → Post-call webhook</em>. Recibe la
                     <strong>transcripción, el audio y el análisis</strong> de cada llamada, y
                     <strong>libera la cola</strong> para ejecutar las siguientes (de a 10).
@@ -137,7 +137,7 @@ async function copyPostCallWebhook() {
                     <input
                         :value="postCallWebhookUrl"
                         readonly
-                        class="min-w-0 flex-1 rounded-md border-[#e3e8ee] bg-[#f5f8fa] font-mono text-sm text-[#33475b]"
+                        class="min-w-0 flex-1 rounded-md border-[#e3e8ee] bg-[#f5f8fa] font-mono text-sm text-[#133c75]"
                         @focus="(e) => e.target.select()"
                     />
                     <button

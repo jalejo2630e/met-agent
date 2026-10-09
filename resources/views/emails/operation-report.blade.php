@@ -1,6 +1,6 @@
 @php
     $mailBranding = $mailBranding ?? \App\Support\MailBranding::data();
-    $primary = $mailBranding['primary_hex'] ?? '#a3e635';
+    $primary = $mailBranding['primary_hex'] ?? '#009B41';
     $accent = $mailBranding['link_hex'] ?? '#33475b';
     $company = $mailBranding['display_name'] ?? config('app.name');
     $logoUrl = $logoUrl ?? null;

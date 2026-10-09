@@ -129,12 +129,12 @@ const chartOptions = computed(() => {
             x: {
                 beginAtZero: true,
                 grid: { display: !isHorizontal.value ? false : true, color: '#eef2f6' },
-                ticks: { color: '#425b76', font: { size: 11 } },
+                ticks: { color: '#444444', font: { size: 11 } },
             },
             y: {
                 beginAtZero: true,
                 grid: { display: isHorizontal.value ? false : true, color: '#eef2f6' },
-                ticks: { color: '#425b76', font: { size: 11 } },
+                ticks: { color: '#444444', font: { size: 11 } },
             },
         },
     };

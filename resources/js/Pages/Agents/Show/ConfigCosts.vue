@@ -52,14 +52,14 @@ onMounted(load);
         <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#e3e8ee] px-6 py-4">
                 <div>
-                    <h3 class="text-lg font-semibold text-[#33475b]">Costos de IA</h3>
-                    <p class="mt-1 text-sm text-[#425b76]">Costo estimado por mensaje, transcripción de audio, análisis de imagen y extracción. Valores aproximados en USD.</p>
+                    <h3 class="text-lg font-semibold text-[#133c75]">Costos de IA</h3>
+                    <p class="mt-1 text-sm text-[#444444]">Costo estimado por mensaje, transcripción de audio, análisis de imagen y extracción. Valores aproximados en USD.</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <input
                         v-model="month"
                         type="month"
-                        class="rounded-md border-[#e3e8ee] text-sm text-[#33475b]"
+                        class="rounded-md border-[#e3e8ee] text-sm text-[#133c75]"
                         @change="load"
                     />
                     <button type="button" class="text-sm font-medium text-emerald-600 hover:text-emerald-700" @click="load">Actualizar</button>
@@ -71,8 +71,8 @@ onMounted(load);
                 <template v-else>
                     <!-- Total del mes -->
                     <div class="mb-6 flex items-baseline gap-3">
-                        <span class="text-3xl font-semibold text-[#33475b]">{{ fmtUsd(data.total) }}</span>
-                        <span class="text-sm text-[#425b76]">total en {{ fmtMonth(data.month) }}</span>
+                        <span class="text-3xl font-semibold text-[#133c75]">{{ fmtUsd(data.total) }}</span>
+                        <span class="text-sm text-[#444444]">total en {{ fmtMonth(data.month) }}</span>
                     </div>
 
                     <!-- Desglose por tipo -->
@@ -80,9 +80,9 @@ onMounted(load);
                         <div v-for="k in data.by_kind" :key="k.kind" class="rounded-lg border border-[#e3e8ee] p-4">
                             <div class="flex items-center gap-2">
                                 <span :class="['h-2.5 w-2.5 rounded-full', kindColors[k.kind] || 'bg-gray-400']" />
-                                <span class="text-sm font-medium text-[#33475b]">{{ k.label }}</span>
+                                <span class="text-sm font-medium text-[#133c75]">{{ k.label }}</span>
                             </div>
-                            <p class="mt-2 text-xl font-semibold text-[#33475b]">{{ fmtUsd(k.cost) }}</p>
+                            <p class="mt-2 text-xl font-semibold text-[#133c75]">{{ fmtUsd(k.cost) }}</p>
                             <p class="mt-0.5 text-xs text-gray-400">
                                 {{ k.count }} operación(es)<template v-if="k.kind !== 'audio'"> · {{ k.tokens.toLocaleString('es') }} tokens</template><template v-else> · {{ Math.round(k.seconds) }}s de audio</template>
                             </p>
@@ -92,10 +92,10 @@ onMounted(load);
 
                     <!-- Tendencia 6 meses -->
                     <div v-if="data.trend.length" class="mt-8">
-                        <h4 class="mb-2 text-sm font-semibold text-[#33475b]">Últimos meses</h4>
+                        <h4 class="mb-2 text-sm font-semibold text-[#133c75]">Últimos meses</h4>
                         <div class="flex items-end gap-3" style="height: 120px">
                             <div v-for="t in data.trend" :key="t.month" class="flex flex-1 flex-col items-center justify-end">
-                                <span class="mb-1 text-[11px] text-[#425b76]">{{ fmtUsd(t.cost) }}</span>
+                                <span class="mb-1 text-[11px] text-[#444444]">{{ fmtUsd(t.cost) }}</span>
                                 <div
                                     class="w-full rounded-t bg-emerald-400"
                                     :style="{ height: Math.max(2, (t.cost / maxTrend) * 90) + 'px' }"
@@ -107,7 +107,7 @@ onMounted(load);
 
                     <!-- Por modelo -->
                     <div v-if="data.by_model.length" class="mt-8">
-                        <h4 class="mb-2 text-sm font-semibold text-[#33475b]">Por modelo</h4>
+                        <h4 class="mb-2 text-sm font-semibold text-[#133c75]">Por modelo</h4>
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="border-b border-[#eef2f6] text-left text-xs uppercase text-gray-400">
@@ -118,9 +118,9 @@ onMounted(load);
                             </thead>
                             <tbody>
                                 <tr v-for="m in data.by_model" :key="m.model" class="border-b border-[#f4f7fa]">
-                                    <td class="py-2 font-mono text-[#33475b]">{{ m.model }}</td>
-                                    <td class="py-2 text-right text-[#425b76]">{{ m.count }}</td>
-                                    <td class="py-2 text-right font-medium text-[#33475b]">{{ fmtUsd(m.cost) }}</td>
+                                    <td class="py-2 font-mono text-[#133c75]">{{ m.model }}</td>
+                                    <td class="py-2 text-right text-[#444444]">{{ m.count }}</td>
+                                    <td class="py-2 text-right font-medium text-[#133c75]">{{ fmtUsd(m.cost) }}</td>
                                 </tr>
                             </tbody>
                         </table>

@@ -177,7 +177,7 @@ const statusColors = {
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <Link :href="route('agents.index')" class="text-gray-400 hover:text-gray-600">←</Link>
-                    <h2 class="text-xl font-semibold leading-tight text-[#33475b]">
+                    <h2 class="text-xl font-semibold leading-tight text-[#133c75]">
                         {{ agent.name }}
                     </h2>
                     <span
@@ -206,7 +206,7 @@ const statusColors = {
                                 'inline-flex items-center gap-2 rounded-t-lg px-4 py-3 text-sm font-medium transition',
                                 activeGroup === group.id
                                     ? 'border-b-2 border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]'
-                                    : 'text-[#425b76] hover:bg-[var(--color-primary-light)]/50 hover:text-[#33475b]'
+                                    : 'text-[#444444] hover:bg-[var(--color-primary-light)]/50 hover:text-[#133c75]'
                             ]"
                             @click="
                                 group.items
@@ -255,7 +255,7 @@ const statusColors = {
                             'rounded-lg px-3 py-2 text-sm font-medium transition',
                             activeTab === sub.id
                                 ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
-                                : 'bg-[#f5f8fa] text-[#425b76] hover:bg-[#e3e8ee] hover:text-[#33475b]'
+                                : 'bg-[#f5f8fa] text-[#444444] hover:bg-[#e3e8ee] hover:text-[#133c75]'
                         ]"
                         @click="activeTab = sub.id"
                     >

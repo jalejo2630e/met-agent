@@ -49,8 +49,8 @@ const deleteVariable = (variable) => {
     <div class="space-y-6">
         <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
             <div class="border-b border-[#e3e8ee] px-6 py-4">
-                <h3 class="text-lg font-semibold text-[#33475b]">Variables de recolección (extraídas de la conversación)</h3>
-                <p class="mt-1 text-sm text-[#425b76]">
+                <h3 class="text-lg font-semibold text-[#133c75]">Variables de recolección (extraídas de la conversación)</h3>
+                <p class="mt-1 text-sm text-[#444444]">
                     Define qué datos debe <strong>extraer la IA</strong> de la conversación de WhatsApp/SMS (por ejemplo:
                     número de documento, motivo de contacto, ciudad). Tras cada mensaje, la IA analiza el hilo y guarda
                     los valores encontrados. Los verás en la <strong>Bandeja</strong>, dentro de cada conversación.
@@ -115,11 +115,11 @@ const deleteVariable = (variable) => {
                     <li v-for="v in variables" :key="v.id" class="flex items-start gap-3 px-4 py-3">
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
-                                <span class="font-mono text-sm font-medium text-[#33475b]">{{ v.name }}</span>
-                                <span v-if="v.label" class="text-sm text-[#425b76]">· {{ v.label }}</span>
+                                <span class="font-mono text-sm font-medium text-[#133c75]">{{ v.name }}</span>
+                                <span v-if="v.label" class="text-sm text-[#444444]">· {{ v.label }}</span>
                                 <span class="rounded-full bg-[#f5f8fa] px-2 py-0.5 text-xs text-gray-500">{{ typeLabel(v.type) }}</span>
                             </div>
-                            <p class="mt-0.5 text-sm text-[#425b76]">{{ v.description }}</p>
+                            <p class="mt-0.5 text-sm text-[#444444]">{{ v.description }}</p>
                         </div>
                         <button
                             type="button"

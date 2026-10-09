@@ -7,11 +7,11 @@
         <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
         <style>
             :root {
-                --color-primary: #a3e635;
+                --color-primary: #009B41;
                 --color-primary-hover: color-mix(in srgb, var(--color-primary) 85%, black);
                 --color-primary-active: color-mix(in srgb, var(--color-primary) 70%, black);
                 --color-primary-light: color-mix(in srgb, var(--color-primary) 15%, white);
-                --color-primary-foreground: #1a1a1a;
+                --color-primary-foreground: #ffffff;
             }
         </style>
 

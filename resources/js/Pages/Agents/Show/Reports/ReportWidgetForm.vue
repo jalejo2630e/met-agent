@@ -197,10 +197,10 @@ function submit() {
     <Modal :show="show" max-width="2xl" @close="emit('close')">
         <div class="max-h-[85vh] overflow-y-auto">
             <div class="border-b border-[#e3e8ee] px-6 py-4">
-                <h2 class="text-lg font-semibold text-[#33475b]">
+                <h2 class="text-lg font-semibold text-[#133c75]">
                     {{ isEdit ? 'Editar reporte' : 'Nuevo reporte personalizado' }}
                 </h2>
-                <p class="mt-0.5 text-sm text-[#425b76]">Define la regla y cómo quieres graficarla.</p>
+                <p class="mt-0.5 text-sm text-[#444444]">Define la regla y cómo quieres graficarla.</p>
             </div>
 
             <div class="space-y-5 px-6 py-5">
@@ -208,51 +208,51 @@ function submit() {
                 <div v-if="!isEdit">
                     <p class="mb-2 text-xs font-medium uppercase tracking-wide text-[#98a4b3]">Plantillas rápidas</p>
                     <div class="flex flex-wrap gap-2">
-                        <button type="button" class="rounded-full border border-[#e3e8ee] px-3 py-1 text-xs text-[#33475b] transition hover:border-[var(--color-primary)] hover:bg-[#f5f8fa]" @click="applyPreset('avance')">Avance por temas</button>
-                        <button type="button" class="rounded-full border border-[#e3e8ee] px-3 py-1 text-xs text-[#33475b] transition hover:border-[var(--color-primary)] hover:bg-[#f5f8fa]" @click="applyPreset('satisfaction')">Satisfacción (1–5)</button>
-                        <button type="button" class="rounded-full border border-[#e3e8ee] px-3 py-1 text-xs text-[#33475b] transition hover:border-[var(--color-primary)] hover:bg-[#f5f8fa]" @click="applyPreset('calls')">Llamadas</button>
+                        <button type="button" class="rounded-full border border-[#e3e8ee] px-3 py-1 text-xs text-[#133c75] transition hover:border-[var(--color-primary)] hover:bg-[#f5f8fa]" @click="applyPreset('avance')">Avance por temas</button>
+                        <button type="button" class="rounded-full border border-[#e3e8ee] px-3 py-1 text-xs text-[#133c75] transition hover:border-[var(--color-primary)] hover:bg-[#f5f8fa]" @click="applyPreset('satisfaction')">Satisfacción (1–5)</button>
+                        <button type="button" class="rounded-full border border-[#e3e8ee] px-3 py-1 text-xs text-[#133c75] transition hover:border-[var(--color-primary)] hover:bg-[#f5f8fa]" @click="applyPreset('calls')">Llamadas</button>
                     </div>
                 </div>
 
                 <!-- Título -->
                 <div>
-                    <label class="text-sm font-medium text-[#33475b]">Título del reporte</label>
+                    <label class="text-sm font-medium text-[#133c75]">Título del reporte</label>
                     <input v-model="form.title" type="text" class="mt-1 w-full rounded-md border-[#e3e8ee] text-sm shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]" placeholder="ej. Avance del proceso" />
                     <InputError :message="form.errors.title" />
                 </div>
 
                 <!-- Tipo de reporte -->
                 <div>
-                    <label class="text-sm font-medium text-[#33475b]">Tipo de reporte</label>
+                    <label class="text-sm font-medium text-[#133c75]">Tipo de reporte</label>
                     <select v-model="form.metric" class="mt-1 w-full rounded-md border-[#e3e8ee] text-sm shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]" @change="onMetricChange">
                         <option v-for="m in METRICS" :key="m.value" :value="m.value">{{ m.label }}</option>
                     </select>
-                    <p class="mt-1 text-xs text-[#425b76]">{{ currentMetric.help }}</p>
+                    <p class="mt-1 text-xs text-[#444444]">{{ currentMetric.help }}</p>
                 </div>
 
                 <!-- Campo (para métricas de un solo campo) -->
                 <div v-if="form.source === 'custom_field' && form.metric !== 'topic_progress'">
-                    <label class="text-sm font-medium text-[#33475b]">Campo del cliente</label>
+                    <label class="text-sm font-medium text-[#133c75]">Campo del cliente</label>
                     <input v-model="form.field_name" list="report-fields" type="text" class="mt-1 w-full rounded-md border-[#e3e8ee] text-sm shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]" placeholder="ej. STEP" />
                     <datalist id="report-fields">
                         <option v-for="f in knownFields" :key="f" :value="f" />
                     </datalist>
                     <InputError :message="form.errors.field_name" />
-                    <p class="mt-1 text-xs text-[#425b76]">Nombre exacto del campo en los datos recolectados (custom_fields).</p>
+                    <p class="mt-1 text-xs text-[#444444]">Nombre exacto del campo en los datos recolectados (custom_fields).</p>
                 </div>
 
                 <!-- Temas (topic_progress) -->
                 <div v-if="form.metric === 'topic_progress'">
                     <div class="mb-2 flex items-center justify-between">
-                        <label class="text-sm font-medium text-[#33475b]">Temas</label>
+                        <label class="text-sm font-medium text-[#133c75]">Temas</label>
                         <button type="button" class="text-xs font-medium text-[#1976d2] hover:underline" @click="addTopic">+ Agregar tema</button>
                     </div>
-                    <p class="mb-2 text-xs text-[#425b76]">Cada tema tiene un campo (0..máx). Cuando el campo llega al máximo, el tema está completado y el cliente pasa al siguiente.</p>
+                    <p class="mb-2 text-xs text-[#444444]">Cada tema tiene un campo (0..máx). Cuando el campo llega al máximo, el tema está completado y el cliente pasa al siguiente.</p>
                     <div class="space-y-2">
                         <div v-for="(t, i) in form.config.topics" :key="i" class="flex flex-wrap items-center gap-2 rounded-md border border-[#eef2f6] bg-[#f9fbfc] p-2">
                             <input v-model="t.label" type="text" placeholder="Tema (ej. Bienvenida)" class="min-w-[7rem] flex-1 rounded border-[#e3e8ee] text-sm" />
                             <input v-model="t.field" :list="'report-fields'" type="text" placeholder="Campo (ej. bienvenida)" class="min-w-[7rem] flex-1 rounded border-[#e3e8ee] text-sm" />
-                            <label class="flex items-center gap-1 text-xs text-[#425b76]">máx
+                            <label class="flex items-center gap-1 text-xs text-[#444444]">máx
                                 <input v-model.number="t.max" type="number" min="1" class="w-16 rounded border-[#e3e8ee] text-sm" />
                             </label>
                             <input v-model="t.color" type="color" class="h-8 w-10 cursor-pointer rounded border-[#e3e8ee]" />
@@ -270,7 +270,7 @@ function submit() {
                 <!-- Tramos (range_buckets y client_progress) -->
                 <div v-if="form.metric === 'range_buckets' || form.metric === 'client_progress'">
                     <div class="mb-2 flex items-center justify-between">
-                        <label class="text-sm font-medium text-[#33475b]">Tramos (temas)</label>
+                        <label class="text-sm font-medium text-[#133c75]">Tramos (temas)</label>
                         <button type="button" class="text-xs font-medium text-[#1976d2] hover:underline" @click="addRange">+ Agregar tramo</button>
                     </div>
                     <div class="space-y-2">
@@ -290,15 +290,15 @@ function submit() {
 
                 <!-- Máximo (client_progress) -->
                 <div v-if="form.metric === 'client_progress'">
-                    <label class="text-sm font-medium text-[#33475b]">Valor máximo (100% de avance)</label>
+                    <label class="text-sm font-medium text-[#133c75]">Valor máximo (100% de avance)</label>
                     <input v-model.number="form.config.max" type="number" class="mt-1 w-40 rounded-md border-[#e3e8ee] text-sm shadow-sm" placeholder="ej. 49" />
-                    <p class="mt-1 text-xs text-[#425b76]">Si lo dejas vacío, se usa el tope del último tramo.</p>
+                    <p class="mt-1 text-xs text-[#444444]">Si lo dejas vacío, se usa el tope del último tramo.</p>
                 </div>
 
                 <!-- Valores discretos (value_counts) -->
                 <div v-if="form.metric === 'value_counts'">
                     <div class="mb-2 flex items-center justify-between">
-                        <label class="text-sm font-medium text-[#33475b]">Valores (opcional)</label>
+                        <label class="text-sm font-medium text-[#133c75]">Valores (opcional)</label>
                         <button type="button" class="text-xs font-medium text-[#1976d2] hover:underline" @click="addValue">+ Agregar valor</button>
                     </div>
                     <div class="space-y-2">
@@ -316,15 +316,15 @@ function submit() {
 
                 <!-- Métricas de llamadas -->
                 <div v-if="form.metric === 'calls'">
-                    <label class="text-sm font-medium text-[#33475b]">Métricas a mostrar</label>
+                    <label class="text-sm font-medium text-[#133c75]">Métricas a mostrar</label>
                     <div class="mt-2 flex flex-wrap gap-3">
-                        <label class="flex items-center gap-2 text-sm text-[#33475b]">
+                        <label class="flex items-center gap-2 text-sm text-[#133c75]">
                             <input type="checkbox" :checked="form.config.calls_metrics.includes('total')" class="rounded border-[#e3e8ee]" @change="toggleCallMetric('total')" /> Total de llamadas
                         </label>
-                        <label class="flex items-center gap-2 text-sm text-[#33475b]">
+                        <label class="flex items-center gap-2 text-sm text-[#133c75]">
                             <input type="checkbox" :checked="form.config.calls_metrics.includes('avg')" class="rounded border-[#e3e8ee]" @change="toggleCallMetric('avg')" /> Promedio por cliente
                         </label>
-                        <label class="flex items-center gap-2 text-sm text-[#33475b]">
+                        <label class="flex items-center gap-2 text-sm text-[#133c75]">
                             <input type="checkbox" :checked="form.config.calls_metrics.includes('distribution')" class="rounded border-[#e3e8ee]" @change="toggleCallMetric('distribution')" /> Distribución
                         </label>
                     </div>
@@ -332,14 +332,14 @@ function submit() {
 
                 <!-- Tipo de gráfica -->
                 <div v-if="currentMetric.charts.length > 1">
-                    <label class="text-sm font-medium text-[#33475b]">Tipo de gráfica</label>
+                    <label class="text-sm font-medium text-[#133c75]">Tipo de gráfica</label>
                     <div class="mt-1 flex flex-wrap gap-2">
                         <button
                             v-for="c in currentMetric.charts"
                             :key="c"
                             type="button"
                             class="rounded-md border px-3 py-1.5 text-sm transition"
-                            :class="form.chart_type === c ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]' : 'border-[#e3e8ee] text-[#33475b] hover:bg-[#f5f8fa]'"
+                            :class="form.chart_type === c ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]' : 'border-[#e3e8ee] text-[#133c75] hover:bg-[#f5f8fa]'"
                             @click="form.chart_type = c"
                         >
                             {{ CHART_LABELS[c] }}
@@ -349,12 +349,12 @@ function submit() {
 
                 <!-- Ancho del reporte -->
                 <div>
-                    <label class="text-sm font-medium text-[#33475b]">Ancho en el panel</label>
+                    <label class="text-sm font-medium text-[#133c75]">Ancho en el panel</label>
                     <div class="mt-1 flex flex-wrap gap-2">
                         <button
                             type="button"
                             class="rounded-md border px-3 py-1.5 text-sm transition"
-                            :class="form.config.width !== 'full' ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]' : 'border-[#e3e8ee] text-[#33475b] hover:bg-[#f5f8fa]'"
+                            :class="form.config.width !== 'full' ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]' : 'border-[#e3e8ee] text-[#133c75] hover:bg-[#f5f8fa]'"
                             @click="form.config.width = 'half'"
                         >
                             Media (50%)
@@ -362,18 +362,18 @@ function submit() {
                         <button
                             type="button"
                             class="rounded-md border px-3 py-1.5 text-sm transition"
-                            :class="form.config.width === 'full' ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]' : 'border-[#e3e8ee] text-[#33475b] hover:bg-[#f5f8fa]'"
+                            :class="form.config.width === 'full' ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]' : 'border-[#e3e8ee] text-[#133c75] hover:bg-[#f5f8fa]'"
                             @click="form.config.width = 'full'"
                         >
                             Completa (100%)
                         </button>
                     </div>
-                    <p class="mt-1 text-xs text-[#425b76]">Usa "Completa" para reportes con tabla o mucha información.</p>
+                    <p class="mt-1 text-xs text-[#444444]">Usa "Completa" para reportes con tabla o mucha información.</p>
                 </div>
             </div>
 
             <div class="flex items-center justify-end gap-3 border-t border-[#e3e8ee] bg-[#f9fbfc] px-6 py-4">
-                <button type="button" class="text-sm text-[#425b76] hover:text-[#33475b]" @click="emit('close')">Cancelar</button>
+                <button type="button" class="text-sm text-[#444444] hover:text-[#133c75]" @click="emit('close')">Cancelar</button>
                 <button
                     type="button"
                     :disabled="form.processing"

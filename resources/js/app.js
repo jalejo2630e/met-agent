@@ -7,7 +7,7 @@ import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import Vue3Toastify, { toast } from 'vue3-toastify';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Administrador de Agentes';
+const appName = import.meta.env.VITE_APP_NAME || 'MET';
 
 // Sesión expirada: cuando el servidor responde algo que no es una respuesta
 // Inertia válida (419 = token CSRF caducado, 401 = sin autenticar), en lugar de

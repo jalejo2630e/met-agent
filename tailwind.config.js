@@ -13,7 +13,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Inter', 'system-ui', '-apple-system', ...defaultTheme.fontFamily.sans],
+                sans: ['Plus Jakarta Sans', 'system-ui', '-apple-system', ...defaultTheme.fontFamily.sans],
             },
             colors: {
                 // Color principal: viene de Configuración (settings.primary_color), aplicado como --color-primary
@@ -24,9 +24,9 @@ export default {
                     foreground: 'var(--color-primary-foreground)',
                 },
                 hubspot: {
-                    navy: '#33475b',
-                    'navy-light': '#425b76',
-                    'navy-dark': '#1e2d3b',
+                    navy: '#133c75',
+                    'navy-light': '#444444',
+                    'navy-dark': '#0b2850',
                     gray: '#f5f8fa',
                     'gray-border': '#e3e8ee',
                 },

@@ -25,10 +25,10 @@ const submit = () => {
     <GuestLayout>
         <Head title="Recuperar contraseña" />
 
-        <h1 class="text-center text-xl font-bold text-[#33475b]">
+        <h1 class="text-center text-xl font-bold text-[#133c75]">
             Recuperar contraseña
         </h1>
-        <p class="mt-2 text-center text-sm text-[#425b76]">
+        <p class="mt-2 text-center text-sm text-[#444444]">
             Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
         </p>
 
@@ -69,7 +69,7 @@ const submit = () => {
             <div class="text-center">
                 <Link
                     :href="route('login')"
-                    class="text-sm text-[#425b76] underline hover:text-[var(--color-primary)]"
+                    class="text-sm text-[#444444] underline hover:text-[var(--color-primary)]"
                 >
                     Volver al inicio de sesión
                 </Link>

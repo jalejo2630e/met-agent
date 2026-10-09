@@ -123,7 +123,7 @@ function formatDate(d) {
                     <p class="mt-1 text-sm text-gray-500">
                         Cuando un usuario solicita que lo llamen en una fecha específica, crea aquí la tarea. Se ejecutará ese día a la hora que indiques y quedará registrada en el cliente.
                     </p>
-                    <p v-if="serverTime" class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#425b76]">
+                    <p v-if="serverTime" class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#444444]">
                         <span>
                             Hora del servidor: <strong class="font-mono">{{ serverTime }}</strong>
                             <span v-if="serverTimezone"> ({{ serverTimezone }})</span>
@@ -162,12 +162,12 @@ function formatDate(d) {
                 <table class="min-w-full text-sm">
                     <thead class="bg-[#f5f8fa]">
                         <tr>
-                            <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">Cliente</th>
-                            <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">Fecha</th>
-                            <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">Hora</th>
-                            <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">Canal</th>
-                            <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">Notas</th>
-                            <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#33475b]">Estado</th>
+                            <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">Cliente</th>
+                            <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">Fecha</th>
+                            <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">Hora</th>
+                            <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">Canal</th>
+                            <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">Notas</th>
+                            <th class="border-b border-[#e3e8ee] px-3 py-2 text-left font-medium text-[#133c75]">Estado</th>
                             <th v-if="statusFilter === 'pending'" class="border-b border-[#e3e8ee] px-3 py-2" />
                         </tr>
                     </thead>
@@ -215,9 +215,9 @@ function formatDate(d) {
                 class="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-[#f5f8fa]"
                 @click="showApiDocs = !showApiDocs"
             >
-                <h3 class="text-lg font-semibold text-[#33475b]">Documentación API</h3>
+                <h3 class="text-lg font-semibold text-[#133c75]">Documentación API</h3>
                 <svg
-                    :class="['h-5 w-5 text-[#425b76] transition', showApiDocs ? 'rotate-180' : '']"
+                    :class="['h-5 w-5 text-[#444444] transition', showApiDocs ? 'rotate-180' : '']"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -226,53 +226,53 @@ function formatDate(d) {
                 </svg>
             </button>
             <div v-show="showApiDocs" class="border-t border-[#e3e8ee] bg-[#fafbfc] px-6 py-4">
-                <p class="mb-4 text-sm text-[#33475b]">
+                <p class="mb-4 text-sm text-[#133c75]">
                     Endpoint para programar una llamada o mensaje desde sistemas externos (integraciones, etc.). La tarea se ejecutará el día y hora indicados en hora Colombia (scheduled_time opcional; si no se envía, se usa 08:00 por defecto).
                 </p>
 
                 <div class="mb-4">
-                    <p class="mb-1 text-xs font-medium uppercase text-[#425b76]">URL</p>
+                    <p class="mb-1 text-xs font-medium uppercase text-[#444444]">URL</p>
                     <code class="block break-all rounded bg-[#e3e8ee] px-3 py-2 text-sm">{{ apiCallbackUrl }}</code>
                 </div>
 
                 <div class="mb-4">
-                    <p class="mb-1 text-xs font-medium uppercase text-[#425b76]">Método</p>
+                    <p class="mb-1 text-xs font-medium uppercase text-[#444444]">Método</p>
                     <code class="rounded bg-[#e3e8ee] px-2 py-1 text-sm">POST</code>
                 </div>
 
                 <div class="mb-4">
-                    <p class="mb-1 text-xs font-medium uppercase text-[#425b76]">Autenticación</p>
-                    <p class="mb-2 text-sm text-[#33475b]">
+                    <p class="mb-1 text-xs font-medium uppercase text-[#444444]">Autenticación</p>
+                    <p class="mb-2 text-sm text-[#133c75]">
                         Usa la API key de la empresa (generada en la configuración de la empresa). Envía como:
                     </p>
-                    <ul class="list-inside list-disc space-y-1 text-sm text-[#33475b]">
+                    <ul class="list-inside list-disc space-y-1 text-sm text-[#133c75]">
                         <li><code class="rounded bg-[#e3e8ee] px-1">Authorization: Bearer ag_xxx...</code></li>
                         <li><code class="rounded bg-[#e3e8ee] px-1">X-Api-Key: ag_xxx...</code></li>
                     </ul>
                 </div>
 
                 <div class="mb-4">
-                    <p class="mb-1 text-xs font-medium uppercase text-[#425b76]">Body (JSON)</p>
-                    <pre class="overflow-x-auto rounded bg-[#33475b] p-4 text-sm text-[#e3e8ee]">{
+                    <p class="mb-1 text-xs font-medium uppercase text-[#444444]">Body (JSON)</p>
+                    <pre class="overflow-x-auto rounded bg-[#133c75] p-4 text-sm text-[#e3e8ee]">{
   "client_id": 123,
   "scheduled_date": "2026-02-15",
   "scheduled_time": "09:00",
   "channel": "call",
   "notes": "Cliente solicitó que lo llamen por la mañana"
 }</pre>
-                    <p class="mt-2 text-xs text-[#425b76]">
+                    <p class="mt-2 text-xs text-[#444444]">
                         <strong>Requeridos:</strong> scheduled_date, channel — 
                         <strong>Cliente:</strong> envía client_id, phone o document (al menos uno para identificar al cliente existente) — 
                         <strong>Opcionales:</strong> scheduled_time (HH:mm, hora Colombia), notes
                     </p>
-                    <p class="mt-1 text-xs text-[#425b76]">
+                    <p class="mt-1 text-xs text-[#444444]">
                         <strong>channel:</strong> "call" (llamada) o "whatsapp" (mensaje)
                     </p>
                 </div>
 
                 <div class="mb-4">
-                    <p class="mb-1 text-xs font-medium uppercase text-[#425b76]">Respuesta exitosa (201)</p>
-                    <pre class="overflow-x-auto rounded bg-[#33475b] p-4 text-sm text-[#e3e8ee]">{
+                    <p class="mb-1 text-xs font-medium uppercase text-[#444444]">Respuesta exitosa (201)</p>
+                    <pre class="overflow-x-auto rounded bg-[#133c75] p-4 text-sm text-[#e3e8ee]">{
   "success": true,
   "message": "Callback programado correctamente. Se ejecutará el día y hora indicados.",
   "callback_request": {
@@ -294,24 +294,24 @@ function formatDate(d) {
                 </div>
 
                 <div class="mb-4">
-                    <p class="mb-1 text-xs font-medium uppercase text-[#425b76]">Respuesta error (422)</p>
-                    <pre class="overflow-x-auto rounded bg-[#33475b] p-4 text-sm text-[#e3e8ee]">{
+                    <p class="mb-1 text-xs font-medium uppercase text-[#444444]">Respuesta error (422)</p>
+                    <pre class="overflow-x-auto rounded bg-[#133c75] p-4 text-sm text-[#e3e8ee]">{
   "success": false,
   "error": "Cliente no encontrado. Proporciona client_id, phone o document de un cliente existente."
 }</pre>
                 </div>
 
                 <div>
-                    <p class="mb-1 text-xs font-medium uppercase text-[#425b76]">Ejemplo cURL</p>
-                    <pre class="overflow-x-auto rounded bg-[#33475b] p-4 text-sm text-[#e3e8ee]">curl -X POST "{{ apiCallbackUrl }}" \
+                    <p class="mb-1 text-xs font-medium uppercase text-[#444444]">Ejemplo cURL</p>
+                    <pre class="overflow-x-auto rounded bg-[#133c75] p-4 text-sm text-[#e3e8ee]">curl -X POST "{{ apiCallbackUrl }}" \
   -H "Content-Type: application/json" \
   -H "X-Api-Key: ag_tu_api_key" \
   -d '{"phone":"573001234567","scheduled_date":"2026-02-15","channel":"call","notes":"Llamar por la mañana"}'</pre>
                 </div>
 
                 <div class="mt-4">
-                    <p class="mb-1 text-xs font-medium uppercase text-[#425b76]">Ejemplo con client_id</p>
-                    <pre class="overflow-x-auto rounded bg-[#33475b] p-4 text-sm text-[#e3e8ee]">curl -X POST "{{ apiCallbackUrl }}" \
+                    <p class="mb-1 text-xs font-medium uppercase text-[#444444]">Ejemplo con client_id</p>
+                    <pre class="overflow-x-auto rounded bg-[#133c75] p-4 text-sm text-[#e3e8ee]">curl -X POST "{{ apiCallbackUrl }}" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer ag_tu_api_key" \
   -d '{"client_id":123,"scheduled_date":"2026-02-15","scheduled_time":"14:00","channel":"whatsapp"}'</pre>

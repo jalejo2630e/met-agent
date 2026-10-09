@@ -123,12 +123,13 @@ class TwilioInboxController extends Controller
             'body' => 'required|string|max:4000',
         ]);
 
-        if (! $twilio->canSendWhatsapp()) {
+        $sede = TwilioMessage::sedeFor($agent->id, $validated['from']);
+        if (! $twilio->canSendWhatsapp($sede)) {
             return response()->json(['success' => false, 'message' => 'Twilio no está configurado para enviar WhatsApp (define TWILIO_WHATSAPP_FROM).'], 422);
         }
 
         try {
-            $twilio->sendWhatsappText($validated['from'], $validated['body']);
+            $twilio->sendWhatsappText($validated['from'], $validated['body'], sede: $sede);
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -167,7 +168,8 @@ class TwilioInboxController extends Controller
         $plantilla = collect($plantillas)->first(fn ($p) => ($p['id'] ?? null) === $idPlantilla);
         $esTwilio = ($plantilla['from_twilio'] ?? false) || str_starts_with((string) $idPlantilla, 'HX');
 
-        if (! $esTwilio || ! $twilio->canSendWhatsapp()) {
+        $sede = TwilioMessage::sedeFor($agent->id, $validated['from']);
+        if (! $esTwilio || ! $twilio->canSendWhatsapp($sede)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Solo se pueden enviar plantillas de Twilio desde la bandeja. Configura TWILIO_WHATSAPP_FROM y usa una plantilla de Twilio.',
@@ -185,7 +187,7 @@ class TwilioInboxController extends Controller
         }
 
         try {
-            $twilio->sendWhatsappTemplate($validated['from'], (string) $idPlantilla, $variablesMap);
+            $twilio->sendWhatsappTemplate($validated['from'], (string) $idPlantilla, $variablesMap, sede: $sede);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Error al enviar por Twilio: '.$e->getMessage()], 502);
         }
@@ -213,7 +215,8 @@ class TwilioInboxController extends Controller
             'voice' => ['nullable', 'boolean'],
         ]);
 
-        if (! $twilio->canSendWhatsapp()) {
+        $sede = TwilioMessage::sedeFor($agent->id, $validated['from']);
+        if (! $twilio->canSendWhatsapp($sede)) {
             return response()->json(['success' => false, 'message' => 'Twilio no está configurado para enviar WhatsApp (define TWILIO_WHATSAPP_FROM).'], 422);
         }
 
@@ -240,7 +243,7 @@ class TwilioInboxController extends Controller
         $caption = $validated['caption'] ?? null;
 
         try {
-            $twilio->sendWhatsappMedia($validated['from'], $mediaUrl, $caption);
+            $twilio->sendWhatsappMedia($validated['from'], $mediaUrl, $caption, sede: $sede);
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,

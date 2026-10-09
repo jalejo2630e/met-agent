@@ -29,7 +29,7 @@ class SettingsController extends Controller
                 'message_cost' => Setting::get('message_cost'),
                 'call_minute_cost' => Setting::get('call_minute_cost'),
                 'monthly_message_cap' => Setting::get('monthly_message_cap'),
-                'primary_color' => Setting::get('primary_color') ?? '#a3e635',
+                'primary_color' => Setting::get('primary_color') ?? '#009B41',
                 'whatsapp_conversations_source' => Setting::get('whatsapp_conversations_source') ?? config('services.whatsapp_conversations.source', 'internal'),
                 'whatsapp_conversations_supabase_table_pattern' => Setting::get('whatsapp_conversations_supabase_table_pattern'),
                 'whatsapp_conversations_supabase_phone_column' => Setting::get('whatsapp_conversations_supabase_phone_column'),
@@ -219,7 +219,7 @@ class SettingsController extends Controller
         }
 
         if (array_key_exists('primary_color', $validated)) {
-            Setting::set('primary_color', $validated['primary_color'] ?? '#a3e635');
+            Setting::set('primary_color', $validated['primary_color'] ?? '#009B41');
         }
 
         Setting::set('whatsapp_conversations_source', $validated['whatsapp_conversations_source']);

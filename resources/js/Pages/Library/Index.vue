@@ -181,14 +181,14 @@ function formatDate(iso) {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-[#33475b]">Library</h2>
+            <h2 class="text-xl font-semibold leading-tight text-[#133c75]">Library</h2>
         </template>
 
         <div class="py-8">
             <div class="w-full space-y-6 px-4 sm:px-6 lg:px-8">
                 <!-- Carga -->
                 <div class="rounded-lg border border-[#e3e8ee] bg-white p-5">
-                    <p class="mb-4 text-sm text-[#425b76]">
+                    <p class="mb-4 text-sm text-[#444444]">
                         Carga archivos y decide si su enlace es <strong>público</strong> (cualquiera con el enlace puede abrirlo)
                         o <strong>privado</strong> (solo usuarios con sesión en la plataforma). Puedes cambiarlo en cualquier momento.
                     </p>
@@ -200,10 +200,10 @@ function formatDate(iso) {
                         @dragleave.prevent="dragging = false"
                         @drop.prevent="onDrop"
                     >
-                        <span v-if="pendingFile" class="font-medium text-[#33475b]">
+                        <span v-if="pendingFile" class="font-medium text-[#133c75]">
                             {{ pendingFile.name }} · {{ formatSize(pendingFile.size) }}
                         </span>
-                        <span v-else class="text-[#425b76]">Arrastra un archivo aquí o haz clic para seleccionarlo (máx. 50 MB)</span>
+                        <span v-else class="text-[#444444]">Arrastra un archivo aquí o haz clic para seleccionarlo (máx. 50 MB)</span>
                     </div>
                     <input ref="fileInput" type="file" class="hidden" @change="onFileChange" />
 
@@ -218,7 +218,7 @@ function formatDate(iso) {
                                 <button
                                     type="button"
                                     class="px-3 py-2"
-                                    :class="!uploadPublic ? 'bg-[#33475b] text-white' : 'bg-white text-[#425b76] hover:bg-[#f5f8fa]'"
+                                    :class="!uploadPublic ? 'bg-[#133c75] text-white' : 'bg-white text-[#444444] hover:bg-[#f5f8fa]'"
                                     @click="uploadPublic = false"
                                 >
                                     Privado
@@ -226,7 +226,7 @@ function formatDate(iso) {
                                 <button
                                     type="button"
                                     class="border-l border-[#cbd6e2] px-3 py-2"
-                                    :class="uploadPublic ? 'bg-green-600 text-white' : 'bg-white text-[#425b76] hover:bg-[#f5f8fa]'"
+                                    :class="uploadPublic ? 'bg-green-600 text-white' : 'bg-white text-[#444444] hover:bg-[#f5f8fa]'"
                                     @click="uploadPublic = true"
                                 >
                                     Público
@@ -249,11 +249,11 @@ function formatDate(iso) {
                             <table class="min-w-full divide-y divide-[#e3e8ee]">
                                 <thead>
                                     <tr>
-                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#425b76]">Archivo</th>
-                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#425b76]">Tamaño</th>
-                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#425b76]">Cargado por</th>
-                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#425b76]">Enlace</th>
-                                        <th class="bg-[#f5f8fa] px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#425b76]">Acciones</th>
+                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#444444]">Archivo</th>
+                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#444444]">Tamaño</th>
+                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#444444]">Cargado por</th>
+                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#444444]">Enlace</th>
+                                        <th class="bg-[#f5f8fa] px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#444444]">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-[#e3e8ee] bg-white">
@@ -263,20 +263,20 @@ function formatDate(iso) {
                                         :class="[idx % 2 === 0 ? 'bg-white' : 'bg-[#f8fafc]', 'hover:bg-[#f5f8fa]/80']"
                                     >
                                         <td class="px-4 py-3 text-sm">
-                                            <button type="button" class="text-left font-medium text-[#33475b] hover:underline" @click="openDetails(file)">
+                                            <button type="button" class="text-left font-medium text-[#133c75] hover:underline" @click="openDetails(file)">
                                                 {{ file.name }}
                                             </button>
                                             <div class="text-xs text-[#7c98b6]">{{ formatDate(file.created_at) }}</div>
                                         </td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-[#425b76]">{{ formatSize(file.size) }}</td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-[#425b76]">{{ file.uploaded_by || '—' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-[#444444]">{{ formatSize(file.size) }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-[#444444]">{{ file.uploaded_by || '—' }}</td>
                                         <td class="whitespace-nowrap px-4 py-3">
                                             <div class="inline-flex overflow-hidden rounded-full border border-[#cbd6e2] text-xs font-medium">
                                                 <button
                                                     type="button"
                                                     class="px-2.5 py-1"
                                                     :disabled="busyId === file.id"
-                                                    :class="!file.is_public ? 'bg-[#33475b] text-white' : 'bg-white text-[#425b76] hover:bg-[#f5f8fa]'"
+                                                    :class="!file.is_public ? 'bg-[#133c75] text-white' : 'bg-white text-[#444444] hover:bg-[#f5f8fa]'"
                                                     @click="setVisibility(file, false)"
                                                 >
                                                     Privado
@@ -285,7 +285,7 @@ function formatDate(iso) {
                                                     type="button"
                                                     class="border-l border-[#cbd6e2] px-2.5 py-1"
                                                     :disabled="busyId === file.id"
-                                                    :class="file.is_public ? 'bg-green-600 text-white' : 'bg-white text-[#425b76] hover:bg-[#f5f8fa]'"
+                                                    :class="file.is_public ? 'bg-green-600 text-white' : 'bg-white text-[#444444] hover:bg-[#f5f8fa]'"
                                                     @click="setVisibility(file, true)"
                                                 >
                                                     Público
@@ -310,7 +310,7 @@ function formatDate(iso) {
                                         </td>
                                     </tr>
                                     <tr v-if="!filteredFiles.length">
-                                        <td colspan="5" class="px-4 py-8 text-center text-[#425b76]">
+                                        <td colspan="5" class="px-4 py-8 text-center text-[#444444]">
                                             {{ files.length ? 'Sin resultados para el filtro actual.' : 'Aún no hay archivos en la biblioteca.' }}
                                         </td>
                                     </tr>
@@ -326,7 +326,7 @@ function formatDate(iso) {
         <Modal :show="!!selected" max-width="lg" @close="closeDetails">
             <div v-if="selected" class="space-y-5 p-6">
                 <div>
-                    <h3 class="text-lg font-semibold text-[#33475b]">Detalle del archivo</h3>
+                    <h3 class="text-lg font-semibold text-[#133c75]">Detalle del archivo</h3>
                     <p class="mt-1 text-xs text-[#7c98b6]">
                         {{ selected.original_filename }} · {{ formatSize(selected.size) }} · {{ selected.mime || 'desconocido' }}
                     </p>
@@ -348,12 +348,12 @@ function formatDate(iso) {
                         <button
                             type="button"
                             class="rounded-lg border p-3 text-left text-sm transition"
-                            :class="!selected.is_public ? 'border-[#33475b] ring-1 ring-[#33475b]' : 'border-[#cbd6e2] hover:bg-[#f5f8fa]'"
+                            :class="!selected.is_public ? 'border-[#133c75] ring-1 ring-[#133c75]' : 'border-[#cbd6e2] hover:bg-[#f5f8fa]'"
                             :disabled="busyId === selected.id"
                             @click="setVisibility(selected, false)"
                         >
-                            <div class="font-medium text-[#33475b]">Privado</div>
-                            <div class="text-xs text-[#425b76]">Solo usuarios con sesión iniciada.</div>
+                            <div class="font-medium text-[#133c75]">Privado</div>
+                            <div class="text-xs text-[#444444]">Solo usuarios con sesión iniciada.</div>
                         </button>
                         <button
                             type="button"
@@ -362,8 +362,8 @@ function formatDate(iso) {
                             :disabled="busyId === selected.id"
                             @click="setVisibility(selected, true)"
                         >
-                            <div class="font-medium text-[#33475b]">Público</div>
-                            <div class="text-xs text-[#425b76]">Cualquiera con el enlace.</div>
+                            <div class="font-medium text-[#133c75]">Público</div>
+                            <div class="text-xs text-[#444444]">Cualquiera con el enlace.</div>
                         </button>
                     </div>
                 </div>
@@ -374,7 +374,7 @@ function formatDate(iso) {
                         <input
                             :value="linkFor(selected)"
                             readonly
-                            class="block w-full rounded-md border-[#cbd6e2] bg-[#f8fafc] text-sm text-[#425b76]"
+                            class="block w-full rounded-md border-[#cbd6e2] bg-[#f8fafc] text-sm text-[#444444]"
                             @focus="$event.target.select()"
                         />
                         <SecondaryButton @click="copyLink(selected)">Copiar</SecondaryButton>

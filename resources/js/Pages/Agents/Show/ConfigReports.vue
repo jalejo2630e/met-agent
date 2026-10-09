@@ -315,8 +315,8 @@ async function sendReport() {
         <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
             <div class="flex flex-wrap items-start justify-between gap-4 p-6">
                 <div>
-                    <h3 class="text-lg font-semibold text-[#33475b]">Reportes personalizados</h3>
-                    <p class="mt-1 text-sm text-[#425b76]">
+                    <h3 class="text-lg font-semibold text-[#133c75]">Reportes personalizados</h3>
+                    <p class="mt-1 text-sm text-[#444444]">
                         Crea gráficas con tus propias reglas sobre los campos del cliente o las llamadas. Respetan el filtro de fechas del reporte.
                     </p>
                 </div>
@@ -333,7 +333,7 @@ async function sendReport() {
             </div>
         </div>
 
-        <div v-if="widgetsLoading && !reportWidgets.length" class="rounded-lg border border-[#e3e8ee] bg-white p-12 text-center text-[#425b76]">
+        <div v-if="widgetsLoading && !reportWidgets.length" class="rounded-lg border border-[#e3e8ee] bg-white p-12 text-center text-[#444444]">
             Cargando reportes...
         </div>
 
@@ -342,12 +342,12 @@ async function sendReport() {
             <svg class="mx-auto h-10 w-10 text-[#cdd8e3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            <p class="mt-3 text-sm font-medium text-[#33475b]">Aún no tienes reportes personalizados</p>
-            <p class="mt-1 text-sm text-[#425b76]">Empieza con una plantilla: avance por STEP, satisfacción o llamadas.</p>
+            <p class="mt-3 text-sm font-medium text-[#133c75]">Aún no tienes reportes personalizados</p>
+            <p class="mt-1 text-sm text-[#444444]">Empieza con una plantilla: avance por STEP, satisfacción o llamadas.</p>
             <button
                 type="button"
                 @click="openCreate"
-                class="mt-4 inline-flex items-center gap-2 rounded-md border border-[#e3e8ee] bg-white px-4 py-2 text-sm font-medium text-[#33475b] transition hover:bg-[#f5f8fa]"
+                class="mt-4 inline-flex items-center gap-2 rounded-md border border-[#e3e8ee] bg-white px-4 py-2 text-sm font-medium text-[#133c75] transition hover:bg-[#f5f8fa]"
             >
                 Crear mi primer reporte
             </button>
@@ -389,15 +389,15 @@ async function sendReport() {
             <div class="p-6">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <h3 class="text-lg font-semibold text-[#33475b]">Filtros de reporte</h3>
-                        <p class="mt-1 text-sm text-[#425b76]">
+                        <h3 class="text-lg font-semibold text-[#133c75]">Filtros de reporte</h3>
+                        <p class="mt-1 text-sm text-[#444444]">
                             Selecciona un período o consulta toda la operación.
                         </p>
                     </div>
                     <button
                         type="button"
                         @click="toggleSend"
-                        class="inline-flex items-center gap-2 rounded-md border border-[#e3e8ee] bg-white px-4 py-2 text-sm font-medium text-[#33475b] transition hover:bg-[#f5f8fa]"
+                        class="inline-flex items-center gap-2 rounded-md border border-[#e3e8ee] bg-white px-4 py-2 text-sm font-medium text-[#133c75] transition hover:bg-[#f5f8fa]"
                     >
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -408,23 +408,23 @@ async function sendReport() {
 
                 <!-- Panel de envío por correo -->
                 <div v-if="showSend" class="mt-4 rounded-lg border border-[#e3e8ee] bg-[#f5f8fa] p-4">
-                    <p class="text-sm font-medium text-[#33475b]">Enviar reporte de operación por email</p>
-                    <p class="mt-1 text-xs text-[#425b76]">
+                    <p class="text-sm font-medium text-[#133c75]">Enviar reporte de operación por email</p>
+                    <p class="mt-1 text-xs text-[#444444]">
                         Se enviará el reporte con las gráficas tal como se ven en pantalla, según el filtro actual.
                         Cambia el período en los filtros de abajo si necesitas otro rango.
                     </p>
                     <div class="mt-3 flex flex-wrap items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 rounded-full border border-[#e3e8ee] bg-white px-3 py-1 text-xs font-medium text-[#33475b]">
+                        <span class="inline-flex items-center gap-1.5 rounded-full border border-[#e3e8ee] bg-white px-3 py-1 text-xs font-medium text-[#133c75]">
                             <span class="inline-block h-2 w-2 rounded-full bg-[var(--color-primary)]"></span>
                             Período: {{ currentPeriodLabel }}
                         </span>
-                        <span class="text-xs text-[#425b76]">
+                        <span class="text-xs text-[#444444]">
                             Incluye {{ reportWidgets.length }} reporte(s) personalizado(s){{ collectionChartData ? ' + datos de recolección' : '' }}.
                         </span>
                     </div>
                     <div class="mt-3 grid gap-4 sm:grid-cols-2">
                         <div class="flex flex-col">
-                            <label class="text-xs font-medium text-[#33475b]">Email de destino</label>
+                            <label class="text-xs font-medium text-[#133c75]">Email de destino</label>
                             <input
                                 v-model="sendEmail"
                                 type="email"
@@ -445,7 +445,7 @@ async function sendReport() {
                         <button
                             type="button"
                             @click="showSend = false"
-                            class="text-sm text-[#425b76] hover:text-[#33475b]"
+                            class="text-sm text-[#444444] hover:text-[#133c75]"
                         >
                             Cancelar
                         </button>
@@ -454,7 +454,7 @@ async function sendReport() {
 
                 <div class="mt-4 flex flex-wrap items-end gap-4">
                     <div class="flex flex-col">
-                        <label class="text-sm font-medium text-[#33475b]">Período</label>
+                        <label class="text-sm font-medium text-[#133c75]">Período</label>
                         <select
                             v-model="filterMode"
                             class="mt-1 rounded-md border border-[#e3e8ee] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
@@ -466,7 +466,7 @@ async function sendReport() {
 
                     <template v-if="filterMode === 'range'">
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium text-[#33475b]">Desde</label>
+                            <label class="text-sm font-medium text-[#133c75]">Desde</label>
                             <input
                                 v-model="dateFrom"
                                 type="date"
@@ -474,7 +474,7 @@ async function sendReport() {
                             />
                         </div>
                         <div class="flex flex-col">
-                            <label class="text-sm font-medium text-[#33475b]">Hasta</label>
+                            <label class="text-sm font-medium text-[#133c75]">Hasta</label>
                             <input
                                 v-model="dateTo"
                                 type="date"
@@ -495,7 +495,7 @@ async function sendReport() {
         </div>
 
         <!-- Resultados -->
-        <div v-if="loading && !report" class="rounded-lg border border-[#e3e8ee] bg-white p-12 text-center text-[#425b76]">
+        <div v-if="loading && !report" class="rounded-lg border border-[#e3e8ee] bg-white p-12 text-center text-[#444444]">
             Cargando reporte...
         </div>
 
@@ -509,9 +509,9 @@ async function sendReport() {
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-[#425b76]">Clientes</p>
-                            <p class="text-2xl font-bold text-[#33475b]">{{ report.total_clients }}</p>
-                            <p class="text-xs text-[#425b76]">
+                            <p class="text-sm font-medium text-[#444444]">Clientes</p>
+                            <p class="text-2xl font-bold text-[#133c75]">{{ report.total_clients }}</p>
+                            <p class="text-xs text-[#444444]">
                                 {{ report.period?.all_time ? 'Total histórico' : 'En el período seleccionado' }}
                             </p>
                         </div>
@@ -528,9 +528,9 @@ async function sendReport() {
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-[#425b76]">Mensajes WhatsApp</p>
-                            <p class="text-2xl font-bold text-[#33475b]">{{ report.total_messages }}</p>
-                            <p class="text-xs text-[#425b76]">
+                            <p class="text-sm font-medium text-[#444444]">Mensajes WhatsApp</p>
+                            <p class="text-2xl font-bold text-[#133c75]">{{ report.total_messages }}</p>
+                            <p class="text-xs text-[#444444]">
                                 Envíos registrados
                             </p>
                         </div>
@@ -547,9 +547,9 @@ async function sendReport() {
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-[#425b76]">Llamadas</p>
-                            <p class="text-2xl font-bold text-[#33475b]">{{ report.total_calls }}</p>
-                            <p class="text-xs text-[#425b76]">
+                            <p class="text-sm font-medium text-[#444444]">Llamadas</p>
+                            <p class="text-2xl font-bold text-[#133c75]">{{ report.total_calls }}</p>
+                            <p class="text-xs text-[#444444]">
                                 Llamadas realizadas
                             </p>
                         </div>
@@ -561,12 +561,12 @@ async function sendReport() {
         <!-- Gráfica datos de recolección -->
         <div v-if="report && collectionChartData" ref="collectionCard" class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
             <div class="p-6">
-                <h3 class="text-lg font-semibold text-[#33475b]">Datos de recolección</h3>
-                <p class="mt-1 text-sm text-[#425b76]">Clientes con datos recolectados en conversación (endpoint de recolección).</p>
+                <h3 class="text-lg font-semibold text-[#133c75]">Datos de recolección</h3>
+                <p class="mt-1 text-sm text-[#444444]">Clientes con datos recolectados en conversación (endpoint de recolección).</p>
                 <div class="mt-4 flex justify-center" style="height: 260px;">
                     <Doughnut :data="collectionChartData" :options="collectionChartOptions" />
                 </div>
-                <p class="mt-2 text-center text-sm text-[#425b76]">
+                <p class="mt-2 text-center text-sm text-[#444444]">
                     <strong>{{ report.total_with_collection ?? 0 }}</strong> clientes con datos recolectados
                 </p>
                 <p class="mt-3 text-center" data-capture-ignore>
@@ -589,12 +589,12 @@ async function sendReport() {
             <div class="p-6">
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h3 class="text-lg font-semibold text-[#33475b]">Información recolectada por cliente</h3>
-                        <p class="mt-1 text-sm text-[#425b76]">Datos enviados por el endpoint de recolección (conversación WhatsApp) asociados a cada cliente.</p>
+                        <h3 class="text-lg font-semibold text-[#133c75]">Información recolectada por cliente</h3>
+                        <p class="mt-1 text-sm text-[#444444]">Datos enviados por el endpoint de recolección (conversación WhatsApp) asociados a cada cliente.</p>
                     </div>
                     <a
                         :href="exportCollectionUrl"
-                        class="inline-flex items-center gap-1.5 rounded-md border border-[#e3e8ee] bg-white px-3 py-1.5 text-sm text-[#33475b] hover:bg-[#f5f8fa]"
+                        class="inline-flex items-center gap-1.5 rounded-md border border-[#e3e8ee] bg-white px-3 py-1.5 text-sm text-[#133c75] hover:bg-[#f5f8fa]"
                         download
                     >
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -607,29 +607,29 @@ async function sendReport() {
                     <table class="min-w-full divide-y divide-[#e3e8ee] text-sm">
                         <thead class="bg-[#f5f8fa]">
                             <tr>
-                                <th class="px-4 py-2 text-left font-medium text-[#33475b]">Cliente</th>
-                                <th class="px-4 py-2 text-left font-medium text-[#33475b]">Teléfono</th>
-                                <th class="px-4 py-2 text-left font-medium text-[#33475b]">Email</th>
-                                <th class="px-4 py-2 text-left font-medium text-[#33475b]">Datos recolectados</th>
-                                <th class="px-4 py-2 text-left font-medium text-[#33475b]">Veces contactado</th>
-                                <th class="px-4 py-2 text-left font-medium text-[#33475b]">Última actualización</th>
+                                <th class="px-4 py-2 text-left font-medium text-[#133c75]">Cliente</th>
+                                <th class="px-4 py-2 text-left font-medium text-[#133c75]">Teléfono</th>
+                                <th class="px-4 py-2 text-left font-medium text-[#133c75]">Email</th>
+                                <th class="px-4 py-2 text-left font-medium text-[#133c75]">Datos recolectados</th>
+                                <th class="px-4 py-2 text-left font-medium text-[#133c75]">Veces contactado</th>
+                                <th class="px-4 py-2 text-left font-medium text-[#133c75]">Última actualización</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#e3e8ee] bg-white">
                             <tr v-for="c in report.collection_clients" :key="c.id" class="hover:bg-[#f5f8fa]/50">
-                                <td class="px-4 py-3 text-[#33475b]">{{ c.name }} {{ c.lastname }}</td>
-                                <td class="px-4 py-3 text-[#425b76]">{{ c.phone || '—' }}</td>
-                                <td class="px-4 py-3 text-[#425b76]">{{ c.email || '—' }}</td>
+                                <td class="px-4 py-3 text-[#133c75]">{{ c.name }} {{ c.lastname }}</td>
+                                <td class="px-4 py-3 text-[#444444]">{{ c.phone || '—' }}</td>
+                                <td class="px-4 py-3 text-[#444444]">{{ c.email || '—' }}</td>
                                 <td class="px-4 py-3">
-                                    <ul class="list-inside list-disc space-y-0.5 text-[#425b76]">
+                                    <ul class="list-inside list-disc space-y-0.5 text-[#444444]">
                                         <li v-for="(val, key) in extraCollectedData(c)" :key="key">
-                                            <span class="font-medium text-[#33475b]">{{ key }}:</span> {{ typeof val === 'object' ? JSON.stringify(val) : val }}
+                                            <span class="font-medium text-[#133c75]">{{ key }}:</span> {{ typeof val === 'object' ? JSON.stringify(val) : val }}
                                         </li>
                                         <li v-if="!Object.keys(extraCollectedData(c)).length" class="text-gray-400">—</li>
                                     </ul>
                                 </td>
-                                <td class="px-4 py-3 text-[#425b76]">{{ c.contact_count ?? 0 }}</td>
-                                <td class="px-4 py-3 text-[#425b76]">{{ c.updated_at ? new Date(c.updated_at).toLocaleString() : '—' }}</td>
+                                <td class="px-4 py-3 text-[#444444]">{{ c.contact_count ?? 0 }}</td>
+                                <td class="px-4 py-3 text-[#444444]">{{ c.updated_at ? new Date(c.updated_at).toLocaleString() : '—' }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -637,7 +637,7 @@ async function sendReport() {
             </div>
         </div>
 
-        <div v-if="report && report.period?.all_time" class="rounded-lg border border-[#e3e8ee] bg-[#f5f8fa] p-4 text-sm text-[#425b76]">
+        <div v-if="report && report.period?.all_time" class="rounded-lg border border-[#e3e8ee] bg-[#f5f8fa] p-4 text-sm text-[#444444]">
             <strong>Nota:</strong> El total de mensajes proviene de los registros de contacto (ClientContactLog). El total de llamadas se calcula desde la tabla de registros de llamada (Supabase), asociando cada llamada por el teléfono de los clientes de la empresa.
         </div>
 

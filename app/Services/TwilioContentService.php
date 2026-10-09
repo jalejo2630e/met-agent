@@ -188,9 +188,9 @@ class TwilioContentService
     /**
      * ¿Se puede enviar WhatsApp por Twilio? (credenciales + remitente definidos).
      */
-    public function canSendWhatsapp(): bool
+    public function canSendWhatsapp(?string $sede = null): bool
     {
-        return $this->isConfigured() && $this->whatsappFrom() !== '';
+        return $this->isConfigured() && $this->whatsappFrom($sede) !== '';
     }
 
     /**
@@ -222,8 +222,18 @@ class TwilioContentService
         }
     }
 
-    private function whatsappFrom(): string
+    /**
+     * Número remitente: el de la sede (si está configurado) o el general.
+     * Responder desde el mismo número que recibió el mensaje mantiene la
+     * conversación en el WhatsApp de esa sede.
+     */
+    private function whatsappFrom(?string $sede = null): string
     {
+        $sedeDigits = preg_replace('/\D/', '', (string) config('services.twilio.sedes.'.$sede.'.number', ''));
+        if ($sede !== null && $sedeDigits !== '') {
+            return 'whatsapp:+'.$sedeDigits;
+        }
+
         return (string) config('services.twilio.whatsapp_from', '');
     }
 
@@ -235,14 +245,14 @@ class TwilioContentService
      * @param  array<string|int, string>  $variables  mapa posición/clave => valor
      * @return array<string, mixed>
      */
-    public function sendWhatsappTemplate(string $toPhone, string $contentSid, array $variables = []): array
+    public function sendWhatsappTemplate(string $toPhone, string $contentSid, array $variables = [], ?string $sede = null): array
     {
-        if (! $this->canSendWhatsapp()) {
+        if (! $this->canSendWhatsapp($sede)) {
             throw new \RuntimeException('Twilio no está configurado para enviar WhatsApp (define TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN y TWILIO_WHATSAPP_FROM).');
         }
 
         $payload = [
-            'From' => $this->whatsappFrom(),
+            'From' => $this->whatsappFrom($sede),
             'To' => $this->toWhatsappAddress($toPhone),
             'ContentSid' => $contentSid,
         ];
@@ -270,9 +280,9 @@ class TwilioContentService
      *
      * @return array<string, mixed>
      */
-    public function sendWhatsappText(string $toPhone, string $body): array
+    public function sendWhatsappText(string $toPhone, string $body, ?string $sede = null): array
     {
-        if (! $this->canSendWhatsapp()) {
+        if (! $this->canSendWhatsapp($sede)) {
             throw new \RuntimeException('Twilio no está configurado para enviar WhatsApp (define TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN y TWILIO_WHATSAPP_FROM).');
         }
 
@@ -280,7 +290,7 @@ class TwilioContentService
             ->asForm()
             ->timeout(30)
             ->post('https://api.twilio.com/2010-04-01/Accounts/'.$this->sid().'/Messages.json', [
-                'From' => $this->whatsappFrom(),
+                'From' => $this->whatsappFrom($sede),
                 'To' => $this->toWhatsappAddress($toPhone),
                 'Body' => $body,
             ]);
@@ -298,14 +308,14 @@ class TwilioContentService
      *
      * @return array<string, mixed>
      */
-    public function sendWhatsappMedia(string $toPhone, string $mediaUrl, ?string $body = null): array
+    public function sendWhatsappMedia(string $toPhone, string $mediaUrl, ?string $body = null, ?string $sede = null): array
     {
-        if (! $this->canSendWhatsapp()) {
+        if (! $this->canSendWhatsapp($sede)) {
             throw new \RuntimeException('Twilio no está configurado para enviar WhatsApp (define TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN y TWILIO_WHATSAPP_FROM).');
         }
 
         $payload = [
-            'From' => $this->whatsappFrom(),
+            'From' => $this->whatsappFrom($sede),
             'To' => $this->toWhatsappAddress($toPhone),
             'MediaUrl' => $mediaUrl,
         ];

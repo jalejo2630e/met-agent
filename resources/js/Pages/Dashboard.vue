@@ -44,7 +44,7 @@ const roleLabels = {
 };
 
 const page = usePage();
-const primaryColor = computed(() => page.props.settings?.primary_color ?? '#a3e635');
+const primaryColor = computed(() => page.props.settings?.primary_color ?? '#009B41');
 
 const barChartData = computed(() => ({
     labels: ['Empresas', 'Clientes', 'Contactos WhatsApp', 'Contactos Llamada'],
@@ -127,7 +127,7 @@ const contactChartOptions = {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-[#33475b]">
+            <h2 class="text-xl font-semibold leading-tight text-[#133c75]">
                 Dashboard
             </h2>
         </template>
@@ -137,14 +137,14 @@ const contactChartOptions = {
                 <!-- Bienvenida -->
                 <div class="mb-8 overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold text-[#33475b]">
+                        <h3 class="text-lg font-semibold text-[#133c75]">
                             ¡Bienvenido, {{ $page.props.auth.user.name }}!
                         </h3>
-                        <p class="mt-1 text-sm text-[#425b76]">
+                        <p class="mt-1 text-sm text-[#444444]">
                             Rol: {{ roleLabels[$page.props.auth.user.role] || $page.props.auth.user.role }}
                         </p>
-                        <p class="mt-4 text-[#425b76]">
-                            Administrador de Agentes IA - Panel de control
+                        <p class="mt-4 text-[#444444]">
+                            MET - Panel de control
                         </p>
                     </div>
                 </div>
@@ -163,8 +163,8 @@ const contactChartOptions = {
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-[#425b76]">Empresas</p>
-                                    <p class="text-2xl font-bold text-[#33475b]">{{ stats?.agents ?? 0 }}</p>
+                                    <p class="text-sm font-medium text-[#444444]">Empresas</p>
+                                    <p class="text-2xl font-bold text-[#133c75]">{{ stats?.agents ?? 0 }}</p>
                                 </div>
                             </div>
                         </div>
@@ -179,8 +179,8 @@ const contactChartOptions = {
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-[#425b76]">Clientes</p>
-                                    <p class="text-2xl font-bold text-[#33475b]">{{ stats?.clients ?? 0 }}</p>
+                                    <p class="text-sm font-medium text-[#444444]">Clientes</p>
+                                    <p class="text-2xl font-bold text-[#133c75]">{{ stats?.clients ?? 0 }}</p>
                                 </div>
                             </div>
                         </div>
@@ -195,8 +195,8 @@ const contactChartOptions = {
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-[#425b76]">Contactos WhatsApp</p>
-                                    <p class="text-2xl font-bold text-[#33475b]">{{ stats?.whatsapp_contacts ?? 0 }}</p>
+                                    <p class="text-sm font-medium text-[#444444]">Contactos WhatsApp</p>
+                                    <p class="text-2xl font-bold text-[#133c75]">{{ stats?.whatsapp_contacts ?? 0 }}</p>
                                 </div>
                             </div>
                         </div>
@@ -211,8 +211,8 @@ const contactChartOptions = {
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-[#425b76]">Contactos por llamada</p>
-                                    <p class="text-2xl font-bold text-[#33475b]">{{ stats?.call_contacts ?? 0 }}</p>
+                                    <p class="text-sm font-medium text-[#444444]">Contactos por llamada</p>
+                                    <p class="text-2xl font-bold text-[#133c75]">{{ stats?.call_contacts ?? 0 }}</p>
                                 </div>
                             </div>
                         </div>
@@ -227,8 +227,8 @@ const contactChartOptions = {
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-[#425b76]">Total mensajes</p>
-                                    <p class="text-2xl font-bold text-[#33475b]">{{ stats?.total_messages ?? 0 }}</p>
+                                    <p class="text-sm font-medium text-[#444444]">Total mensajes</p>
+                                    <p class="text-2xl font-bold text-[#133c75]">{{ stats?.total_messages ?? 0 }}</p>
                                 </div>
                             </div>
                         </div>
@@ -243,8 +243,8 @@ const contactChartOptions = {
                                     </svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-[#425b76]">Minutos consumidos</p>
-                                    <p class="text-2xl font-bold text-[#33475b]">{{ stats?.total_minutes ?? 0 }}</p>
+                                    <p class="text-sm font-medium text-[#444444]">Minutos consumidos</p>
+                                    <p class="text-2xl font-bold text-[#133c75]">{{ stats?.total_minutes ?? 0 }}</p>
                                 </div>
                             </div>
                         </div>

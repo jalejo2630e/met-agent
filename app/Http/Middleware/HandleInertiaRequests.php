@@ -34,9 +34,9 @@ class HandleInertiaRequests extends Middleware
     {
         $settings = [
             'company_name' => null,
-            'company_logo_url' => asset('colsanitas.png'),
-            'favicon_url' => asset('colsanitas.png'),
-            'primary_color' => '#a3e635',
+            'company_logo_url' => asset('met-logo.png'),
+            'favicon_url' => asset('favicon.png'),
+            'primary_color' => '#009B41',
         ];
         $whatsappSource = config('services.whatsapp_conversations.source', 'internal');
         if (Schema::hasTable('settings')) {
@@ -44,9 +44,9 @@ class HandleInertiaRequests extends Middleware
             $siteFavicon = Setting::get('site_favicon');
             $settings = [
                 'company_name' => Setting::get('company_name'),
-                'company_logo_url' => $companyLogo ? asset('storage/'.$companyLogo) : asset('colsanitas.png'),
-                'favicon_url' => $siteFavicon ? asset('storage/'.$siteFavicon) : asset('colsanitas.png'),
-                'primary_color' => Setting::get('primary_color') ?? '#a3e635',
+                'company_logo_url' => $companyLogo ? asset('storage/'.$companyLogo) : asset('met-logo.png'),
+                'favicon_url' => $siteFavicon ? asset('storage/'.$siteFavicon) : asset('favicon.png'),
+                'primary_color' => Setting::get('primary_color') ?? '#009B41',
             ];
             $whatsappSource = Setting::get('whatsapp_conversations_source') ?? $whatsappSource;
         }

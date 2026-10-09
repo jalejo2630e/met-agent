@@ -16,7 +16,7 @@ const props = defineProps({
 
 const page = usePage();
 
-const logoUrl = computed(() => page.props.settings?.company_logo_url || '/colsanitas.png');
+const logoUrl = computed(() => page.props.settings?.company_logo_url || '/met-logo.png');
 const flashSuccess = computed(() => page.props.flash?.success);
 
 const hasQuestions = computed(() => props.questions.length > 0);
@@ -50,8 +50,8 @@ const formatDate = (iso) => {
         <div class="w-full max-w-2xl">
             <div class="mb-6 flex flex-col items-center text-center">
                 <img :src="logoUrl" alt="" class="h-14 w-auto" />
-                <h1 class="mt-4 text-xl font-semibold text-[#33475b]">Copiloto Amigo</h1>
-                <p v-if="clientName" class="mt-1 text-sm text-[#425b76]">Hola, {{ clientName }}</p>
+                <h1 class="mt-4 text-xl font-semibold text-[#133c75]">Copiloto Amigo</h1>
+                <p v-if="clientName" class="mt-1 text-sm text-[#444444]">Hola, {{ clientName }}</p>
             </div>
 
             <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white shadow-sm">
@@ -89,7 +89,7 @@ const formatDate = (iso) => {
 
                     <div class="space-y-6">
                         <div v-for="(q, index) in questions" :key="q.id">
-                            <label :for="`q-${q.id}`" class="block text-sm font-medium text-[#33475b]">
+                            <label :for="`q-${q.id}`" class="block text-sm font-medium text-[#133c75]">
                                 {{ index + 1 }}. {{ q.label }}
                                 <span v-if="q.required" class="text-red-500">*</span>
                             </label>

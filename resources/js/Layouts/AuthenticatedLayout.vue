@@ -13,7 +13,7 @@ const showingNavigationDropdown = ref(false);
 const page = usePage();
 const flashSuccess = computed(() => page.props.flash?.success);
 const flashError = computed(() => page.props.flash?.error);
-const logoUrl = computed(() => page.props.settings?.company_logo_url || '/colsanitas.png');
+const logoUrl = computed(() => page.props.settings?.company_logo_url || '/met-logo.png');
 const faviconUrl = computed(() => page.props.settings?.favicon_url || '/favicon.png');
 </script>
 
@@ -87,7 +87,7 @@ const faviconUrl = computed(() => page.props.settings?.favicon_url || '/favicon.
                                         <span class="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-[#425b76] transition duration-150 ease-in-out hover:text-[#33475b] focus:outline-none"
+                                                class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-[#444444] transition duration-150 ease-in-out hover:text-[#133c75] focus:outline-none"
                                             >
                                                 {{ $page.props.auth.user.name }}
 
@@ -296,7 +296,7 @@ const faviconUrl = computed(() => page.props.settings?.favicon_url || '/favicon.
 
             <!-- Footer -->
             <footer class="mt-auto border-t border-[#e3e8ee] bg-white py-4">
-                <div class="flex w-full items-center justify-center gap-2 px-4 text-center text-sm text-[#425b76] sm:px-6 lg:px-8">
+                <div class="flex w-full items-center justify-center gap-2 px-4 text-center text-sm text-[#444444] sm:px-6 lg:px-8">
                     <img src="/ainoa.png" alt="ainoa" class="h-6 w-6" />
                     <a href="https://ainoa.app" target="_blank" rel="noopener noreferrer" class="transition hover:text-[var(--color-primary)]">
                         By ainoa

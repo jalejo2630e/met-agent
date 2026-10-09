@@ -41,11 +41,11 @@ const toggleRecovery = async () => {
     <GuestLayout>
         <Head title="Verificación en dos pasos" />
 
-        <h1 class="text-center text-xl font-bold text-[#33475b]">
+        <h1 class="text-center text-xl font-bold text-[#133c75]">
             Verificación en dos pasos
         </h1>
 
-        <p class="mt-2 text-center text-sm text-[#425b76]">
+        <p class="mt-2 text-center text-sm text-[#444444]">
             <template v-if="!useRecovery">
                 Ingresa el código de 6 dígitos de tu app de autenticación.
             </template>
@@ -97,7 +97,7 @@ const toggleRecovery = async () => {
 
             <button
                 type="button"
-                class="w-full text-center text-sm text-[#425b76] underline hover:text-[var(--color-primary)]"
+                class="w-full text-center text-sm text-[#444444] underline hover:text-[var(--color-primary)]"
                 @click="toggleRecovery"
             >
                 <template v-if="!useRecovery">Usar un código de recuperación</template>

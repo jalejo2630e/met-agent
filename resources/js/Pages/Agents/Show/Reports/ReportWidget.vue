@@ -156,8 +156,8 @@ const callMetrics = computed(() => data.value.metrics || []);
                     </svg>
                 </button>
                 <div>
-                    <h3 class="text-base font-semibold text-[#33475b]">{{ widget.title }}</h3>
-                    <p class="text-xs text-[#425b76]">
+                    <h3 class="text-base font-semibold text-[#133c75]">{{ widget.title }}</h3>
+                    <p class="text-xs text-[#444444]">
                         <span v-if="widget.source === 'calls'">Basado en llamadas</span>
                         <span v-else>Campo: <span class="font-medium">{{ widget.field_name }}</span></span>
                     </p>
@@ -166,7 +166,7 @@ const callMetrics = computed(() => data.value.metrics || []);
             <div v-if="canEdit" data-capture-ignore class="flex items-center gap-1">
                 <button
                     type="button"
-                    class="rounded p-1.5 text-[#425b76] transition hover:bg-[#f5f8fa] hover:text-[#33475b]"
+                    class="rounded p-1.5 text-[#444444] transition hover:bg-[#f5f8fa] hover:text-[#133c75]"
                     title="Editar"
                     @click="emit('edit', widget)"
                 >
@@ -176,7 +176,7 @@ const callMetrics = computed(() => data.value.metrics || []);
                 </button>
                 <button
                     type="button"
-                    class="rounded p-1.5 text-[#425b76] transition hover:bg-red-50 hover:text-red-600"
+                    class="rounded p-1.5 text-[#444444] transition hover:bg-red-50 hover:text-red-600"
                     title="Eliminar"
                     @click="emit('delete', widget)"
                 >
@@ -204,10 +204,10 @@ const callMetrics = computed(() => data.value.metrics || []);
                     :colors="data.colors"
                     :detail="bucketDetail"
                 />
-                <div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[#425b76]">
-                    <span><strong class="text-[#33475b]">{{ data.total_in_ranges }}</strong> en tramos</span>
-                    <span v-if="data.no_data"><strong class="text-[#33475b]">{{ data.no_data }}</strong> sin dato</span>
-                    <span v-if="data.out_of_range"><strong class="text-[#33475b]">{{ data.out_of_range }}</strong> fuera de rango</span>
+                <div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[#444444]">
+                    <span><strong class="text-[#133c75]">{{ data.total_in_ranges }}</strong> en tramos</span>
+                    <span v-if="data.no_data"><strong class="text-[#133c75]">{{ data.no_data }}</strong> sin dato</span>
+                    <span v-if="data.out_of_range"><strong class="text-[#133c75]">{{ data.out_of_range }}</strong> fuera de rango</span>
                 </div>
             </template>
 
@@ -216,8 +216,8 @@ const callMetrics = computed(() => data.value.metrics || []);
                 <p class="mb-2 text-center text-[11px] text-[#98a4b3]">Haz clic en un tema para ver qué clientes están en ese estado.</p>
                 <div class="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <div class="rounded-lg bg-[#f5f8fa] p-3 text-center">
-                        <p class="text-[11px] font-medium uppercase tracking-wide text-[#425b76]">Avance promedio</p>
-                        <p class="text-xl font-bold text-[#33475b]">{{ data.overall_avg_pct }}%</p>
+                        <p class="text-[11px] font-medium uppercase tracking-wide text-[#444444]">Avance promedio</p>
+                        <p class="text-xl font-bold text-[#133c75]">{{ data.overall_avg_pct }}%</p>
                     </div>
                     <button
                         v-for="t in data.topic_averages"
@@ -227,11 +227,11 @@ const callMetrics = computed(() => data.value.metrics || []);
                         :style="selectedTopic === t.label ? { boxShadow: '0 0 0 2px ' + t.color, backgroundColor: '#fff' } : {}"
                         @click="selectTopic(t.label)"
                     >
-                        <p class="flex items-center justify-center gap-1 text-[11px] font-medium text-[#425b76]">
+                        <p class="flex items-center justify-center gap-1 text-[11px] font-medium text-[#444444]">
                             <span class="inline-block h-2 w-2 rounded-full" :style="{ backgroundColor: t.color }" />
                             {{ t.label }}
                         </p>
-                        <p class="text-xl font-bold text-[#33475b]">{{ t.avg_pct }}%</p>
+                        <p class="text-xl font-bold text-[#133c75]">{{ t.avg_pct }}%</p>
                         <p class="text-[11px] text-[#98a4b3]">{{ t.clients }} clientes</p>
                     </button>
                     <button
@@ -241,11 +241,11 @@ const callMetrics = computed(() => data.value.metrics || []);
                         :style="selectedTopic === COMPLETED_KEY ? { boxShadow: '0 0 0 2px #2e7d32', backgroundColor: '#fff' } : {}"
                         @click="selectTopic(COMPLETED_KEY)"
                     >
-                        <p class="flex items-center justify-center gap-1 text-[11px] font-medium text-[#425b76]">
+                        <p class="flex items-center justify-center gap-1 text-[11px] font-medium text-[#444444]">
                             <svg class="h-3 w-3 text-[#2e7d32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                             Completado
                         </p>
-                        <p class="text-xl font-bold text-[#33475b]">{{ completedCount }}</p>
+                        <p class="text-xl font-bold text-[#133c75]">{{ completedCount }}</p>
                         <p class="text-[11px] text-[#98a4b3]">clientes</p>
                     </button>
                 </div>
@@ -268,7 +268,7 @@ const callMetrics = computed(() => data.value.metrics || []);
                     </button>
                 </div>
                 <div v-if="showTable">
-                    <div v-if="activeFilterLabel" class="mt-3 flex items-center justify-between rounded-md bg-[#eef4f9] px-3 py-2 text-xs text-[#33475b]">
+                    <div v-if="activeFilterLabel" class="mt-3 flex items-center justify-between rounded-md bg-[#eef4f9] px-3 py-2 text-xs text-[#133c75]">
                         <span>Mostrando clientes en <strong>{{ activeFilterLabel }}</strong> ({{ filteredRows.length }})</span>
                         <button type="button" class="font-medium text-[#1976d2] hover:underline" @click="clearTopic">Ver todos</button>
                     </div>
@@ -276,10 +276,10 @@ const callMetrics = computed(() => data.value.metrics || []);
                         <table class="min-w-full divide-y divide-[#eef2f6] text-sm">
                             <thead class="sticky top-0 bg-[#f5f8fa]">
                                 <tr>
-                                    <th class="px-3 py-2 text-left font-medium text-[#33475b]">Cliente</th>
-                                    <th class="px-3 py-2 text-left font-medium text-[#33475b]">Valor</th>
-                                    <th class="px-3 py-2 text-left font-medium text-[#33475b]">Tema</th>
-                                    <th class="px-3 py-2 text-left font-medium text-[#33475b]">Avance</th>
+                                    <th class="px-3 py-2 text-left font-medium text-[#133c75]">Cliente</th>
+                                    <th class="px-3 py-2 text-left font-medium text-[#133c75]">Valor</th>
+                                    <th class="px-3 py-2 text-left font-medium text-[#133c75]">Tema</th>
+                                    <th class="px-3 py-2 text-left font-medium text-[#133c75]">Avance</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#eef2f6] bg-white">
@@ -287,17 +287,17 @@ const callMetrics = computed(() => data.value.metrics || []);
                                     <td class="px-3 py-2">
                                         <button type="button" class="text-left font-medium text-[#1976d2] hover:underline" @click="emit('open-client', r)">{{ r.name || '—' }}</button>
                                     </td>
-                                    <td class="px-3 py-2 text-[#425b76]">{{ r.value }}</td>
+                                    <td class="px-3 py-2 text-[#444444]">{{ r.value }}</td>
                                     <td class="px-3 py-2">
                                         <span v-if="isCompleted(r)" class="inline-flex items-center gap-1 rounded-full bg-[#e8f5e9] px-2 py-0.5 text-[11px] font-medium text-[#2e7d32]">Completado</span>
-                                        <span v-else class="text-[#425b76]">{{ r.topic || '—' }}</span>
+                                        <span v-else class="text-[#444444]">{{ r.topic || '—' }}</span>
                                     </td>
                                     <td class="px-3 py-2">
                                         <div class="flex items-center gap-2">
                                             <div class="h-1.5 w-24 overflow-hidden rounded-full bg-[#eef2f6]">
                                                 <div class="h-full rounded-full bg-[var(--color-primary)]" :style="{ width: r.overall_pct + '%' }" />
                                             </div>
-                                            <span class="text-xs text-[#425b76]">{{ r.overall_pct }}%</span>
+                                            <span class="text-xs text-[#444444]">{{ r.overall_pct }}%</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -320,10 +320,10 @@ const callMetrics = computed(() => data.value.metrics || []);
                         :values="tpDist.values"
                         :colors="tpDist.colors"
                     />
-                    <div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[#425b76]">
-                        <span v-if="data.completed_count"><strong class="text-[#33475b]">{{ data.completed_count }}</strong> completados</span>
-                        <span v-if="data.not_started_count"><strong class="text-[#33475b]">{{ data.not_started_count }}</strong> sin iniciar</span>
-                        <span><strong class="text-[#33475b]">{{ data.total }}</strong> clientes</span>
+                    <div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[#444444]">
+                        <span v-if="data.completed_count"><strong class="text-[#133c75]">{{ data.completed_count }}</strong> completados</span>
+                        <span v-if="data.not_started_count"><strong class="text-[#133c75]">{{ data.not_started_count }}</strong> sin iniciar</span>
+                        <span><strong class="text-[#133c75]">{{ data.total }}</strong> clientes</span>
                     </div>
                 </template>
 
@@ -339,11 +339,11 @@ const callMetrics = computed(() => data.value.metrics || []);
                             :style="tpSelected === t.label ? { boxShadow: '0 0 0 2px ' + t.color, backgroundColor: '#fff' } : {}"
                             @click="tpSelect(t.label)"
                         >
-                            <p class="flex items-center justify-center gap-1 text-[11px] font-medium text-[#425b76]">
+                            <p class="flex items-center justify-center gap-1 text-[11px] font-medium text-[#444444]">
                                 <span class="inline-block h-2 w-2 rounded-full" :style="{ backgroundColor: t.color }" />
                                 {{ t.label }}
                             </p>
-                            <p class="text-xl font-bold text-[#33475b]">{{ t.clients }}</p>
+                            <p class="text-xl font-bold text-[#133c75]">{{ t.clients }}</p>
                             <p class="text-[11px] text-[#98a4b3]">prom. {{ t.avg_pct }}%</p>
                         </button>
                         <button
@@ -353,11 +353,11 @@ const callMetrics = computed(() => data.value.metrics || []);
                             :style="tpSelected === TP_COMPLETED ? { boxShadow: '0 0 0 2px #2e7d32', backgroundColor: '#fff' } : {}"
                             @click="tpSelect(TP_COMPLETED)"
                         >
-                            <p class="flex items-center justify-center gap-1 text-[11px] font-medium text-[#425b76]">
+                            <p class="flex items-center justify-center gap-1 text-[11px] font-medium text-[#444444]">
                                 <svg class="h-3 w-3 text-[#2e7d32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                                 Completado
                             </p>
-                            <p class="text-xl font-bold text-[#33475b]">{{ data.completed_count }}</p>
+                            <p class="text-xl font-bold text-[#133c75]">{{ data.completed_count }}</p>
                             <p class="text-[11px] text-[#98a4b3]">clientes</p>
                         </button>
                         <button
@@ -367,8 +367,8 @@ const callMetrics = computed(() => data.value.metrics || []);
                             :style="tpSelected === TP_NOT_STARTED ? { boxShadow: '0 0 0 2px #9e9e9e', backgroundColor: '#fff' } : {}"
                             @click="tpSelect(TP_NOT_STARTED)"
                         >
-                            <p class="text-[11px] font-medium text-[#425b76]">Sin iniciar</p>
-                            <p class="text-xl font-bold text-[#33475b]">{{ data.not_started_count }}</p>
+                            <p class="text-[11px] font-medium text-[#444444]">Sin iniciar</p>
+                            <p class="text-xl font-bold text-[#133c75]">{{ data.not_started_count }}</p>
                             <p class="text-[11px] text-[#98a4b3]">clientes</p>
                         </button>
                     </div>
@@ -391,7 +391,7 @@ const callMetrics = computed(() => data.value.metrics || []);
                         </button>
                     </div>
                     <div v-if="showTable">
-                        <div v-if="tpActiveLabel" class="mt-3 flex items-center justify-between rounded-md bg-[#eef4f9] px-3 py-2 text-xs text-[#33475b]">
+                        <div v-if="tpActiveLabel" class="mt-3 flex items-center justify-between rounded-md bg-[#eef4f9] px-3 py-2 text-xs text-[#133c75]">
                             <span>Mostrando <strong>{{ tpActiveLabel }}</strong> ({{ tpFilteredRows.length }})</span>
                             <button type="button" class="font-medium text-[#1976d2] hover:underline" @click="tpClear">Ver todos</button>
                         </div>
@@ -399,9 +399,9 @@ const callMetrics = computed(() => data.value.metrics || []);
                             <table class="min-w-full divide-y divide-[#eef2f6] text-sm">
                                 <thead class="sticky top-0 bg-[#f5f8fa]">
                                     <tr>
-                                        <th class="px-3 py-2 text-left font-medium text-[#33475b]">Cliente</th>
-                                        <th class="px-3 py-2 text-left font-medium text-[#33475b]">Estado</th>
-                                        <th class="px-3 py-2 text-left font-medium text-[#33475b]">Avance del tema</th>
+                                        <th class="px-3 py-2 text-left font-medium text-[#133c75]">Cliente</th>
+                                        <th class="px-3 py-2 text-left font-medium text-[#133c75]">Estado</th>
+                                        <th class="px-3 py-2 text-left font-medium text-[#133c75]">Avance del tema</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-[#eef2f6] bg-white">
@@ -418,7 +418,7 @@ const callMetrics = computed(() => data.value.metrics || []);
                                                 v-else-if="r.status === 'not_started'"
                                                 class="inline-flex items-center gap-1 rounded-full bg-[#f0f0f0] px-2 py-0.5 text-[11px] font-medium text-[#757575]"
                                             >Sin iniciar</span>
-                                            <span v-else class="inline-flex items-center gap-1 text-[#425b76]">
+                                            <span v-else class="inline-flex items-center gap-1 text-[#444444]">
                                                 <span class="inline-block h-2 w-2 rounded-full" :style="{ backgroundColor: tpColor(r) }" />
                                                 {{ r.topic }}
                                             </span>
@@ -428,7 +428,7 @@ const callMetrics = computed(() => data.value.metrics || []);
                                                 <div class="h-1.5 w-24 overflow-hidden rounded-full bg-[#eef2f6]">
                                                     <div class="h-full rounded-full" :style="{ width: (r.topic_pct ?? 0) + '%', backgroundColor: tpColor(r) }" />
                                                 </div>
-                                                <span class="text-xs text-[#425b76]">{{ r.topic_pct ?? 0 }}%</span>
+                                                <span class="text-xs text-[#444444]">{{ r.topic_pct ?? 0 }}%</span>
                                             </div>
                                             <span v-else class="text-xs text-[#98a4b3]">—</span>
                                         </td>
@@ -451,9 +451,9 @@ const callMetrics = computed(() => data.value.metrics || []);
                     :values="data.values"
                     :colors="data.colors"
                 />
-                <div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[#425b76]">
-                    <span><strong class="text-[#33475b]">{{ data.total }}</strong> respuestas</span>
-                    <span v-if="data.average != null">Promedio: <strong class="text-[#33475b]">{{ data.average }}</strong></span>
+                <div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-[#444444]">
+                    <span><strong class="text-[#133c75]">{{ data.total }}</strong> respuestas</span>
+                    <span v-if="data.average != null">Promedio: <strong class="text-[#133c75]">{{ data.average }}</strong></span>
                 </div>
             </template>
 
@@ -467,11 +467,11 @@ const callMetrics = computed(() => data.value.metrics || []);
                     <div v-if="callMetrics.includes('avg')" class="rounded-lg bg-[#e3f2fd] p-4 text-center">
                         <p class="text-xs font-medium uppercase tracking-wide text-[#0d5aa7]">Promedio por cliente</p>
                         <p class="text-3xl font-bold text-[#1976d2]">{{ data.avg_per_client }}</p>
-                        <p class="text-[11px] text-[#425b76]">sobre {{ data.clients_with_phone }} clientes con teléfono</p>
+                        <p class="text-[11px] text-[#444444]">sobre {{ data.clients_with_phone }} clientes con teléfono</p>
                     </div>
                 </div>
                 <div v-if="callMetrics.includes('distribution')" class="mt-4">
-                    <p class="mb-1 text-xs font-medium text-[#425b76]">Distribución de llamadas por cliente</p>
+                    <p class="mb-1 text-xs font-medium text-[#444444]">Distribución de llamadas por cliente</p>
                     <ReportChart
                         type="bar"
                         :labels="data.distribution.labels"

@@ -80,21 +80,21 @@ const securityRulesText = `• Solo responder sobre temas dentro del contexto de
         <!-- Reglas de seguridad (solo lectura) -->
         <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-[#f5f8fa]">
             <div class="border-b border-[#e3e8ee] bg-[#e3e8ee]/50 px-4 py-3">
-                <h3 class="text-sm font-semibold text-[#33475b]">Reglas de seguridad (no modificables)</h3>
-                <p class="mt-0.5 text-xs text-[#425b76]">
+                <h3 class="text-sm font-semibold text-[#133c75]">Reglas de seguridad (no modificables)</h3>
+                <p class="mt-0.5 text-xs text-[#444444]">
                     Estas reglas se aplican siempre al prompt de la empresa y no pueden ser editadas.
                 </p>
             </div>
             <div class="p-4">
-                <pre class="whitespace-pre-wrap text-sm text-[#33475b]">{{ securityRulesText }}</pre>
+                <pre class="whitespace-pre-wrap text-sm text-[#133c75]">{{ securityRulesText }}</pre>
             </div>
         </div>
 
         <!-- Secciones editables -->
         <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
             <div class="border-b border-[#e3e8ee] px-6 py-4">
-                <h3 class="text-lg font-semibold text-[#33475b]">Prompt del sistema</h3>
-                <p class="mt-1 text-sm text-[#425b76]">
+                <h3 class="text-lg font-semibold text-[#133c75]">Prompt del sistema</h3>
+                <p class="mt-1 text-sm text-[#444444]">
                     Configura las secciones que la empresa usará. Las reglas de seguridad anteriores se añaden automáticamente.
                 </p>
             </div>
@@ -137,7 +137,7 @@ const securityRulesText = `• Solo responder sobre temas dentro del contexto de
 
                 <div>
                     <InputLabel value="Herramientas del agente" />
-                    <p class="mt-0.5 text-xs text-[#425b76]">
+                    <p class="mt-0.5 text-xs text-[#444444]">
                         Herramientas que el agente puede usar/mencionar; indica el nombre y el uso de cada una.
                     </p>
                     <div class="mt-2 space-y-3">

@@ -84,7 +84,7 @@ function toggleStatus(value) {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-[#33475b]">
+                <h2 class="text-xl font-semibold leading-tight text-[#133c75]">
                     Empresas
                 </h2>
                 <Link :href="route('agents.create')">
@@ -109,7 +109,7 @@ function toggleStatus(value) {
                                 <button
                                     type="button"
                                     @click="showFilter = !showFilter"
-                                    class="inline-flex items-center gap-2 rounded-md border border-[#e3e8ee] bg-white px-3 py-2 text-sm text-[#425b76] shadow-sm transition hover:bg-[#f5f8fa]"
+                                    class="inline-flex items-center gap-2 rounded-md border border-[#e3e8ee] bg-white px-3 py-2 text-sm text-[#444444] shadow-sm transition hover:bg-[#f5f8fa]"
                                     title="Filtrar por estado"
                                 >
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,11 +127,11 @@ function toggleStatus(value) {
                                     v-if="showFilter"
                                     class="absolute left-0 z-20 mt-2 w-60 rounded-lg border border-[#e3e8ee] bg-white p-3 shadow-lg"
                                 >
-                                    <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-[#425b76]">Estado</p>
+                                    <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-[#444444]">Estado</p>
                                     <label
                                         v-for="opt in STATUS_OPTIONS"
                                         :key="opt.value"
-                                        class="flex cursor-pointer items-center gap-2 py-1.5 text-sm text-[#33475b]"
+                                        class="flex cursor-pointer items-center gap-2 py-1.5 text-sm text-[#133c75]"
                                     >
                                         <input
                                             type="checkbox"
@@ -153,7 +153,7 @@ function toggleStatus(value) {
                                         'rounded-l-md px-3 py-2',
                                         viewMode === 'grid'
                                             ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)]'
-                                            : 'bg-white text-[#425b76] hover:bg-[#f5f8fa]'
+                                            : 'bg-white text-[#444444] hover:bg-[#f5f8fa]'
                                     ]"
                                     title="Vista cuadrícula"
                                     @click="viewMode = 'grid'"
@@ -168,7 +168,7 @@ function toggleStatus(value) {
                                         'rounded-r-md border-l border-[#e3e8ee] px-3 py-2',
                                         viewMode === 'list'
                                             ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)]'
-                                            : 'bg-white text-[#425b76] hover:bg-[#f5f8fa]'
+                                            : 'bg-white text-[#444444] hover:bg-[#f5f8fa]'
                                     ]"
                                     title="Vista lista"
                                     @click="viewMode = 'list'"
@@ -188,13 +188,13 @@ function toggleStatus(value) {
                                 class="flex flex-col overflow-hidden rounded-lg border border-[#e3e8ee] bg-white transition hover:border-[color-mix(in_srgb,var(--color-primary)_40%,transparent)] hover:shadow-sm"
                             >
                                 <Link :href="route('agents.show', agent)" class="flex flex-1 flex-col p-4">
-                                    <h3 class="font-medium text-[#33475b] transition hover:text-[var(--color-primary)]">{{ agent.name }}</h3>
+                                    <h3 class="font-medium text-[#133c75] transition hover:text-[var(--color-primary)]">{{ agent.name }}</h3>
                                     <span
                                         :class="['mt-2 inline-flex w-fit rounded-full px-2 py-1 text-xs font-semibold', statusColors[agent.status] || 'bg-gray-100 text-gray-800']"
                                     >
                                         {{ statusLabels[agent.status] || agent.status }}
                                     </span>
-                                    <p class="mt-2 text-sm text-[#425b76]">{{ agent.user?.name ?? '-' }}</p>
+                                    <p class="mt-2 text-sm text-[#444444]">{{ agent.user?.name ?? '-' }}</p>
                                 </Link>
                                 <div class="flex items-center gap-3 border-t border-[#e3e8ee] bg-[#f5f8fa] px-4 py-2">
                                     <Link
@@ -207,7 +207,7 @@ function toggleStatus(value) {
                             </div>
                             <div
                                 v-if="!agents.data?.length"
-                                class="col-span-full rounded-lg border border-dashed border-[#e3e8ee] py-12 text-center text-[#425b76]"
+                                class="col-span-full rounded-lg border border-dashed border-[#e3e8ee] py-12 text-center text-[#444444]"
                             >
                                 No hay empresas. <Link :href="route('agents.create')" class="font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">Crear una</Link>
                             </div>
@@ -218,10 +218,10 @@ function toggleStatus(value) {
                             <table class="min-w-full divide-y divide-[#e3e8ee]">
                                 <thead class="bg-[#f5f8fa]">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#425b76]">Nombre</th>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#425b76]">Estado</th>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#425b76]">Creado por</th>
-                                        <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[#425b76]">Acciones</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#444444]">Nombre</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#444444]">Estado</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#444444]">Creado por</th>
+                                        <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[#444444]">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-[#e3e8ee] bg-white">
@@ -245,7 +245,7 @@ function toggleStatus(value) {
                                                 {{ statusLabels[agent.status] || agent.status }}
                                             </span>
                                         </td>
-                                        <td class="whitespace-nowrap px-6 py-4 text-sm text-[#425b76]">
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm text-[#444444]">
                                             {{ agent.user?.name ?? '-' }}
                                         </td>
                                         <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
@@ -258,7 +258,7 @@ function toggleStatus(value) {
                                         </td>
                                     </tr>
                                     <tr v-if="!agents.data?.length">
-                                        <td colspan="4" class="px-6 py-8 text-center text-[#425b76]">
+                                        <td colspan="4" class="px-6 py-8 text-center text-[#444444]">
                                             No hay empresas. <Link :href="route('agents.create')" class="font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]">Crear una</Link>
                                         </td>
                                     </tr>
@@ -273,7 +273,7 @@ function toggleStatus(value) {
                                     :href="link.url"
                                     :class="[
                                         'px-3 py-1 rounded text-sm',
-                                        link.active ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)] font-medium' : 'text-[#425b76] hover:bg-[#f5f8fa]'
+                                        link.active ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)] font-medium' : 'text-[#444444] hover:bg-[#f5f8fa]'
                                     ]"
                                     v-html="link.label"
                                 />

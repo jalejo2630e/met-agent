@@ -7,7 +7,7 @@ usePrimaryColor();
 
 const page = usePage();
 const faviconUrl = computed(() => page.props.settings?.favicon_url || '/favicon.png');
-const logoUrl = computed(() => page.props.settings?.company_logo_url || '/colsanitas.png');
+const logoUrl = computed(() => page.props.settings?.company_logo_url || '/met-logo.png');
 const companyName = computed(() => page.props.settings?.company_name);
 </script>
 
@@ -28,7 +28,7 @@ const companyName = computed(() => page.props.settings?.company_name);
         </div>
 
         <footer class="mt-auto w-full border-t border-[#e3e8ee] bg-white py-4">
-            <div class="flex items-center justify-center gap-2 text-center text-sm text-[#425b76]">
+            <div class="flex items-center justify-center gap-2 text-center text-sm text-[#444444]">
                 <img src="/ainoa.png" alt="ainoa" class="h-6 w-6" />
                 <a href="https://ainoa.app" target="_blank" rel="noopener noreferrer" class="transition hover:text-[var(--color-primary)]">
                     By ainoa

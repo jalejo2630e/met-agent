@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Agent;
 use App\Models\AgentFormResponse;
+use App\Models\TwilioMessage;
 use App\Models\Client;
 use App\Models\ContactQueue;
 use Carbon\Carbon;
@@ -398,7 +399,8 @@ class ContactQueueService
         }
 
         $twilio = app(TwilioContentService::class);
-        if (! $twilio->canSendWhatsapp()) {
+        $sede = TwilioMessage::sedeFor($agent->id, $client->phone);
+        if (! $twilio->canSendWhatsapp($sede)) {
             return null; // sin Twilio configurado: intentar webhook como respaldo
         }
 
@@ -409,7 +411,7 @@ class ContactQueueService
         }
 
         try {
-            $twilio->sendWhatsappTemplate($client->phone, (string) $idPlantilla, $variablesMap);
+            $twilio->sendWhatsappTemplate($client->phone, (string) $idPlantilla, $variablesMap, sede: $sede);
             Log::info('[ContactQueueService] WhatsApp enviado por Twilio', [
                 'agent_id' => $agent->id,
                 'client_id' => $client->id,

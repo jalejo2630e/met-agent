@@ -12,8 +12,8 @@ const from = ref('');
 const to = ref('');
 
 const sedeColors = {
-    bogota: { bar: 'bg-sky-500', dot: 'bg-sky-500' },
-    chia: { bar: 'bg-emerald-500', dot: 'bg-emerald-500' },
+    bogota: { bar: 'bg-[#0169AF]', dot: 'bg-[#0169AF]' },
+    chia: { bar: 'bg-[#009B41]', dot: 'bg-[#009B41]' },
 };
 const fallbackColor = { bar: 'bg-gray-400', dot: 'bg-gray-400' };
 const colorOf = (sede) => sedeColors[sede] || fallbackColor;
@@ -59,13 +59,13 @@ onMounted(load);
         <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#e3e8ee] px-6 py-4">
                 <div>
-                    <h3 class="text-lg font-semibold text-[#33475b]">Interacciones por sede</h3>
-                    <p class="mt-1 text-sm text-[#425b76]">Personas y mensajes que llegan a cada sede (Bogotá y Chía), según el número de WhatsApp que los recibe.</p>
+                    <h3 class="text-lg font-semibold text-[#133c75]">Interacciones por sede</h3>
+                    <p class="mt-1 text-sm text-[#444444]">Personas y mensajes que llegan a cada sede (Bogotá y Chía), según el número de WhatsApp que los recibe.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <input v-model="from" type="date" class="rounded-md border-[#e3e8ee] text-sm text-[#33475b]" @change="load" />
+                    <input v-model="from" type="date" class="rounded-md border-[#e3e8ee] text-sm text-[#133c75]" @change="load" />
                     <span class="text-sm text-gray-400">a</span>
-                    <input v-model="to" type="date" class="rounded-md border-[#e3e8ee] text-sm text-[#33475b]" @change="load" />
+                    <input v-model="to" type="date" class="rounded-md border-[#e3e8ee] text-sm text-[#133c75]" @change="load" />
                     <button type="button" class="text-sm font-medium text-emerald-600 hover:text-emerald-700" @click="load">Actualizar</button>
                 </div>
             </div>
@@ -77,22 +77,22 @@ onMounted(load);
                         <div v-for="s in data.sedes" :key="s.sede ?? 'none'" class="rounded-lg border border-[#e3e8ee] p-4">
                             <div class="flex items-center gap-2">
                                 <span :class="['h-2.5 w-2.5 rounded-full', colorOf(s.sede).dot]" />
-                                <span class="text-base font-semibold text-[#33475b]">{{ s.label }}</span>
+                                <span class="text-base font-semibold text-[#133c75]">{{ s.label }}</span>
                             </div>
-                            <p class="mt-3 text-3xl font-semibold text-[#33475b]">{{ s.unique_contacts.toLocaleString('es') }}</p>
+                            <p class="mt-3 text-3xl font-semibold text-[#133c75]">{{ s.unique_contacts.toLocaleString('es') }}</p>
                             <p class="text-xs text-gray-400">personas que escribieron</p>
 
                             <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                <dt class="text-[#425b76]">Mensajes recibidos</dt>
-                                <dd class="text-right font-medium text-[#33475b]">{{ s.inbound.toLocaleString('es') }}</dd>
-                                <dt class="text-[#425b76]">Mensajes enviados</dt>
-                                <dd class="text-right font-medium text-[#33475b]">{{ s.outbound.toLocaleString('es') }}</dd>
-                                <dt class="text-[#425b76]">Personas nuevas</dt>
-                                <dd class="text-right font-medium text-[#33475b]">{{ s.new_contacts.toLocaleString('es') }}</dd>
-                                <dt class="text-[#425b76]">Personas recurrentes</dt>
-                                <dd class="text-right font-medium text-[#33475b]">{{ s.returning_contacts.toLocaleString('es') }}</dd>
-                                <dt class="text-[#425b76]">Mensajes por persona</dt>
-                                <dd class="text-right font-medium text-[#33475b]">{{ s.avg_inbound_per_contact }}</dd>
+                                <dt class="text-[#444444]">Mensajes recibidos</dt>
+                                <dd class="text-right font-medium text-[#133c75]">{{ s.inbound.toLocaleString('es') }}</dd>
+                                <dt class="text-[#444444]">Mensajes enviados</dt>
+                                <dd class="text-right font-medium text-[#133c75]">{{ s.outbound.toLocaleString('es') }}</dd>
+                                <dt class="text-[#444444]">Personas nuevas</dt>
+                                <dd class="text-right font-medium text-[#133c75]">{{ s.new_contacts.toLocaleString('es') }}</dd>
+                                <dt class="text-[#444444]">Personas recurrentes</dt>
+                                <dd class="text-right font-medium text-[#133c75]">{{ s.returning_contacts.toLocaleString('es') }}</dd>
+                                <dt class="text-[#444444]">Mensajes por persona</dt>
+                                <dd class="text-right font-medium text-[#133c75]">{{ s.avg_inbound_per_contact }}</dd>
                             </dl>
                         </div>
                         <p v-if="!data.sedes.length" class="text-sm text-gray-400 md:col-span-2">Sin mensajes en este rango.</p>
@@ -100,8 +100,8 @@ onMounted(load);
 
                     <div v-if="days.length" class="mt-8">
                         <div class="mb-2 flex items-center justify-between">
-                            <h4 class="text-sm font-semibold text-[#33475b]">Mensajes recibidos por día</h4>
-                            <div class="flex items-center gap-3 text-xs text-[#425b76]">
+                            <h4 class="text-sm font-semibold text-[#133c75]">Mensajes recibidos por día</h4>
+                            <div class="flex items-center gap-3 text-xs text-[#444444]">
                                 <span v-for="s in data.sedes" :key="s.sede ?? 'none'" class="flex items-center gap-1">
                                     <span :class="['h-2 w-2 rounded-full', colorOf(s.sede).dot]" /> {{ s.label }}
                                 </span>

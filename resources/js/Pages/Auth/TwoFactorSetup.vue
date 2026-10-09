@@ -39,15 +39,15 @@ const copySecret = async () => {
     <GuestLayout>
         <Head title="Configura la verificación en dos pasos" />
 
-        <h1 class="text-center text-xl font-bold text-[#33475b]">
+        <h1 class="text-center text-xl font-bold text-[#133c75]">
             Protege tu cuenta
         </h1>
-        <p class="mt-2 text-center text-sm text-[#425b76]">
+        <p class="mt-2 text-center text-sm text-[#444444]">
             La verificación en dos pasos es obligatoria. Escanea el código QR con
             <strong>Google Authenticator</strong> (o una app equivalente) para continuar.
         </p>
 
-        <ol class="mt-6 space-y-2 text-sm text-[#425b76]">
+        <ol class="mt-6 space-y-2 text-sm text-[#444444]">
             <li>1. Instala Google Authenticator en tu teléfono.</li>
             <li>2. Escanea este código QR desde la app.</li>
             <li>3. Ingresa el código de 6 dígitos que aparece en la app.</li>
@@ -62,11 +62,11 @@ const copySecret = async () => {
         </div>
 
         <div class="mt-4">
-            <p class="text-center text-xs text-[#425b76]">
+            <p class="text-center text-xs text-[#444444]">
                 ¿No puedes escanear? Ingresa esta clave manualmente:
             </p>
             <div class="mt-1 flex items-center justify-center gap-2">
-                <code class="rounded bg-[#f5f8fa] px-2 py-1 text-sm font-semibold tracking-wider text-[#33475b]">
+                <code class="rounded bg-[#f5f8fa] px-2 py-1 text-sm font-semibold tracking-wider text-[#133c75]">
                     {{ secret }}
                 </code>
                 <button
@@ -111,7 +111,7 @@ const copySecret = async () => {
                 :href="route('logout')"
                 method="post"
                 as="button"
-                class="text-sm text-[#425b76] underline hover:text-[var(--color-primary)]"
+                class="text-sm text-[#444444] underline hover:text-[var(--color-primary)]"
             >
                 Cerrar sesión
             </Link>

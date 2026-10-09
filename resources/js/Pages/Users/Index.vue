@@ -133,13 +133,13 @@ function deleteUser(user) {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-[#33475b]">
+                <h2 class="text-xl font-semibold leading-tight text-[#133c75]">
                     Usuarios del sistema
                 </h2>
                 <div class="flex items-center gap-3">
                     <button
                         type="button"
-                        class="rounded-md border border-[var(--color-primary)] bg-white px-4 py-2 text-sm font-medium text-[#33475b] transition hover:bg-[#f5f8fa]"
+                        class="rounded-md border border-[var(--color-primary)] bg-white px-4 py-2 text-sm font-medium text-[#133c75] transition hover:bg-[#f5f8fa]"
                         @click="openInvite"
                     >
                         Invitar usuario
@@ -155,7 +155,7 @@ function deleteUser(user) {
             <div class="w-full px-4 sm:px-6 lg:px-8">
                 <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
                     <div class="p-5">
-                        <p class="mb-4 text-sm text-[#425b76]">
+                        <p class="mb-4 text-sm text-[#444444]">
                             Gestiona los usuarios que pueden acceder a la plataforma. Solo administradores pueden ver esta sección.
                         </p>
                         <div class="mb-4">
@@ -170,19 +170,19 @@ function deleteUser(user) {
                             <table class="min-w-full divide-y divide-[#e3e8ee]">
                                 <thead>
                                     <tr>
-                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#425b76]">
+                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#444444]">
                                             Nombre
                                         </th>
-                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#425b76]">
+                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#444444]">
                                             Email
                                         </th>
-                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#425b76]">
+                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#444444]">
                                             Rol
                                         </th>
-                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#425b76]">
+                                        <th class="bg-[#f5f8fa] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#444444]">
                                             2FA
                                         </th>
-                                        <th class="bg-[#f5f8fa] px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#425b76]">
+                                        <th class="bg-[#f5f8fa] px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#444444]">
                                             Acciones
                                         </th>
                                     </tr>
@@ -196,10 +196,10 @@ function deleteUser(user) {
                                             'hover:bg-[#f5f8fa]/80'
                                         ]"
                                     >
-                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-[#33475b]">
+                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-[#133c75]">
                                             {{ user.name }}
                                         </td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-[#425b76]">
+                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-[#444444]">
                                             {{ user.email }}
                                         </td>
                                         <td class="whitespace-nowrap px-4 py-3">
@@ -247,7 +247,7 @@ function deleteUser(user) {
                                         </td>
                                     </tr>
                                     <tr v-if="!filteredUsers.length">
-                                        <td colspan="5" class="px-4 py-8 text-center text-[#425b76]">Sin resultados para el filtro actual.</td>
+                                        <td colspan="5" class="px-4 py-8 text-center text-[#444444]">Sin resultados para el filtro actual.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -276,7 +276,7 @@ function deleteUser(user) {
                         class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle"
                     >
                         <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                            <h3 class="text-lg font-semibold text-[#33475b]">
+                            <h3 class="text-lg font-semibold text-[#133c75]">
                                 {{ isCreateMode() ? 'Crear usuario' : 'Editar usuario' }}
                             </h3>
                             <form @submit.prevent="submit" class="mt-4 space-y-4">
@@ -343,7 +343,7 @@ function deleteUser(user) {
                                 <div class="mt-6 flex justify-end gap-3">
                                     <button
                                         type="button"
-                                        class="rounded-md border border-[#e3e8ee] bg-white px-4 py-2 text-sm font-medium text-[#425b76] hover:bg-[#f5f8fa]"
+                                        class="rounded-md border border-[#e3e8ee] bg-white px-4 py-2 text-sm font-medium text-[#444444] hover:bg-[#f5f8fa]"
                                         @click="closeModal"
                                     >
                                         Cancelar
@@ -378,10 +378,10 @@ function deleteUser(user) {
                         class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle"
                     >
                         <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                            <h3 class="text-lg font-semibold text-[#33475b]">
+                            <h3 class="text-lg font-semibold text-[#133c75]">
                                 Invitar usuario
                             </h3>
-                            <p class="mt-1 text-sm text-[#425b76]">
+                            <p class="mt-1 text-sm text-[#444444]">
                                 Se creará la cuenta y se enviará al correo indicado una contraseña temporal para ingresar. Al iniciar sesión deberá configurar la verificación en dos pasos.
                             </p>
                             <form @submit.prevent="submitInvite" class="mt-4 space-y-4">
@@ -422,7 +422,7 @@ function deleteUser(user) {
                                 <div class="mt-6 flex justify-end gap-3">
                                     <button
                                         type="button"
-                                        class="rounded-md border border-[#e3e8ee] bg-white px-4 py-2 text-sm font-medium text-[#425b76] hover:bg-[#f5f8fa]"
+                                        class="rounded-md border border-[#e3e8ee] bg-white px-4 py-2 text-sm font-medium text-[#444444] hover:bg-[#f5f8fa]"
                                         @click="closeInvite"
                                     >
                                         Cancelar

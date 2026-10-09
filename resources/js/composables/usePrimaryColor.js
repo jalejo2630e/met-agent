@@ -1,7 +1,7 @@
 import { watch, onMounted } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 
-const DEFAULT_PRIMARY = '#a3e635';
+const DEFAULT_PRIMARY = '#009B41';
 
 /**
  * Aplica el color principal de la plataforma (configuración) a las variables CSS

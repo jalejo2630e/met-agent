@@ -29,7 +29,7 @@ const form = useForm({
     message_cost: props.settings?.message_cost ?? '',
     call_minute_cost: props.settings?.call_minute_cost ?? '',
     monthly_message_cap: props.settings?.monthly_message_cap ?? '',
-    primary_color: props.settings?.primary_color || '#a3e635',
+    primary_color: props.settings?.primary_color || '#009B41',
     whatsapp_conversations_source: props.settings?.whatsapp_conversations_source || 'internal',
     whatsapp_conversations_supabase_table_pattern: props.settings?.whatsapp_conversations_supabase_table_pattern || '',
     whatsapp_conversations_supabase_phone_column: props.settings?.whatsapp_conversations_supabase_phone_column || '',
@@ -54,7 +54,7 @@ function removeAlertEmail(email) {
 }
 
 /* ---- Categorías de alerta de llamada (CRUD) ---- */
-const newCategory = ref({ nombre: '', color: '#a3e635' });
+const newCategory = ref({ nombre: '', color: '#009B41' });
 const editingCategory = ref(null);
 
 function addCategory() {
@@ -64,12 +64,12 @@ function addCategory() {
         color: newCategory.value.color || null,
     }, {
         preserveScroll: true,
-        onSuccess: () => { newCategory.value = { nombre: '', color: '#a3e635' }; },
+        onSuccess: () => { newCategory.value = { nombre: '', color: '#009B41' }; },
     });
 }
 
 function startEditCategory(cat) {
-    editingCategory.value = { id: cat.id, nombre: cat.nombre, color: cat.color || '#a3e635' };
+    editingCategory.value = { id: cat.id, nombre: cat.nombre, color: cat.color || '#009B41' };
 }
 
 function cancelEditCategory() {
@@ -139,11 +139,11 @@ function submit() {
 
 const currentLogoUrl = props.settings?.company_logo
     ? `/storage/${props.settings.company_logo}`
-    : '/colsanitas.png';
+    : '/met-logo.png';
 
 const currentFaviconUrl = props.settings?.site_favicon
     ? `/storage/${props.settings.site_favicon}`
-    : '/colsanitas.png';
+    : '/met-logo.png';
 
 const apiBaseUrl = computed(() => (typeof window !== 'undefined' ? window.location.origin : ''));
 const showApiDocs = ref(false);
@@ -167,7 +167,7 @@ const quotaBarColor = computed(() => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-[#33475b]">
+            <h2 class="text-xl font-semibold leading-tight text-[#133c75]">
                 Configuración general
             </h2>
         </template>
@@ -177,8 +177,8 @@ const quotaBarColor = computed(() => {
                 <!-- Empresa y logo -->
                 <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold text-[#33475b]">Empresa</h3>
-                        <p class="mt-1 text-sm text-[#425b76]">
+                        <h3 class="text-lg font-semibold text-[#133c75]">Empresa</h3>
+                        <p class="mt-1 text-sm text-[#444444]">
                             Nombre, logo y favicon que se mostrarán en el header, login y pestaña del navegador.
                         </p>
 
@@ -196,8 +196,8 @@ const quotaBarColor = computed(() => {
                             </div>
 
                             <div>
-                                <p class="text-sm font-medium text-[#33475b]">Información de contacto</p>
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="text-sm font-medium text-[#133c75]">Información de contacto</p>
+                                <p class="mt-1 text-xs text-[#444444]">
                                     Se utilizará para enviar reportes mensuales de consumos al correo.
                                 </p>
                             </div>
@@ -248,7 +248,7 @@ const quotaBarColor = computed(() => {
                                             ref="fileInput"
                                             type="file"
                                             accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                                            class="block w-full text-sm text-[#425b76] file:mr-4 file:rounded-md file:border-0 file:bg-[var(--color-primary)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-[var(--color-primary-foreground)] file:hover:bg-[var(--color-primary-hover)]"
+                                            class="block w-full text-sm text-[#444444] file:mr-4 file:rounded-md file:border-0 file:bg-[var(--color-primary)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-[var(--color-primary-foreground)] file:hover:bg-[var(--color-primary-hover)]"
                                             @change="onLogoChange"
                                         />
                                         <button
@@ -261,7 +261,7 @@ const quotaBarColor = computed(() => {
                                         </button>
                                     </div>
                                 </div>
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="mt-1 text-xs text-[#444444]">
                                     PNG, JPG, GIF o WebP. Máx. 2 MB.
                                 </p>
                                 <InputError :message="form.errors.company_logo" />
@@ -289,7 +289,7 @@ const quotaBarColor = computed(() => {
                                             ref="faviconInput"
                                             type="file"
                                             accept="image/jpeg,image/png,image/jpg,image/gif,image/webp,image/svg+xml,.ico"
-                                            class="block w-full text-sm text-[#425b76] file:mr-4 file:rounded-md file:border-0 file:bg-[var(--color-primary)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-[var(--color-primary-foreground)] file:hover:bg-[var(--color-primary-hover)]"
+                                            class="block w-full text-sm text-[#444444] file:mr-4 file:rounded-md file:border-0 file:bg-[var(--color-primary)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-[var(--color-primary-foreground)] file:hover:bg-[var(--color-primary-hover)]"
                                             @change="onFaviconChange"
                                         />
                                         <button
@@ -302,7 +302,7 @@ const quotaBarColor = computed(() => {
                                         </button>
                                     </div>
                                 </div>
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="mt-1 text-xs text-[#444444]">
                                     Icono de la pestaña del navegador. PNG, JPG, GIF, WebP, SVG o ICO. Máx. 2 MB.
                                 </p>
                                 <InputError :message="form.errors.site_favicon" />
@@ -321,10 +321,10 @@ const quotaBarColor = computed(() => {
                                         v-model="form.primary_color"
                                         type="text"
                                         class="mt-0 block w-32 font-mono text-sm"
-                                        placeholder="#a3e635"
+                                        placeholder="#009B41"
                                     />
                                 </div>
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="mt-1 text-xs text-[#444444]">
                                     Color que se aplica a botones, enlaces y acentos en toda la plataforma.
                                 </p>
                                 <InputError :message="form.errors.primary_color" />
@@ -340,7 +340,7 @@ const quotaBarColor = computed(() => {
                                     <option value="internal">Base de datos de la aplicación (variables DB_* en .env)</option>
                                     <option value="supabase">Supabase (solo lectura; las tablas no se crean desde aquí)</option>
                                 </select>
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="mt-1 text-xs text-[#444444]">
                                     Solo se <strong>leen</strong> mensajes (modal del cliente y totales del dashboard).
                                     Con <strong>BD interna</strong>, al crear un agente la app crea una tabla por agente (prefijo <code class="rounded bg-[#e3e8ee] px-1 font-mono text-[11px]">agent_</code> + id + <code class="rounded bg-[#e3e8ee] px-1 font-mono text-[11px]">_whatsapp_conversations</code>). Con <strong>Supabase</strong>, defines el patrón de nombre abajo; la app lee por <strong>API REST</strong> con <code class="rounded bg-[#e3e8ee] px-1">VITE_SUPABASE_URL</code> y <code class="rounded bg-[#e3e8ee] px-1">VITE_SUPABASE_ANON_KEY</code>.
                                 </p>
@@ -357,7 +357,7 @@ const quotaBarColor = computed(() => {
                                     placeholder="agent_{agent_id}_whatsapp_conversations"
                                     autocomplete="off"
                                 />
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="mt-1 text-xs text-[#444444]">
                                     Debe incluir el marcador <code class="rounded bg-[#e3e8ee] px-1">{agent_id}</code> (se reemplaza por el ID del agente). Ejemplo: <code class="rounded bg-[#e3e8ee] px-1 font-mono text-[11px]">mi_prefijo_{agent_id}_wa</code> → para el agente 12 la tabla es <code class="rounded bg-[#e3e8ee] px-1 font-mono text-[11px]">mi_prefijo_12_wa</code>. Vacío = valor por defecto del servidor (<code class="rounded bg-[#e3e8ee] px-1 font-mono text-[11px]">agent_{agent_id}_whatsapp_conversations</code> o <code class="rounded bg-[#e3e8ee] px-1">WHATSAPP_SUPABASE_TABLE_PATTERN</code> en <code class="rounded bg-[#e3e8ee] px-1">.env</code>).
                                 </p>
                                 <InputError :message="form.errors.whatsapp_conversations_supabase_table_pattern" />
@@ -373,7 +373,7 @@ const quotaBarColor = computed(() => {
                                     placeholder="session_id"
                                     autocomplete="off"
                                 />
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="mt-1 text-xs text-[#444444]">
                                     Columna PostgREST del número (solo dígitos en el filtro). Muchas tablas usan <code class="rounded bg-[#e3e8ee] px-1">session_id</code>; otras <code class="rounded bg-[#e3e8ee] px-1">phone</code>. Vacío = <code class="rounded bg-[#e3e8ee] px-1">WHATSAPP_SUPABASE_PHONE_COLUMN</code> en <code class="rounded bg-[#e3e8ee] px-1">.env</code> (por defecto <code class="rounded bg-[#e3e8ee] px-1">session_id</code>).
                                 </p>
                                 <InputError :message="form.errors.whatsapp_conversations_supabase_phone_column" />
@@ -389,7 +389,7 @@ const quotaBarColor = computed(() => {
                                     placeholder="created_at"
                                     autocomplete="off"
                                 />
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="mt-1 text-xs text-[#444444]">
                                     Columna de fecha/hora usada para contar solo los mensajes del <strong>mes en curso</strong> (tope mensual). Debe existir en la tabla. Vacío = <code class="rounded bg-[#e3e8ee] px-1">created_at</code> (o <code class="rounded bg-[#e3e8ee] px-1">WHATSAPP_SUPABASE_DATE_COLUMN</code> en <code class="rounded bg-[#e3e8ee] px-1">.env</code>).
                                 </p>
                                 <InputError :message="form.errors.whatsapp_conversations_supabase_date_column" />
@@ -405,7 +405,7 @@ const quotaBarColor = computed(() => {
                                     <option value="internal">Base de datos de la aplicación (DB_*)</option>
                                     <option value="supabase">Supabase (solo lectura)</option>
                                 </select>
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="mt-1 text-xs text-[#444444]">
                                     Define desde dónde se leen transcripciones (cliente y dashboard). Con Supabase se usa la <strong>API REST</strong> (<code class="rounded bg-[#e3e8ee] px-1">VITE_SUPABASE_URL</code> + anon key). Tabla/campaña: <code class="rounded bg-[#e3e8ee] px-1 font-mono text-[11px]">CAMPANA_AINOA</code>, etc. Solo lectura.
                                 </p>
                                 <InputError :message="form.errors.call_transcripts_source" />
@@ -424,8 +424,8 @@ const quotaBarColor = computed(() => {
                             </div>
 
                             <div>
-                                <p class="text-sm font-medium text-[#33475b]">Costos (USD)</p>
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="text-sm font-medium text-[#133c75]">Costos (USD)</p>
+                                <p class="mt-1 text-xs text-[#444444]">
                                     Valores para calcular consumos en reportes mensuales.
                                 </p>
                             </div>
@@ -459,8 +459,8 @@ const quotaBarColor = computed(() => {
                             </div>
 
                             <div>
-                                <p class="text-sm font-medium text-[#33475b]">Tope de mensajes al mes</p>
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="text-sm font-medium text-[#133c75]">Tope de mensajes al mes</p>
+                                <p class="mt-1 text-xs text-[#444444]">
                                     Límite de mensajes de WhatsApp por mes calendario. Se avisa al correo de contacto al llegar al
                                     <strong>50%</strong>, <strong>80%</strong> y <strong>100%</strong> del tope (un aviso por umbral, cada mes).
                                     El consumo se cuenta desde la tabla de Supabase para que sea preciso. Deja vacío o 0 para desactivar.
@@ -481,11 +481,11 @@ const quotaBarColor = computed(() => {
 
                                 <div v-if="messageQuota" class="mt-3 rounded-lg border border-[#e3e8ee] bg-[#f5f8fa] p-4 sm:max-w-md">
                                     <div class="flex items-center justify-between text-sm">
-                                        <span class="font-medium text-[#33475b]">Consumo del mes ({{ messageQuota.month }})</span>
-                                        <span v-if="messageQuota.used !== null" class="font-semibold text-[#33475b]">
+                                        <span class="font-medium text-[#133c75]">Consumo del mes ({{ messageQuota.month }})</span>
+                                        <span v-if="messageQuota.used !== null" class="font-semibold text-[#133c75]">
                                             {{ Number(messageQuota.used).toLocaleString() }} / {{ Number(messageQuota.cap).toLocaleString() }}
                                         </span>
-                                        <span v-else class="text-xs text-[#425b76]">No disponible</span>
+                                        <span v-else class="text-xs text-[#444444]">No disponible</span>
                                     </div>
                                     <template v-if="messageQuota.percent !== null">
                                         <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-[#e3e8ee]">
@@ -495,19 +495,19 @@ const quotaBarColor = computed(() => {
                                                 :style="{ width: quotaBarWidth }"
                                             />
                                         </div>
-                                        <p class="mt-1 text-xs text-[#425b76]">
+                                        <p class="mt-1 text-xs text-[#444444]">
                                             {{ messageQuota.percent }}% del tope mensual.
                                         </p>
                                     </template>
-                                    <p v-else class="mt-2 text-xs text-[#425b76]">
+                                    <p v-else class="mt-2 text-xs text-[#444444]">
                                         No se pudo leer el consumo desde Supabase. Revisa el origen, la tabla y la columna de fecha.
                                     </p>
                                 </div>
                             </div>
 
                             <div>
-                                <p class="text-sm font-medium text-[#33475b]">Correos de alerta de llamada</p>
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="text-sm font-medium text-[#133c75]">Correos de alerta de llamada</p>
+                                <p class="mt-1 text-xs text-[#444444]">
                                     Uno o varios correos que recibirán una notificación cada vez que llegue una nueva
                                     alerta de llamada. Escribe un correo y presiona Enter o «Agregar».
                                 </p>
@@ -521,7 +521,7 @@ const quotaBarColor = computed(() => {
                                     />
                                     <button
                                         type="button"
-                                        class="shrink-0 rounded-md border border-[#e3e8ee] bg-[#f5f8fa] px-3 py-2 text-sm font-medium text-[#33475b] transition hover:bg-[#eef2f6]"
+                                        class="shrink-0 rounded-md border border-[#e3e8ee] bg-[#f5f8fa] px-3 py-2 text-sm font-medium text-[#133c75] transition hover:bg-[#eef2f6]"
                                         @click="addAlertEmail"
                                     >
                                         Agregar
@@ -531,7 +531,7 @@ const quotaBarColor = computed(() => {
                                     <span
                                         v-for="email in form.call_alert_emails"
                                         :key="email"
-                                        class="inline-flex items-center gap-1.5 rounded-full bg-[#eef2f6] py-1 pl-3 pr-1.5 text-sm text-[#33475b]"
+                                        class="inline-flex items-center gap-1.5 rounded-full bg-[#eef2f6] py-1 pl-3 pr-1.5 text-sm text-[#133c75]"
                                     >
                                         {{ email }}
                                         <button
@@ -557,7 +557,7 @@ const quotaBarColor = computed(() => {
                                     leave-active-class="transition ease-in-out"
                                     leave-to-class="opacity-0"
                                 >
-                                    <p v-if="form.recentlySuccessful" class="text-sm text-[#425b76]">
+                                    <p v-if="form.recentlySuccessful" class="text-sm text-[#444444]">
                                         Guardado.
                                     </p>
                                 </Transition>
@@ -569,8 +569,8 @@ const quotaBarColor = computed(() => {
                 <!-- Categorías de alerta de llamada -->
                 <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold text-[#33475b]">Categorías de alerta de llamada</h3>
-                        <p class="mt-1 text-sm text-[#425b76]">
+                        <h3 class="text-lg font-semibold text-[#133c75]">Categorías de alerta de llamada</h3>
+                        <p class="mt-1 text-sm text-[#444444]">
                             Clasificaciones disponibles para las alertas de llamada (p. ej. Problema, Alerta).
                             Puedes agregar, editar o eliminar las que necesites.
                         </p>
@@ -598,7 +598,7 @@ const quotaBarColor = computed(() => {
                                     </button>
                                     <button
                                         type="button"
-                                        class="rounded-md border border-[#e3e8ee] px-3 py-2 text-sm text-[#425b76] transition hover:bg-[#eef2f6]"
+                                        class="rounded-md border border-[#e3e8ee] px-3 py-2 text-sm text-[#444444] transition hover:bg-[#eef2f6]"
                                         @click="cancelEditCategory"
                                     >
                                         Cancelar
@@ -606,14 +606,14 @@ const quotaBarColor = computed(() => {
                                 </div>
                                 <!-- Modo lectura -->
                                 <div v-else class="flex items-center justify-between gap-2">
-                                    <span class="flex items-center gap-2 text-sm text-[#33475b]">
+                                    <span class="flex items-center gap-2 text-sm text-[#133c75]">
                                         <span class="inline-block h-3 w-3 shrink-0 rounded-full border border-[#e3e8ee]" :style="{ backgroundColor: cat.color || '#c2cddb' }" />
                                         {{ cat.nombre }}
                                     </span>
                                     <span class="flex items-center gap-1">
                                         <button
                                             type="button"
-                                            class="rounded p-1.5 text-[#425b76] hover:bg-[#eef2f6]"
+                                            class="rounded p-1.5 text-[#444444] hover:bg-[#eef2f6]"
                                             title="Editar"
                                             @click="startEditCategory(cat)"
                                         >
@@ -668,12 +668,12 @@ const quotaBarColor = computed(() => {
                 <!-- Documentación API (global) -->
                 <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold text-[#33475b]">API REST — referencia</h3>
-                        <p class="mt-1 text-sm text-[#425b76]">
+                        <h3 class="text-lg font-semibold text-[#133c75]">API REST — referencia</h3>
+                        <p class="mt-1 text-sm text-[#444444]">
                             Uso de los endpoints públicos por agente. Las <strong>API keys</strong> se generan en cada agente:
                             <strong>Agente → Configuración → API Keys</strong>. Sustituye <code class="rounded bg-[#e3e8ee] px-1 font-mono text-xs">{agent_id}</code> por el ID numérico del agente.
                         </p>
-                        <p class="mt-2 text-sm text-[#33475b]">
+                        <p class="mt-2 text-sm text-[#133c75]">
                             <span class="font-medium">Autenticación:</span>
                             header <code class="rounded bg-[#e3e8ee] px-1 text-xs">Authorization: Bearer TU_API_KEY</code>
                             o <code class="rounded bg-[#e3e8ee] px-1 text-xs">X-Api-Key: TU_API_KEY</code>
@@ -682,7 +682,7 @@ const quotaBarColor = computed(() => {
 
                         <button
                             type="button"
-                            class="mt-4 flex items-center gap-2 text-sm font-medium text-[#425b76] hover:text-[#33475b]"
+                            class="mt-4 flex items-center gap-2 text-sm font-medium text-[#444444] hover:text-[#133c75]"
                             @click="showApiDocs = !showApiDocs"
                         >
                             {{ showApiDocs ? 'Ocultar' : 'Ver' }} detalle de endpoints
@@ -699,10 +699,10 @@ const quotaBarColor = computed(() => {
                         <div v-show="showApiDocs" class="mt-4 space-y-6 border-t border-[#e3e8ee] pt-6">
                             <!-- 1 -->
                             <div>
-                                <p class="text-xs font-medium uppercase text-[#425b76]">1. Crear o actualizar cliente</p>
+                                <p class="text-xs font-medium uppercase text-[#444444]">1. Crear o actualizar cliente</p>
                                 <code class="mt-1 block break-all rounded bg-[#e3e8ee] px-3 py-2 text-sm">{{ apiBaseUrl }}/api/agents/{agent_id}/clients</code>
-                                <p class="mt-2 text-xs text-[#425b76]">POST — Crea o actualiza por documento o teléfono.</p>
-                                <pre class="mt-2 overflow-x-auto rounded bg-[#33475b] p-3 text-xs text-[#e3e8ee]">{
+                                <p class="mt-2 text-xs text-[#444444]">POST — Crea o actualiza por documento o teléfono.</p>
+                                <pre class="mt-2 overflow-x-auto rounded bg-[#133c75] p-3 text-xs text-[#e3e8ee]">{
   "name": "Juan",
   "lastname": "Pérez",
   "email": "juan@ejemplo.com",
@@ -714,61 +714,61 @@ const quotaBarColor = computed(() => {
                             </div>
                             <!-- 2 -->
                             <div>
-                                <p class="text-xs font-medium uppercase text-[#425b76]">2. Recolección datos WhatsApp</p>
+                                <p class="text-xs font-medium uppercase text-[#444444]">2. Recolección datos WhatsApp</p>
                                 <code class="mt-1 block break-all rounded bg-[#e3e8ee] px-3 py-2 text-sm">{{ apiBaseUrl }}/api/agents/{agent_id}/collect-data</code>
-                                <p class="mt-2 text-xs text-[#425b76]">POST — Requiere <code class="rounded bg-[#e3e8ee] px-1">phone</code> (solo dígitos).</p>
+                                <p class="mt-2 text-xs text-[#444444]">POST — Requiere <code class="rounded bg-[#e3e8ee] px-1">phone</code> (solo dígitos).</p>
                             </div>
                             <!-- 3 -->
                             <div>
-                                <p class="text-xs font-medium uppercase text-[#425b76]">3. Actualizar solo custom_fields por teléfono</p>
+                                <p class="text-xs font-medium uppercase text-[#444444]">3. Actualizar solo custom_fields por teléfono</p>
                                 <code class="mt-1 block break-all rounded bg-[#e3e8ee] px-3 py-2 text-sm">{{ apiBaseUrl }}/api/agents/{agent_id}/clients/custom-fields</code>
-                                <p class="mt-2 text-xs text-[#425b76]">PATCH — Body: <code class="rounded bg-[#e3e8ee] px-1">phone</code> + <code class="rounded bg-[#e3e8ee] px-1">custom_fields</code>.</p>
+                                <p class="mt-2 text-xs text-[#444444]">PATCH — Body: <code class="rounded bg-[#e3e8ee] px-1">phone</code> + <code class="rounded bg-[#e3e8ee] px-1">custom_fields</code>.</p>
                             </div>
                             <!-- 4 -->
                             <div>
-                                <p class="text-xs font-medium uppercase text-[#425b76]">4. Consultar cliente completo por teléfono</p>
+                                <p class="text-xs font-medium uppercase text-[#444444]">4. Consultar cliente completo por teléfono</p>
                                 <code class="mt-1 block break-all rounded bg-[#e3e8ee] px-3 py-2 text-sm">{{ apiBaseUrl }}/api/agents/{agent_id}/clients/by-phone</code>
-                                <p class="mt-2 text-xs text-[#425b76]">
+                                <p class="mt-2 text-xs text-[#444444]">
                                     GET o POST — Parámetro <code class="rounded bg-[#e3e8ee] px-1">phone</code> en query (<code class="rounded bg-[#e3e8ee] px-1">?phone=</code>) o en el body JSON. Devuelve el registro del cliente del agente con campos base, <code class="rounded bg-[#e3e8ee] px-1">custom_fields</code>, últimas cargas (<code class="rounded bg-[#e3e8ee] px-1">load_dates</code>), contactos (<code class="rounded bg-[#e3e8ee] px-1">contact_logs</code>) y callbacks (<code class="rounded bg-[#e3e8ee] px-1">callback_requests</code>). <code class="rounded bg-[#e3e8ee] px-1">404</code> si no existe.
                                 </p>
                             </div>
                             <!-- 5 -->
                             <div>
-                                <p class="text-xs font-medium uppercase text-[#425b76]">5. ¿Existe cliente por teléfono?</p>
+                                <p class="text-xs font-medium uppercase text-[#444444]">5. ¿Existe cliente por teléfono?</p>
                                 <code class="mt-1 block break-all rounded bg-[#e3e8ee] px-3 py-2 text-sm">{{ apiBaseUrl }}/api/clients/exists-by-phone</code>
-                                <p class="mt-2 text-xs text-[#425b76]">POST — Body: <code class="rounded bg-[#e3e8ee] px-1">agent_id</code>, <code class="rounded bg-[#e3e8ee] px-1">phone</code>. API key del agente del <code class="rounded bg-[#e3e8ee] px-1">agent_id</code>.</p>
-                                <p class="mt-1 text-xs text-[#425b76]">Respuesta incluye <code class="rounded bg-[#e3e8ee] px-1">exists</code>, <code class="rounded bg-[#e3e8ee] px-1">name</code> y <code class="rounded bg-[#e3e8ee] px-1">custom_fields</code> si existe.</p>
+                                <p class="mt-2 text-xs text-[#444444]">POST — Body: <code class="rounded bg-[#e3e8ee] px-1">agent_id</code>, <code class="rounded bg-[#e3e8ee] px-1">phone</code>. API key del agente del <code class="rounded bg-[#e3e8ee] px-1">agent_id</code>.</p>
+                                <p class="mt-1 text-xs text-[#444444]">Respuesta incluye <code class="rounded bg-[#e3e8ee] px-1">exists</code>, <code class="rounded bg-[#e3e8ee] px-1">name</code> y <code class="rounded bg-[#e3e8ee] px-1">custom_fields</code> si existe.</p>
                             </div>
                             <!-- 6 -->
                             <div>
-                                <p class="text-xs font-medium uppercase text-[#425b76]">6. Duplicar cliente a otro agente</p>
+                                <p class="text-xs font-medium uppercase text-[#444444]">6. Duplicar cliente a otro agente</p>
                                 <code class="mt-1 block break-all rounded bg-[#e3e8ee] px-3 py-2 text-sm">{{ apiBaseUrl }}/api/clients/duplicate</code>
-                                <p class="mt-2 text-xs text-[#425b76]">
+                                <p class="mt-2 text-xs text-[#444444]">
                                     POST — Copia campos base del cliente al destino; <strong>no</strong> copia <code class="rounded bg-[#e3e8ee] px-1">custom_fields</code>.
                                     Usa la API key del <strong>agente origen</strong> (<code class="rounded bg-[#e3e8ee] px-1">source_agent_id</code>).
                                     Ambos agentes deben pertenecer al mismo usuario.
                                 </p>
-                                <p class="mt-1 text-xs font-medium text-[#33475b]">Body ejemplo:</p>
-                                <pre class="mt-1 overflow-x-auto rounded bg-[#33475b] p-3 text-xs text-[#e3e8ee]">{
+                                <p class="mt-1 text-xs font-medium text-[#133c75]">Body ejemplo:</p>
+                                <pre class="mt-1 overflow-x-auto rounded bg-[#133c75] p-3 text-xs text-[#e3e8ee]">{
   "client_id": 123,
   "source_agent_id": 5,
   "target_agent_id": 7
 }</pre>
-                                <p class="mt-1 text-xs text-[#425b76]">
+                                <p class="mt-1 text-xs text-[#444444]">
                                     Respuesta <code class="rounded bg-[#e3e8ee] px-1">201</code> con el nuevo cliente en el agente destino.
                                     <code class="rounded bg-[#e3e8ee] px-1">403</code> si los agentes no pertenecen al mismo usuario.
                                 </p>
                             </div>
                             <!-- 7 -->
                             <div>
-                                <p class="text-xs font-medium uppercase text-[#425b76]">7. Registrar alerta de llamada</p>
+                                <p class="text-xs font-medium uppercase text-[#444444]">7. Registrar alerta de llamada</p>
                                 <code class="mt-1 block break-all rounded bg-[#e3e8ee] px-3 py-2 text-sm">{{ apiBaseUrl }}/api/agents/{agent_id}/call-alerts</code>
-                                <p class="mt-2 text-xs text-[#425b76]">
+                                <p class="mt-2 text-xs text-[#444444]">
                                     POST — Requiere <code class="rounded bg-[#e3e8ee] px-1">phone</code>. Vincula la alerta al cliente con ese
                                     teléfono (si existe) y notifica por correo a los destinatarios configurados arriba.
                                     <code class="rounded bg-[#e3e8ee] px-1">categoria</code> es opcional (por nombre, p. ej. «Problema»); si no coincide, la alerta queda sin categoría.
                                 </p>
-                                <pre class="mt-2 overflow-x-auto rounded bg-[#33475b] p-3 text-xs text-[#e3e8ee]">{
+                                <pre class="mt-2 overflow-x-auto rounded bg-[#133c75] p-3 text-xs text-[#e3e8ee]">{
   "phone": "573001234567",
   "numero_llamada": 3,
   "paso_llamada": 2,
@@ -783,8 +783,8 @@ const quotaBarColor = computed(() => {
                 <!-- Historial de transacciones -->
                 <div class="overflow-hidden rounded-lg border border-[#e3e8ee] bg-white">
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold text-[#33475b]">Historial de transacciones</h3>
-                        <p class="mt-1 text-sm text-[#425b76]">
+                        <h3 class="text-lg font-semibold text-[#133c75]">Historial de transacciones</h3>
+                        <p class="mt-1 text-sm text-[#444444]">
                             Últimas transacciones registradas.
                         </p>
 
@@ -792,21 +792,21 @@ const quotaBarColor = computed(() => {
                             <table class="min-w-full divide-y divide-[#e3e8ee]">
                                 <thead class="bg-[#f5f8fa]">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#425b76]">Fecha</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#425b76]">Descripción</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#425b76]">Método</th>
-                                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[#425b76]">Monto</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#425b76]">Estado</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#444444]">Fecha</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#444444]">Descripción</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#444444]">Método</th>
+                                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[#444444]">Monto</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#444444]">Estado</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-[#e3e8ee] bg-white">
                                     <tr v-for="tx in transactions" :key="tx.id" class="hover:bg-[#f5f8fa]">
-                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-[#33475b]">
+                                        <td class="whitespace-nowrap px-4 py-3 text-sm text-[#133c75]">
                                             {{ new Date(tx.transacted_at).toLocaleDateString() }}
                                         </td>
-                                        <td class="px-4 py-3 text-sm text-[#33475b]">{{ tx.description }}</td>
-                                        <td class="px-4 py-3 text-sm text-[#425b76]">{{ tx.payment_method || '-' }}</td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-[#33475b]">
+                                        <td class="px-4 py-3 text-sm text-[#133c75]">{{ tx.description }}</td>
+                                        <td class="px-4 py-3 text-sm text-[#444444]">{{ tx.payment_method || '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-[#133c75]">
                                             {{ tx.currency }} {{ Number(tx.amount).toLocaleString() }}
                                         </td>
                                         <td class="px-4 py-3">
@@ -825,7 +825,7 @@ const quotaBarColor = computed(() => {
                                 </tbody>
                             </table>
                         </div>
-                        <div v-else class="mt-6 rounded-lg border border-dashed border-[#e3e8ee] py-12 text-center text-[#425b76]">
+                        <div v-else class="mt-6 rounded-lg border border-dashed border-[#e3e8ee] py-12 text-center text-[#444444]">
                             No hay transacciones registradas.
                         </div>
                     </div>

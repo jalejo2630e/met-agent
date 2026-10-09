@@ -240,14 +240,14 @@ function fmtDuration(seg) {
                 <!-- Header -->
                 <div class="flex items-start justify-between gap-3 border-b border-[#e3e8ee] bg-[#f9fbfc] px-6 py-4">
                     <div class="flex min-w-0 items-center gap-3">
-                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#eef2f6] text-sm font-semibold text-[#33475b]">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#eef2f6] text-sm font-semibold text-[#133c75]">
                             {{ initials }}
                         </div>
                         <div class="min-w-0">
-                            <h2 class="truncate text-lg font-semibold text-[#33475b]">
+                            <h2 class="truncate text-lg font-semibold text-[#133c75]">
                                 {{ client ? `${client.name} ${client.lastname || ''}`.trim() : (clientName || 'Cliente') }}
                             </h2>
-                            <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#425b76]">
+                            <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#444444]">
                                 <span v-if="client?.phone" class="inline-flex items-center gap-1">📞 {{ client.phone }}</span>
                                 <span v-if="client?.email" class="inline-flex max-w-[220px] items-center gap-1 truncate">✉️ {{ client.email }}</span>
                                 <span v-if="client?.document" class="inline-flex items-center gap-1">🪪 {{ client.document_type }} {{ client.document }}</span>
@@ -255,12 +255,12 @@ function fmtDuration(seg) {
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="shrink-0 rounded p-1.5 text-[#425b76] hover:bg-[#eef2f6]" @click="emit('close')">
+                    <button type="button" class="shrink-0 rounded p-1.5 text-[#444444] hover:bg-[#eef2f6]" @click="emit('close')">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
 
-                <div v-if="loading" class="p-12 text-center text-[#425b76]">Cargando detalle...</div>
+                <div v-if="loading" class="p-12 text-center text-[#444444]">Cargando detalle...</div>
 
                 <template v-else-if="detail">
                     <!-- Tabs -->
@@ -270,11 +270,11 @@ function fmtDuration(seg) {
                             :key="t.key"
                             type="button"
                             class="flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition"
-                            :class="activeTab === t.key ? 'border-[var(--color-primary)] text-[#33475b]' : 'border-transparent text-[#98a4b3] hover:text-[#425b76]'"
+                            :class="activeTab === t.key ? 'border-[var(--color-primary)] text-[#133c75]' : 'border-transparent text-[#98a4b3] hover:text-[#444444]'"
                             @click="activeTab = t.key"
                         >
                             {{ t.label }}
-                            <span v-if="t.count" class="rounded-full bg-[#eef2f6] px-1.5 text-[11px] font-semibold text-[#425b76]">{{ t.count }}</span>
+                            <span v-if="t.count" class="rounded-full bg-[#eef2f6] px-1.5 text-[11px] font-semibold text-[#444444]">{{ t.count }}</span>
                         </button>
                     </nav>
 
@@ -289,13 +289,13 @@ function fmtDuration(seg) {
                                 <div class="space-y-3">
                                     <div v-for="t in progress.topics" :key="t.field">
                                         <div class="mb-1 flex items-center justify-between text-sm">
-                                            <span class="flex items-center gap-2 text-[#33475b]">
+                                            <span class="flex items-center gap-2 text-[#133c75]">
                                                 <span class="inline-block h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: t.color }" />
                                                 {{ t.label }}
                                                 <span v-if="t.completed" class="inline-flex items-center gap-1 rounded-full bg-[#e8f5e9] px-2 py-0.5 text-[11px] font-medium text-[#2e7d32]">✓ Completado</span>
                                                 <span v-else-if="progress.current_topic === t.label" class="inline-flex items-center rounded-full bg-[#e3f2fd] px-2 py-0.5 text-[11px] font-medium text-[#1976d2]">En curso</span>
                                             </span>
-                                            <span class="text-xs text-[#425b76]">{{ t.value }} / {{ t.max }}</span>
+                                            <span class="text-xs text-[#444444]">{{ t.value }} / {{ t.max }}</span>
                                         </div>
                                         <div class="h-2 w-full overflow-hidden rounded-full bg-[#eef2f6]">
                                             <div class="h-full rounded-full transition-all" :style="{ width: t.pct + '%', backgroundColor: t.color }" />
@@ -308,7 +308,7 @@ function fmtDuration(seg) {
 
                         <!-- Llamadas y transcripciones (maestro-detalle) -->
                         <div v-else-if="activeTab === 'llamadas'" class="space-y-4">
-                            <div v-if="loadingCalls" class="rounded-lg border border-[#eef2f6] p-6 text-center text-sm text-[#425b76]">Cargando llamadas...</div>
+                            <div v-if="loadingCalls" class="rounded-lg border border-[#eef2f6] p-6 text-center text-sm text-[#444444]">Cargando llamadas...</div>
                             <div v-else-if="!calls.length" class="rounded-lg border border-[#eef2f6] p-6 text-center text-sm text-[#98a4b3]">{{ callsMessage || 'Sin llamadas registradas.' }}</div>
                             <div v-else class="grid gap-3 md:grid-cols-[minmax(0,240px)_1fr]">
                                 <!-- Lista de llamadas (izquierda) -->
@@ -320,7 +320,7 @@ function fmtDuration(seg) {
                                             :class="selectedCallId === c.id ? 'border-[var(--color-primary)] bg-[#f0f4f8]' : 'border-transparent hover:bg-[#f5f8fa]'"
                                             @click="selectCall(c)"
                                         >
-                                            <span class="flex items-center gap-2 text-sm text-[#33475b]">
+                                            <span class="flex items-center gap-2 text-sm text-[#133c75]">
                                                 <svg class="h-4 w-4 shrink-0 text-[#f9a825]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                                                 {{ fmtDate(c.created_at) }}
                                             </span>
@@ -334,12 +334,12 @@ function fmtDuration(seg) {
                                     <div v-if="!selectedCallId" class="flex h-full min-h-[200px] items-center justify-center text-center text-sm text-[#98a4b3]">
                                         Selecciona una llamada de la izquierda para ver la conversación.
                                     </div>
-                                    <div v-else-if="loadingCallDetail === selectedCallId" class="py-10 text-center text-sm text-[#425b76]">Cargando transcripción...</div>
+                                    <div v-else-if="loadingCallDetail === selectedCallId" class="py-10 text-center text-sm text-[#444444]">Cargando transcripción...</div>
                                     <template v-else-if="callDetailById[selectedCallId]">
                                         <WaveformAudioPlayer v-if="callDetailById[selectedCallId].audio" :src="audioSrc(callDetailById[selectedCallId].audio)" class="mb-3" />
                                         <div v-if="callVars(callDetailById[selectedCallId])" class="mb-3 rounded-md bg-[#f9fbfc] p-3 text-sm">
-                                            <p v-if="callVars(callDetailById[selectedCallId]).title" class="font-medium text-[#33475b]">{{ callVars(callDetailById[selectedCallId]).title }}</p>
-                                            <p v-if="callVars(callDetailById[selectedCallId]).summary" class="mt-1 text-[#425b76]">{{ callVars(callDetailById[selectedCallId]).summary }}</p>
+                                            <p v-if="callVars(callDetailById[selectedCallId]).title" class="font-medium text-[#133c75]">{{ callVars(callDetailById[selectedCallId]).title }}</p>
+                                            <p v-if="callVars(callDetailById[selectedCallId]).summary" class="mt-1 text-[#444444]">{{ callVars(callDetailById[selectedCallId]).summary }}</p>
                                         </div>
                                         <div v-if="(callDetailById[selectedCallId].transcript || []).length" class="space-y-2">
                                             <div
@@ -350,7 +350,7 @@ function fmtDuration(seg) {
                                             >
                                                 <div
                                                     class="max-w-[85%] rounded-lg px-3 py-1.5 text-sm"
-                                                    :class="turn.role === 'agent' ? 'bg-[#eef2f6] text-[#33475b]' : 'bg-[#e3f2fd] text-[#0d47a1]'"
+                                                    :class="turn.role === 'agent' ? 'bg-[#eef2f6] text-[#133c75]' : 'bg-[#e3f2fd] text-[#0d47a1]'"
                                                 >
                                                     {{ turn.message }}
                                                 </div>
@@ -363,9 +363,9 @@ function fmtDuration(seg) {
 
                             <!-- Tracking de contactos -->
                             <div v-if="contactLogs.length">
-                                <p class="mb-1 text-xs font-medium text-[#425b76]">Historial de contacto ({{ contactLogs.length }})</p>
+                                <p class="mb-1 text-xs font-medium text-[#444444]">Historial de contacto ({{ contactLogs.length }})</p>
                                 <div class="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-[#eef2f6] p-2">
-                                    <div v-for="(l, i) in contactLogs" :key="i" class="flex items-center justify-between px-2 py-1 text-xs text-[#425b76]">
+                                    <div v-for="(l, i) in contactLogs" :key="i" class="flex items-center justify-between px-2 py-1 text-xs text-[#444444]">
                                         <span class="inline-flex items-center gap-1">
                                             <span v-if="l.channel === 'call'">📞 Llamada</span>
                                             <span v-else-if="l.channel === 'whatsapp'">💬 WhatsApp</span>
@@ -385,13 +385,13 @@ function fmtDuration(seg) {
                                     <li v-for="a in callAlerts" :key="a.id" class="p-4">
                                         <div class="flex items-start justify-between gap-3">
                                             <div class="min-w-0 flex-1">
-                                                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#425b76]">
+                                                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#444444]">
                                                     <span v-if="a.phone">📞 {{ a.phone }}</span>
                                                     <span>Llamada #{{ a.numero_llamada ?? '—' }}</span>
                                                     <span>Paso {{ a.paso_llamada ?? '—' }}</span>
                                                     <span class="text-[#98a4b3]">{{ fmtDate(a.created_at) }}</span>
                                                 </div>
-                                                <p v-if="a.descripcion" class="mt-2 whitespace-pre-wrap text-sm text-[#33475b]">{{ a.descripcion }}</p>
+                                                <p v-if="a.descripcion" class="mt-2 whitespace-pre-wrap text-sm text-[#133c75]">{{ a.descripcion }}</p>
                                             </div>
                                             <button type="button" class="shrink-0 rounded p-1 text-[#c2cddb] hover:bg-red-50 hover:text-red-500" title="Eliminar alerta" @click="deleteAlert(a)">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -401,13 +401,13 @@ function fmtDuration(seg) {
                                             <span
                                                 v-if="a.categoria"
                                                 class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium"
-                                                :style="{ backgroundColor: (a.categoria.color || '#eef2f6') + '22', color: a.categoria.color || '#425b76' }"
+                                                :style="{ backgroundColor: (a.categoria.color || '#eef2f6') + '22', color: a.categoria.color || '#444444' }"
                                             >
                                                 <span class="inline-block h-2 w-2 rounded-full" :style="{ backgroundColor: a.categoria.color || '#c2cddb' }" />
                                                 {{ a.categoria.nombre }}
                                             </span>
                                             <select
-                                                class="rounded-md border-[#e3e8ee] py-1 text-xs text-[#33475b] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                                                class="rounded-md border-[#e3e8ee] py-1 text-xs text-[#133c75] shadow-sm focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                                                 :value="a.categoria ? a.categoria.id : ''"
                                                 @change="updateAlertCategory(a, $event)"
                                             >
@@ -441,7 +441,7 @@ function fmtDuration(seg) {
                             <ul v-if="notes.length" class="mt-3 space-y-2">
                                 <li v-for="n in notes" :key="n.id" class="rounded-md bg-[#f9fbfc] p-3">
                                     <div class="flex items-start justify-between gap-2">
-                                        <p class="whitespace-pre-wrap text-sm text-[#33475b]">{{ n.body }}</p>
+                                        <p class="whitespace-pre-wrap text-sm text-[#133c75]">{{ n.body }}</p>
                                         <button type="button" class="shrink-0 rounded p-1 text-[#c2cddb] hover:bg-red-50 hover:text-red-500" @click="deleteNote(n)">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                         </button>
